@@ -29,9 +29,11 @@ as your own preset (stored in the browser).
 - **Paste a list** — one SKU per line, filled in reading order, optionally repeating.
 - **Logo** — drop in a PNG/JPG/SVG and place it alone, above the text, or beside it. Images are
   downscaled and kept in the browser.
-- **Colour markers** — tag labels with 🔴🟠🟡🟢🔵🟣⚫⚪✅❌⭐ to track which stickers on a
-  part-used sheet are already gone. Markers tint the label on screen and **do not print** unless you
-  ask them to. Turn on *Paint mode* to tag by dragging.
+- **Colour tags** — mark labels with a small colour dot to track which stickers on a part-used
+  sheet are already gone. Ten colours, each a colour-to-white gradient bead that reads at a glance
+  without covering the label. Hover a colour to spotlight every label carrying it; each swatch shows
+  how many it has. Dots are screen-only unless you ask for them. *Paint mode* tags by dragging.
+- **Keyboard** — arrows move the cursor, Shift extends, Space toggles, Del clears, Ctrl+P prints.
 - **Export / Import** — the whole sheet, images included, as a JSON file.
 
 Everything autosaves to `localStorage`, so the sheet is still there next time you open the page.
