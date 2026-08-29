@@ -461,9 +461,16 @@ function freshState(){
     opts: {guides:false, idx:true, tint:true, printMarkers:false}
   };
 }
+var saveWarned=false;
 function save(){
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
-  catch(e){ toast("Could not save \u2014 storage full. Use Export to keep a copy."); }
+  catch(e){
+    if(saveWarned) return;
+    saveWarned=true;
+    toast(/quota|exceed/i.test(String(e.name)+String(e.message))
+      ? "Storage is full — this sheet has stopped autosaving. Use Export to keep a copy."
+      : "This browser will not save the sheet here — use Export to keep a copy.");
+  }
 }
 function load(){
   try {
