@@ -950,6 +950,7 @@ window.addEventListener("resize", function(){
 function doPrint(){
   var keep=new Set(sel);
   sel=new Set(); paintSel();
+  $("stage").scrollTop=0; $("stage").scrollLeft=0;
   window.print();
   setTimeout(function(){ sel=keep; paintSel(); }, 400);
 }
