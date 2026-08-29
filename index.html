@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Sheet Printer</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161a21; --panel2:#1c212a; --line:#2a3140;
+    --txt:#e6e9ef; --dim:#98a2b3; --accent:#4f8cff; --accent2:#2f6fe0;
+    --ok:#31c48d; --warn:#f0b429; --danger:#f2545b;
+    --radius:8px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font:13px/1.45 "Segoe UI",Inter,system-ui,-apple-system,Arial,sans-serif;
+    overflow:hidden;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+
+  /* ---------- App shell ---------- */
+  .app{display:flex;flex-direction:column;height:100%}
+  .topbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);
+  }
+  .brand{font-weight:700;letter-spacing:.2px;margin-right:4px;white-space:nowrap}
+  .brand span{color:var(--accent)}
+  .main{display:flex;flex:1;min-height:0}
+  .stage{
+    flex:1;min-width:0;overflow:auto;background:#0b0d11;
+    padding:18px; display:block;
+  }
+  .sidebar{
+    width:340px;flex:none;background:var(--panel);border-left:1px solid var(--line);
+    overflow-y:auto;padding:12px 12px 60px;
+  }
+
+  /* ---------- Controls ---------- */
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+    padding:6px 10px;color:var(--txt);white-space:nowrap;
+  }
+  .btn:hover{border-color:#3b4557;background:#222833}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--accent2)}
+  .btn.sm{padding:4px 7px;font-size:12px}
+  .btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.danger:hover{border-color:var(--danger);color:#ffb3b6}
+  input[type=text],input[type=number],select,textarea{
+    background:#0e1219;border:1px solid var(--line);border-radius:6px;padding:5px 7px;width:100%;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+  label.lbl{display:block;font-size:11px;color:var(--dim);margin:0 0 3px;text-transform:uppercase;letter-spacing:.4px}
+  .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .row>*{min-width:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .sec{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;background:var(--panel2)}
+  .sec>summary{
+    padding:8px 10px;cursor:pointer;font-weight:600;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .sec>summary::-webkit-details-marker{display:none}
+  .sec>summary::after{content:"▾";color:var(--dim);font-size:11px}
+  .sec[open]>summary::after{content:"▴"}
+  .sec .body{padding:0 10px 10px;display:flex;flex-direction:column;gap:8px}
+  .hint{font-size:11px;color:var(--dim);line-height:1.4}
+  .kbd{background:#0e1219;border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+  .divider{height:1px;background:var(--line);margin:2px 0}
+  .selinfo{
+    background:#0e1219;border:1px solid var(--line);border-radius:6px;
+    padding:6px 8px;font-size:12px;color:var(--dim);
+  }
+  .selinfo b{color:var(--txt)}
+  .chip{
+    display:inline-flex;align-items:center;gap:4px;background:#0e1219;border:1px solid var(--line);
+    border-radius:99px;padding:2px 8px;font-size:11px;color:var(--dim)
+  }
+  .emoji-pal{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+  .emoji-btn{
+    background:#0e1219;border:1px solid var(--line);border-radius:6px;
+    padding:5px 0;font-size:17px;line-height:1;text-align:center;
+  }
+  .emoji-btn:hover{border-color:var(--accent);background:#151b25}
+  .emoji-btn.act{outline:2px solid var(--accent);outline-offset:-2px}
+  .swatch{width:100%;height:26px;border-radius:6px;border:1px solid var(--line)}
+
+  /* ---------- Sheet ---------- */
+  .stagewrap{display:inline-block;position:relative}
+  .colhdr{position:relative;height:20px;margin-left:24px}
+  .colhdr div,.rowhdr div{
+    position:absolute;background:#1b2431;border:1px solid var(--line);border-radius:4px;
+    color:var(--dim);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .colhdr div{top:0;height:18px}
+  .rowhdr div{left:0;width:22px}
+  .colhdr div:hover,.rowhdr div:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .sheetrow{display:flex;align-items:flex-start}
+  .rowhdr{position:relative;width:24px;flex:none}
+  .sheetouter{position:relative;flex:none}
+
+  .sheet{
+    position:absolute;top:0;left:0;transform-origin:0 0;
+    background:#fff;color:#000;display:grid;
+    box-shadow:0 6px 30px rgba(0,0,0,.55);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .cell{
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    text-align:center;cursor:pointer;
+    outline:0.18mm dashed #c9cfd8;outline-offset:-0.18mm;
+  }
+  .cell.hasContent{outline:0.18mm solid #9aa4b2}
+  .cell .inner{
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:0.7mm;
+    padding:0.7mm;overflow:hidden;
+  }
+  .cell .inner.stack{flex-direction:column}
+  .cell .inner.rowlay{flex-direction:row}
+  .cell .txt{
+    white-space:pre-wrap;word-break:break-word;line-height:1.12;overflow:hidden;
+    font-family:Inter,"Segoe UI",Arial,Helvetica,sans-serif;
+  }
+  .cell img{object-fit:contain;display:block;max-width:100%;max-height:100%}
+  .cell .marker{
+    position:absolute;top:0.2mm;right:0.4mm;font-size:2.6mm;line-height:1;pointer-events:none;
+    filter:drop-shadow(0 0 .5px rgba(0,0,0,.4));
+  }
+  .cell .idx{
+    position:absolute;bottom:0.1mm;left:0.5mm;font-size:1.9mm;line-height:1;color:#c2c8d2;pointer-events:none;
+  }
+  .cell.sel{background:rgba(79,140,255,.16);outline:0.4mm solid var(--accent);outline-offset:-0.4mm;z-index:2}
+  .cell.tinted{background:var(--tint)}
+  .cell.sel.tinted{background:rgba(79,140,255,.28)}
+  .band{position:absolute;border:1px solid var(--accent);background:rgba(79,140,255,.12);pointer-events:none;z-index:9}
+
+  .pagelabel{
+    position:absolute;top:-16px;left:0;font-size:11px;color:var(--dim);
+  }
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+    background:#1f2632;border:1px solid var(--line);border-radius:8px;padding:9px 14px;
+    box-shadow:0 8px 26px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .18s;z-index:99;
+    font-size:12.5px;max-width:80vw;
+  }
+  #toast.show{opacity:1}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){ .sidebar{width:300px} }
+  @media (max-width:860px){
+    .main{flex-direction:column}
+    .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:46vh}
+    .stage{max-height:54vh}
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    html,body{height:auto;overflow:visible;background:#fff}
+    .topbar,.sidebar,.colhdr,.rowhdr,#toast,.pagelabel{display:none !important}
+    .app,.main,.stage{display:block;overflow:visible;padding:0;margin:0;background:#fff}
+    .stagewrap,.sheetrow,.sheetouter{display:block;position:static;width:auto;height:auto;margin:0}
+    .sheet{
+      position:absolute;left:0;top:0;margin:0;transform:none !important;
+      box-shadow:none;break-inside:avoid;page-break-after:avoid;
+    }
+    .cell{outline:none !important;background:none !important}
+    .cell.guide{outline:0.15mm solid #b8bfc9 !important;outline-offset:-0.15mm}
+    .cell .idx{display:none}
+    .cell .marker.noprint{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">Label<span>Sheet</span></div>
+    <select id="presetSel" style="width:210px"></select>
+    <button class="btn sm" id="savePreset" title="Save current geometry as a preset">Save preset</button>
+    <button class="btn sm danger" id="delPreset" title="Delete selected custom preset">Del</button>
+    <div style="width:1px;height:22px;background:var(--line)"></div>
+    <button class="btn sm" id="zoomOut">&minus;</button>
+    <span id="zoomVal" style="width:44px;text-align:center;color:var(--dim)">100%</span>
+    <button class="btn sm" id="zoomIn">+</button>
+    <button class="btn sm" id="zoomFit">Fit</button>
+    <div style="width:1px;height:22px;background:var(--line)"></div>
+    <button class="btn sm" id="exportBtn">Export</button>
+    <button class="btn sm" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button class="btn sm danger" id="clearAll">Clear sheet</button>
+    <div style="flex:1"></div>
+    <span class="chip" id="dimChip">&ndash;</span>
+    <button class="btn primary" id="printBtn">Print</button>
+  </div>
+
+  <div class="main">
+    <div class="stage" id="stage">
+      <div class="stagewrap" id="stagewrap">
+        <div class="colhdr" id="colhdr"></div>
+        <div class="sheetrow">
+          <div class="rowhdr" id="rowhdr"></div>
+          <div class="sheetouter" id="sheetouter">
+            <div class="sheet" id="sheet"></div>
+            <div id="band" class="band" hidden></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="selinfo" id="selInfo">Nothing selected</div>
+      <div style="height:8px"></div>
+
+      <details class="sec" open>
+        <summary>Selection</summary>
+        <div class="body">
+          <div class="grid4">
+            <button class="btn sm" data-sel="all">All</button>
+            <button class="btn sm" data-sel="none">None</button>
+            <button class="btn sm" data-sel="invert">Invert</button>
+            <button class="btn sm" data-sel="empty">Empty</button>
+          </div>
+          <div class="grid2">
+            <button class="btn sm" data-sel="filled">With content</button>
+            <button class="btn sm" data-sel="marked">With marker</button>
+          </div>
+          <div class="hint">
+            <b>Click</b> select &middot; <b>Drag</b> box-select &middot; <span class="kbd">Ctrl</span>+click toggle &middot;
+            <span class="kbd">Shift</span>+click block &middot; click a row/column header for the whole line.
+          </div>
+        </div>
+      </details>
+      <details class="sec" open>
+        <summary>Content</summary>
+        <div class="body">
+          <div>
+            <label class="lbl">Text (SKU / name) &mdash; Enter makes a new line</label>
+            <textarea id="txtInput" rows="3" placeholder="ABC-1234"></textarea>
+          </div>
+          <div class="grid2">
+            <button class="btn primary" id="applyText">Apply to selection</button>
+            <button class="btn" id="clearCells">Clear cells</button>
+          </div>
+          <div class="divider"></div>
+          <label class="lbl">Auto-number fill</label>
+          <div class="grid3">
+            <input type="text" id="seqPrefix" placeholder="SKU-" title="Prefix">
+            <input type="number" id="seqStart" value="1" title="Start number">
+            <input type="number" id="seqPad" value="3" min="0" max="8" title="Zero-pad digits">
+          </div>
+          <div class="grid2">
+            <input type="text" id="seqSuffix" placeholder="suffix (optional)">
+            <button class="btn" id="applySeq">Fill numbered</button>
+          </div>
+          <div class="divider"></div>
+          <label class="lbl">Paste a list &mdash; one label per line</label>
+          <textarea id="listInput" rows="4" placeholder="ABC-001&#10;ABC-002&#10;ABC-003"></textarea>
+          <div class="grid2">
+            <button class="btn" id="applyList">Fill from list</button>
+            <label class="row" style="font-size:11px;color:var(--dim);gap:4px">
+              <input type="checkbox" id="listRepeat" style="width:auto"> repeat to fill
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary>Logo / image</summary>
+        <div class="body">
+          <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml">
+          <div id="imgLib" class="grid4"></div>
+          <div class="grid2">
+            <button class="btn primary" id="applyImg">Put on selection</button>
+            <button class="btn" id="removeImg">Remove image</button>
+          </div>
+          <div>
+            <label class="lbl">Layout inside label</label>
+            <select id="layoutSel">
+              <option value="text">Text only</option>
+              <option value="image">Image only</option>
+              <option value="img-top">Image on top, text below</option>
+              <option value="img-left">Image left, text right</option>
+              <option value="img-right">Image right, text left</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Image size <span id="imgSizeVal">55%</span></label>
+            <input type="range" id="imgSize" min="10" max="100" value="55" style="padding:0">
+          </div>
+          <div class="hint">Images live in this browser only, and travel inside the Export file.</div>
+        </div>
+      </details>
+      <details class="sec">
+        <summary>Text style</summary>
+        <div class="body">
+          <div class="grid2">
+            <div><label class="lbl">Size (pt)</label>
+              <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5"></div>
+            <div><label class="lbl">Font</label>
+              <select id="fontFam">
+                <option value="Inter, 'Segoe UI', Arial, sans-serif">Sans</option>
+                <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                <option value="ui-monospace, Consolas, 'Courier New', monospace">Mono</option>
+              </select></div>
+          </div>
+          <div class="grid3">
+            <button class="btn sm" id="boldBtn"><b>Bold</b></button>
+            <button class="btn sm" id="upperBtn">AA</button>
+            <button class="btn sm" id="fitBtn">Auto-fit</button>
+          </div>
+          <div class="hint">Changes here hit the selected labels straight away, and become the default for whatever you type next.</div>
+        </div>
+      </details>
+
+      <details class="sec" open>
+        <summary>Colour markers</summary>
+        <div class="body">
+          <div class="emoji-pal" id="emojiPal"></div>
+          <div class="grid2">
+            <button class="btn" id="markApply">Tag selection</button>
+            <button class="btn" id="markClear">Untag</button>
+          </div>
+          <div class="grid2">
+            <button class="btn sm" id="markSelect">Select tagged</button>
+            <button class="btn sm" id="paintBtn">Paint mode: off</button>
+          </div>
+          <label class="row" style="gap:6px;font-size:12px">
+            <input type="checkbox" id="tintChk" style="width:auto" checked> Tint the whole label on screen
+          </label>
+          <label class="row" style="gap:6px;font-size:12px">
+            <input type="checkbox" id="printMarkers" style="width:auto"> Print the emoji too
+          </label>
+          <div class="hint">Markers never print unless you tick the box. Use them to remember which stickers are
+            already peeled off &mdash; then <b>Select tagged</b> and <b>Clear cells</b> so those spots print blank.</div>
+        </div>
+      </details>
+      <details class="sec">
+        <summary>Sheet setup (mm)</summary>
+        <div class="body">
+          <div class="grid2">
+            <div><label class="lbl">Page width</label><input type="number" id="pw" step="0.1"></div>
+            <div><label class="lbl">Page height</label><input type="number" id="ph" step="0.1"></div>
+          </div>
+          <div class="grid2">
+            <div><label class="lbl">Columns</label><input type="number" id="cols" min="1" max="40"></div>
+            <div><label class="lbl">Rows</label><input type="number" id="rows" min="1" max="60"></div>
+          </div>
+          <div class="grid4">
+            <div><label class="lbl">Top</label><input type="number" id="mt" step="0.1"></div>
+            <div><label class="lbl">Right</label><input type="number" id="mr" step="0.1"></div>
+            <div><label class="lbl">Bottom</label><input type="number" id="mb" step="0.1"></div>
+            <div><label class="lbl">Left</label><input type="number" id="ml" step="0.1"></div>
+          </div>
+          <div class="grid3">
+            <div><label class="lbl">Gap X</label><input type="number" id="gx" step="0.1"></div>
+            <div><label class="lbl">Gap Y</label><input type="number" id="gy" step="0.1"></div>
+            <div><label class="lbl">Corner</label><input type="number" id="rad" step="0.1"></div>
+          </div>
+          <div class="selinfo" id="calcInfo"></div>
+          <label class="row" style="gap:6px;font-size:12px">
+            <input type="checkbox" id="guideChk" style="width:auto"> Print outlines (alignment test)
+          </label>
+          <label class="row" style="gap:6px;font-size:12px">
+            <input type="checkbox" id="idxChk" style="width:auto" checked> Show cell numbers on screen
+          </label>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary>Printing checklist</summary>
+        <div class="body">
+          <div class="hint">
+            In the print dialog set:<br>
+            &bull; <b>Paper size</b> &rarr; A4<br>
+            &bull; <b>Margins</b> &rarr; None<br>
+            &bull; <b>Scale</b> &rarr; 100% (never &ldquo;Fit to page&rdquo;)<br>
+            &bull; <b>Headers and footers</b> &rarr; off<br>
+            &bull; <b>Background graphics</b> &rarr; on (only needed for outlines / emoji)<br><br>
+            Do one test on plain paper, hold it against the sticker sheet up to the light, then nudge the
+            margins by a few tenths of a mm if your printer is off.
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<style>
+  .cell .txt{max-width:100%;max-height:100%;min-width:0;min-height:0;flex:0 1 auto}
+  .cell .inner img{flex:0 0 auto}
+  .imglib-item{position:relative;border:1px solid var(--line);border-radius:6px;background:#fff;
+    height:42px;display:flex;align-items:center;justify-content:center;padding:3px;cursor:pointer}
+  .imglib-item img{max-width:100%;max-height:100%;object-fit:contain}
+  .imglib-item.act{outline:2px solid var(--accent);outline-offset:-2px}
+  .imglib-item .x{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;
+    border-radius:50%;width:16px;height:16px;font-size:10px;line-height:16px;padding:0;text-align:center}
+</style>
+<script>
+(function(){
+"use strict";
+var PXMM = 96/25.4;
+var KEY  = "labelsheet.v2";
+var EMOJI = ["\u{1F534}","\u{1F7E0}","\u{1F7E1}","\u{1F7E2}","\u{1F535}","\u{1F7E3}",
+             "\u{1F7E4}","\u26AB","\u26AA","\u2705","\u274C","\u2B50"];
+var TINTS = {
+  "\u{1F534}":"rgba(244,67,54,.18)",  "\u{1F7E0}":"rgba(255,152,0,.18)",
+  "\u{1F7E1}":"rgba(255,214,0,.22)",  "\u{1F7E2}":"rgba(76,175,80,.18)",
+  "\u{1F535}":"rgba(33,150,243,.18)", "\u{1F7E3}":"rgba(156,39,176,.18)",
+  "\u{1F7E4}":"rgba(121,85,72,.18)",  "\u26AB":"rgba(0,0,0,.14)",
+  "\u26AA":"rgba(200,200,200,.22)",   "\u2705":"rgba(0,200,120,.18)",
+  "\u274C":"rgba(255,0,0,.14)",       "\u2B50":"rgba(255,193,7,.20)"
+};
+var BUILTIN = [
+  {id:"a4-6x17", name:"A4 \u00b7 6\u00d717 \u00b7 32\u00d715 mm", pw:210,ph:297,cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
+  {id:"a4-5x13", name:"A4 \u00b7 5\u00d713 \u00b7 38\u00d721 mm", pw:210,ph:297,cols:5,rows:13,mt:10.7,mr:5,mb:10.7,ml:5,gx:2.5,gy:0,rad:1.5},
+  {id:"a4-4x10", name:"A4 \u00b7 4\u00d710 \u00b7 48\u00d725 mm", pw:210,ph:297,cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
+  {id:"a4-3x8",  name:"A4 \u00b7 3\u00d78 \u00b7 70\u00d737 mm",  pw:210,ph:297,cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:1.5},
+  {id:"a4-2x7",  name:"A4 \u00b7 2\u00d77 \u00b7 105\u00d742 mm", pw:210,ph:297,cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:1.5},
+  {id:"ltr-6x17",name:"Letter \u00b7 6\u00d717",                  pw:215.9,ph:279.4,cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5}
+];
+var DEF_STYLE = {fs:8, ff:0, b:true, up:false, lay:"text", is:55, fit:true};
+var FONTS = ["Inter, 'Segoe UI', Arial, sans-serif",
+             "Georgia, 'Times New Roman', serif",
+             "ui-monospace, Consolas, 'Courier New', monospace"];
+
+var S = null;          // whole state
+var sel = new Set();   // selected cell indices
+var anchor = 0;        // shift-click anchor
+var zoom = 1;
+var curEmoji = EMOJI[0];
+var curImg = null;     // selected image id in library
+var paint = false;
+var $ = function(id){ return document.getElementById(id); };
+
+function toast(msg){
+  var t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove("show"); }, 1900);
+}
+function count(){ return S.g.cols * S.g.rows; }
+function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+/* ---------------- state ---------------- */
+function blankCells(n){ var a=[],i; for(i=0;i<n;i++) a.push({}); return a; }
+function freshState(){
+  var g = JSON.parse(JSON.stringify(BUILTIN[0]));
+  return {
+    presetId: g.id,
+    g: g,
+    cells: blankCells(g.cols*g.rows),
+    images: {},
+    style: JSON.parse(JSON.stringify(DEF_STYLE)),
+    custom: [],
+    opts: {guides:false, idx:true, tint:true, printMarkers:false}
+  };
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast("Could not save \u2014 storage full. Use Export to keep a copy."); }
+}
+function load(){
+  try {
+    var raw = localStorage.getItem(KEY);
+    if(!raw) return freshState();
+    var s = JSON.parse(raw);
+    if(!s || !s.g || !s.cells) return freshState();
+    s.images = s.images || {};
+    s.custom = s.custom || [];
+    s.style  = Object.assign({}, DEF_STYLE, s.style || {});
+    s.opts   = Object.assign({guides:false,idx:true,tint:true,printMarkers:false}, s.opts||{});
+    resize(s);
+    return s;
+  } catch(e){ return freshState(); }
+}
+/* keep the cell array in step with the grid size, preserving row/column position */
+function resize(s, oldCols, oldRows){
+  var need = s.g.cols * s.g.rows;
+  if(oldCols && oldRows && (oldCols !== s.g.cols || oldRows !== s.g.rows)){
+    var out = blankCells(need), r, c;
+    for(r=0; r<Math.min(oldRows, s.g.rows); r++)
+      for(c=0; c<Math.min(oldCols, s.g.cols); c++)
+        out[r*s.g.cols + c] = s.cells[r*oldCols + c] || {};
+    s.cells = out;
+    return;
+  }
+  while(s.cells.length < need) s.cells.push({});
+  if(s.cells.length > need) s.cells.length = need;
+}
+function labelW(){ var g=S.g; return (g.pw - g.ml - g.mr - g.gx*(g.cols-1)) / g.cols; }
+function labelH(){ var g=S.g; return (g.ph - g.mt - g.mb - g.gy*(g.rows-1)) / g.rows; }
+function r2(n){ return Math.round(n*100)/100; }
+
+/* ---------------- render ---------------- */
+function render(){
+  var g = S.g, lw = labelW(), lh = labelH(), n = count();
+  var sheet = $("sheet");
+  sheet.style.width  = g.pw + "mm";
+  sheet.style.height = g.ph + "mm";
+  sheet.style.padding = g.mt+"mm "+g.mr+"mm "+g.mb+"mm "+g.ml+"mm";
+  sheet.style.gridTemplateColumns = "repeat("+g.cols+", 1fr)";
+  sheet.style.gridTemplateRows    = "repeat("+g.rows+", 1fr)";
+  sheet.style.columnGap = g.gx + "mm";
+  sheet.style.rowGap    = g.gy + "mm";
+  sheet.style.transform = "scale("+zoom+")";
+  pageStyle();
+
+  $("sheetouter").style.width  = (g.pw*PXMM*zoom)+"px";
+  $("sheetouter").style.height = (g.ph*PXMM*zoom)+"px";
+
+  var html = "", i;
+  for(i=0;i<n;i++) html += cellHTML(i, S.cells[i]||{});
+  sheet.innerHTML = html;
+
+  headers(lw, lh);
+  $("dimChip").textContent = g.cols+"\u00d7"+g.rows+"  \u00b7  "+r2(lw)+"\u00d7"+r2(lh)+" mm  \u00b7  "+n+" labels";
+  $("calcInfo").innerHTML = "Label size <b>"+r2(lw)+" \u00d7 "+r2(lh)+" mm</b><br>"+
+      "Total <b>"+n+"</b> labels per sheet" + ((lw<=0||lh<=0) ? " <span style='color:var(--danger)'>\u2014 margins/gaps are bigger than the page</span>" : "");
+  autofit();
+  selInfo();
+}
+
+function cellHTML(i, c){
+  var st = Object.assign({}, DEF_STYLE, c);
+  var cls = "cell";
+  if(!isEmpty(c)) cls += " hasContent";
+  if(sel.has(i)) cls += " sel";
+  if(S.opts.guides) cls += " guide";
+  var style = "border-radius:"+S.g.rad+"mm;";
+  if(c.m && S.opts.tint && TINTS[c.m]){ cls += " tinted"; style += "--tint:"+TINTS[c.m]+";"; }
+
+  var img = "", txt = "", dir = "stack", order = 0;
+  if(c.img && S.images[c.img] && st.lay !== "text"){
+    var isz = st.is;
+    var ist = (st.lay==="img-left"||st.lay==="img-right")
+      ? "max-width:"+isz+"%;max-height:100%;"
+      : (st.lay==="image" ? "max-width:"+isz+"%;max-height:"+isz+"%;" : "max-height:"+isz+"%;max-width:100%;");
+    img = '<img src="'+S.images[c.img]+'" style="'+ist+'" alt="">';
+    if(st.lay==="img-left"||st.lay==="img-right") dir = "rowlay";
+    if(st.lay==="img-right") order = 1;
+  }
+  if(c.t && st.lay !== "image"){
+    txt = '<div class="txt" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
+          ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+esc(c.t)+'</div>';
+  }
+  var inner = '<div class="inner '+dir+'">'+(order ? txt+img : img+txt)+'</div>';
+  var mk = c.m ? '<span class="marker'+(S.opts.printMarkers?"":" noprint")+'">'+c.m+'</span>' : "";
+  var ix = S.opts.idx ? '<span class="idx">'+(i+1)+'</span>' : "";
+  return '<div class="'+cls+'" data-i="'+i+'" style="'+style+'">'+inner+mk+ix+'</div>';
+}
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function colName(i){
+  var s=""; i++;
+  while(i>0){ var m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); }
+  return s;
+}
+function headers(lw, lh){
+  var g=S.g, K=PXMM*zoom, ch=$("colhdr"), rh=$("rowhdr"), h="", i;
+  ch.style.width = (g.pw*K)+"px";
+  for(i=0;i<g.cols;i++)
+    h += '<div data-col="'+i+'" style="left:'+((g.ml+i*(lw+g.gx))*K)+'px;width:'+(lw*K)+'px">'+colName(i)+'</div>';
+  ch.innerHTML = h;
+  rh.style.height = (g.ph*K)+"px"; h="";
+  for(i=0;i<g.rows;i++)
+    h += '<div data-row="'+i+'" style="top:'+((g.mt+i*(lh+g.gy))*K)+'px;height:'+(lh*K)+'px">'+(i+1)+'</div>';
+  rh.innerHTML = h;
+}
+
+function autofit(){
+  var sheet=$("sheet"), n=count(), i;
+  for(i=0;i<n;i++){
+    var c=S.cells[i]; if(!c || !c.t) continue;
+    var st=Object.assign({},DEF_STYLE,c); if(!st.fit) continue;
+    var el=sheet.children[i]; if(!el) continue;
+    var t=el.querySelector(".txt"); if(!t) continue;
+    var fs=st.fs, guard=0;
+    while(guard++<26 && fs>3 &&
+         (t.scrollHeight > t.clientHeight+0.5 || t.scrollWidth > t.clientWidth+0.5)){
+      fs = Math.round(fs*0.92*100)/100;
+      t.style.fontSize = fs+"pt";
+    }
+  }
+}
+
+function paintSel(){
+  var sheet=$("sheet"), i, el;
+  for(i=0;i<sheet.children.length;i++){
+    el = sheet.children[i];
+    if(sel.has(i)) el.classList.add("sel"); else el.classList.remove("sel");
+  }
+  selInfo();
+}
+function selInfo(){
+  var el=$("selInfo");
+  if(!sel.size){ el.innerHTML = "Nothing selected \u2014 click or drag on the sheet"; return; }
+  var arr=[].concat(Array.from(sel)).sort(function(a,b){return a-b;});
+  var filled=0, marked=0;
+  arr.forEach(function(i){ var c=S.cells[i]||{}; if(!isEmpty(c)) filled++; if(c.m) marked++; });
+  var first=arr[0], g=S.g;
+  el.innerHTML = "<b>"+arr.length+"</b> selected &middot; "+filled+" with content &middot; "+marked+" tagged"+
+    (arr.length===1 ? " &middot; cell <b>"+colName(first%g.cols)+(Math.floor(first/g.cols)+1)+"</b> (#"+(first+1)+")" : "");
+  if(arr.length===1){
+    var c=S.cells[first]||{}, st=Object.assign({},DEF_STYLE,c);
+    $("txtInput").value = c.t || "";
+    $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
+    $("layoutSel").value = st.lay; $("imgSize").value = st.is;
+    $("imgSizeVal").textContent = st.is+"%";
+    setToggle($("boldBtn"), st.b); setToggle($("upperBtn"), st.up); setToggle($("fitBtn"), st.fit);
+    S.style = {fs:st.fs, ff:st.ff||0, b:st.b, up:st.up, lay:st.lay, is:st.is, fit:st.fit};
+  }
+}
+function setToggle(btn, on){ btn.classList.toggle("on", !!on); }
+
+/* ---------------- mouse selection ---------------- */
+var dragging=false, dragStart=-1, dragBase=null, dragMode="set";
+function rectBetween(a,b){
+  var cols=S.g.cols, r1=Math.floor(a/cols), c1=a%cols, r2=Math.floor(b/cols), c2=b%cols;
+  var out=[], r, c;
+  for(r=Math.min(r1,r2); r<=Math.max(r1,r2); r++)
+    for(c=Math.min(c1,c2); c<=Math.max(c1,c2); c++) out.push(r*cols+c);
+  return out;
+}
+function cellIndexFrom(e){
+  var el = e.target.closest ? e.target.closest(".cell") : null;
+  return el ? parseInt(el.dataset.i,10) : -1;
+}
+$("sheet").addEventListener("mousedown", function(e){
+  var i = cellIndexFrom(e); if(i<0) return;
+  e.preventDefault();
+  if(paint){ dragging=true; dragMode="paint"; tagCell(i); return; }
+  if(e.shiftKey && anchor>=0){
+    sel = new Set(rectBetween(anchor, i)); paintSel(); return;
+  }
+  dragging=true; dragStart=i; anchor=i;
+  if(e.ctrlKey || e.metaKey){ dragMode="toggle"; dragBase=new Set(sel);
+    if(sel.has(i)) sel.delete(i); else sel.add(i);
+  } else { dragMode="set"; dragBase=new Set(); sel=new Set([i]); }
+  paintSel();
+});
+$("sheet").addEventListener("mouseover", function(e){
+  if(!dragging) return;
+  var i = cellIndexFrom(e); if(i<0) return;
+  if(dragMode==="paint"){ tagCell(i); return; }
+  var block = rectBetween(dragStart, i);
+  sel = new Set(dragBase);
+  block.forEach(function(x){ sel.add(x); });
+  paintSel();
+});
+window.addEventListener("mouseup", function(){
+  if(dragging && dragMode==="paint"){ save(); }
+  dragging=false;
+});
+function tagCell(i){
+  var c = S.cells[i] || (S.cells[i]={});
+  c.m = (c.m===curEmoji) ? "" : curEmoji;
+  var el = $("sheet").children[i];
+  if(el) el.outerHTML = cellHTML(i, c);
+}
+$("colhdr").addEventListener("click", function(e){
+  var d=e.target.dataset ? e.target.dataset.col : null; if(d==null) return;
+  var c=parseInt(d,10), g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), r;
+  for(r=0;r<g.rows;r++) out.add(r*g.cols+c);
+  sel=out; paintSel();
+});
+$("rowhdr").addEventListener("click", function(e){
+  var d=e.target.dataset ? e.target.dataset.row : null; if(d==null) return;
+  var r=parseInt(d,10), g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), c;
+  for(c=0;c<g.cols;c++) out.add(r*g.cols+c);
+  sel=out; paintSel();
+});
+document.addEventListener("keydown", function(e){
+  var tag=(e.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"||tag==="select") return;
+  if(e.key==="Escape"){ sel=new Set(); paintSel(); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="a"){ e.preventDefault(); selectAll(); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="p"){ e.preventDefault(); doPrint(); }
+  if(e.key==="Delete"||e.key==="Backspace"){ e.preventDefault(); clearCells(); }
+});
+function selectAll(){ var n=count(),i; sel=new Set(); for(i=0;i<n;i++) sel.add(i); paintSel(); }
+
+/* ---------------- selection buttons ---------------- */
+Array.prototype.forEach.call(document.querySelectorAll("[data-sel]"), function(b){
+  b.addEventListener("click", function(){
+    var mode=b.dataset.sel, n=count(), i, out=new Set();
+    for(i=0;i<n;i++){
+      var c=S.cells[i]||{};
+      if(mode==="all") out.add(i);
+      else if(mode==="invert"){ if(!sel.has(i)) out.add(i); }
+      else if(mode==="empty"){ if(isEmpty(c)) out.add(i); }
+      else if(mode==="filled"){ if(!isEmpty(c)) out.add(i); }
+      else if(mode==="marked"){ if(c.m) out.add(i); }
+    }
+    sel = out; paintSel();
+  });
+});
+function selArr(){ return Array.from(sel).sort(function(a,b){return a-b;}); }
+function needSel(){ if(!sel.size){ toast("Select one or more labels first"); return false; } return true; }
+function styleNow(){
+  return {fs:parseFloat($("fontSize").value)||8, ff:FONTS.indexOf($("fontFam").value),
+          b:$("boldBtn").classList.contains("on"), up:$("upperBtn").classList.contains("on"),
+          lay:$("layoutSel").value, is:parseInt($("imgSize").value,10),
+          fit:$("fitBtn").classList.contains("on")};
+}
+function applyStyleTo(c){
+  var st=styleNow();
+  c.fs=st.fs; c.ff=st.ff<0?0:st.ff; c.b=st.b; c.up=st.up; c.lay=st.lay; c.is=st.is; c.fit=st.fit;
+}
+
+/* ---------------- content ---------------- */
+$("applyText").addEventListener("click", function(){
+  if(!needSel()) return;
+  var v=$("txtInput").value;
+  selArr().forEach(function(i){
+    var c=S.cells[i]||(S.cells[i]={});
+    c.t=v; applyStyleTo(c);
+    if(c.lay==="text") c.img=c.img||null;
+  });
+  save(); render(); toast(sel.size+" label(s) updated");
+});
+function clearCells(){
+  if(!needSel()) return;
+  selArr().forEach(function(i){ var m=(S.cells[i]||{}).m; S.cells[i]={m:m||""}; });
+  save(); render(); toast("Cleared");
+}
+$("clearCells").addEventListener("click", clearCells);
+
+$("applySeq").addEventListener("click", function(){
+  if(!needSel()) return;
+  var p=$("seqPrefix").value, sfx=$("seqSuffix").value;
+  var start=parseInt($("seqStart").value,10)||0, pad=parseInt($("seqPad").value,10)||0;
+  selArr().forEach(function(i,k){
+    var num=String(start+k); while(num.length<pad) num="0"+num;
+    var c=S.cells[i]||(S.cells[i]={});
+    c.t=p+num+sfx; applyStyleTo(c);
+  });
+  save(); render(); toast("Numbered "+sel.size+" label(s)");
+});
+
+$("applyList").addEventListener("click", function(){
+  if(!needSel()) return;
+  var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
+  if(!lines.length){ toast("The list is empty"); return; }
+  var rep=$("listRepeat").checked, arr=selArr(), used=0;
+  arr.forEach(function(i,k){
+    if(k>=lines.length && !rep) return;
+    var c=S.cells[i]||(S.cells[i]={});
+    c.t=lines[rep ? (k%lines.length) : k]; applyStyleTo(c); used++;
+  });
+  save(); render(); toast("Filled "+used+" label(s) from "+lines.length+" line(s)");
+});
+
+/* ---------------- images ---------------- */
+$("imgFile").addEventListener("change", function(e){
+  var f=e.target.files && e.target.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    if(/svg/.test(f.type)){ addImage(rd.result); return; }
+    var im=new Image();
+    im.onload=function(){
+      var max=800, w=im.width, h=im.height, sc=Math.min(1, max/Math.max(w,h));
+      var cv=document.createElement("canvas");
+      cv.width=Math.max(1,Math.round(w*sc)); cv.height=Math.max(1,Math.round(h*sc));
+      cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+      addImage(cv.toDataURL("image/png"));
+    };
+    im.onerror=function(){ toast("Could not read that image"); };
+    im.src=rd.result;
+  };
+  rd.readAsDataURL(f);
+  e.target.value="";
+});
+function addImage(dataUrl){
+  var id=uid(); S.images[id]=dataUrl; curImg=id; save(); renderLib();
+  toast("Image added \u2014 select labels, then \u201cPut on selection\u201d");
+}
+function renderLib(){
+  var box=$("imgLib"), h="", k;
+  for(k in S.images) if(S.images.hasOwnProperty(k)){
+    h += '<div class="imglib-item'+(k===curImg?" act":"")+'" data-img="'+k+'">'+
+         '<img src="'+S.images[k]+'" alt=""><button class="x" data-del="'+k+'">\u00d7</button></div>';
+  }
+  box.innerHTML = h || '<div class="hint" style="grid-column:1/-1">No image uploaded yet.</div>';
+}
+$("imgLib").addEventListener("click", function(e){
+  var del=e.target.dataset ? e.target.dataset.del : null;
+  if(del){
+    e.stopPropagation();
+    delete S.images[del];
+    S.cells.forEach(function(c){ if(c && c.img===del) c.img=null; });
+    if(curImg===del) curImg=null;
+    save(); renderLib(); render(); return;
+  }
+  var it=e.target.closest(".imglib-item"); if(!it) return;
+  curImg=it.dataset.img; renderLib();
+});
+$("applyImg").addEventListener("click", function(){
+  if(!needSel()) return;
+  if(!curImg){ toast("Upload or pick an image first"); return; }
+  if($("layoutSel").value==="text") $("layoutSel").value="image";
+  selArr().forEach(function(i){
+    var c=S.cells[i]||(S.cells[i]={}); c.img=curImg; applyStyleTo(c);
+  });
+  save(); render(); toast("Image placed on "+sel.size+" label(s)");
+});
+$("removeImg").addEventListener("click", function(){
+  if(!needSel()) return;
+  selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].img=null; });
+  save(); render();
+});
+
+/* ---------------- style controls (live) ---------------- */
+function liveStyle(){
+  if(!sel.size) return;
+  selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); applyStyleTo(c); });
+  save(); render();
+}
+["fontSize","fontFam","layoutSel"].forEach(function(id){
+  $(id).addEventListener("change", liveStyle);
+});
+$("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
+$("imgSize").addEventListener("change", liveStyle);
+["boldBtn","upperBtn","fitBtn"].forEach(function(id){
+  $(id).addEventListener("click", function(){ this.classList.toggle("on"); liveStyle(); });
+});
+
+/* ---------------- markers ---------------- */
+function buildPal(){
+  var h="";
+  EMOJI.forEach(function(e){
+    h += '<button class="emoji-btn'+(e===curEmoji?" act":"")+'" data-e="'+e+'" title="'+e+'">'+e+'</button>';
+  });
+  $("emojiPal").innerHTML=h;
+}
+$("emojiPal").addEventListener("click", function(e){
+  var b=e.target.closest(".emoji-btn"); if(!b) return;
+  curEmoji=b.dataset.e; buildPal();
+  if(sel.size && !paint) applyMarker();
+});
+function applyMarker(){
+  if(!needSel()) return;
+  selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.m=curEmoji; });
+  save(); render();
+}
+$("markApply").addEventListener("click", applyMarker);
+$("markClear").addEventListener("click", function(){
+  if(!needSel()) return;
+  selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].m=""; });
+  save(); render();
+});
+$("markSelect").addEventListener("click", function(){
+  var n=count(), i, out=new Set();
+  for(i=0;i<n;i++) if((S.cells[i]||{}).m===curEmoji) out.add(i);
+  sel=out; paintSel();
+  toast(out.size ? out.size+" label(s) tagged "+curEmoji : "Nothing tagged "+curEmoji);
+});
+$("paintBtn").addEventListener("click", function(){
+  paint=!paint; this.classList.toggle("on",paint);
+  this.textContent="Paint mode: "+(paint?"on":"off");
+  toast(paint ? "Paint mode on \u2014 click or drag to tag labels with "+curEmoji : "Paint mode off");
+});
+$("tintChk").addEventListener("change", function(){ S.opts.tint=this.checked; save(); render(); });
+$("printMarkers").addEventListener("change", function(){ S.opts.printMarkers=this.checked; save(); render(); });
+$("guideChk").addEventListener("change", function(){ S.opts.guides=this.checked; save(); render(); });
+$("idxChk").addEventListener("change", function(){ S.opts.idx=this.checked; save(); render(); });
+
+/* ---------------- geometry ---------------- */
+var GEO=["pw","ph","cols","rows","mt","mr","mb","ml","gx","gy","rad"];
+function fillGeo(){ GEO.forEach(function(k){ $(k).value=S.g[k]; }); }
+GEO.forEach(function(k){
+  $(k).addEventListener("change", function(){
+    var v=parseFloat(this.value);
+    if(isNaN(v)) { this.value=S.g[k]; return; }
+    if(k==="cols"||k==="rows"){
+      v=Math.max(1,Math.min(k==="cols"?40:60,Math.round(v)));
+      var oc=S.g.cols, or=S.g.rows;
+      S.g[k]=v; resize(S,oc,or);
+    } else { S.g[k]=v; }
+    this.value=S.g[k];
+    sel=new Set(); S.presetId="custom";
+    fitZoom(); save(); render(); syncPresetSel();
+  });
+});
+
+/* ---------------- presets ---------------- */
+function allPresets(){ return BUILTIN.concat(S.custom||[]); }
+function syncPresetSel(){
+  var s=$("presetSel"), h="";
+  allPresets().forEach(function(p){
+    h += '<option value="'+p.id+'">'+p.name+(p.custom?" \u2605":"")+'</option>';
+  });
+  if(S.presetId==="custom") h += '<option value="custom">Custom (unsaved)</option>';
+  s.innerHTML=h; s.value=S.presetId;
+}
+$("presetSel").addEventListener("change", function(){
+  var p=allPresets().filter(function(x){ return x.id===this.value; }.bind(this))[0];
+  if(!p) return;
+  var oc=S.g.cols, or=S.g.rows;
+  GEO.forEach(function(k){ S.g[k]=p[k]; });
+  S.presetId=p.id;
+  resize(S,oc,or); sel=new Set();
+  fillGeo(); fitZoom(); save(); render();
+});
+$("savePreset").addEventListener("click", function(){
+  var name=prompt("Name this sheet layout:",
+    S.g.cols+"\u00d7"+S.g.rows+" \u00b7 "+r2(labelW())+"\u00d7"+r2(labelH())+" mm");
+  if(!name) return;
+  var p={id:"c_"+uid(), name:name, custom:true};
+  GEO.forEach(function(k){ p[k]=S.g[k]; });
+  S.custom.push(p); S.presetId=p.id; save(); syncPresetSel(); toast("Preset saved");
+});
+$("delPreset").addEventListener("click", function(){
+  var id=S.presetId, idx=-1, i;
+  for(i=0;i<S.custom.length;i++) if(S.custom[i].id===id) idx=i;
+  if(idx<0){ toast("Built-in presets cannot be deleted"); return; }
+  S.custom.splice(idx,1); S.presetId="custom"; save(); syncPresetSel(); toast("Preset deleted");
+});
+
+/* ---------------- zoom ---------------- */
+var autoZoom=true;
+function fitZoom(){
+  var st=$("stage");
+  var availH=st.clientHeight-40, availW=st.clientWidth-70;
+  var z=Math.min(availH/(S.g.ph*PXMM), availW/(S.g.pw*PXMM));
+  zoom=Math.max(0.15, Math.min(3, z)); autoZoom=true; showZoom();
+}
+function showZoom(){ $("zoomVal").textContent=Math.round(zoom*100)+"%"; }
+function setZoom(z){ zoom=Math.max(0.15,Math.min(3,z)); autoZoom=false; showZoom(); render(); }
+$("zoomIn").addEventListener("click", function(){ setZoom(zoom*1.15); });
+$("zoomOut").addEventListener("click", function(){ setZoom(zoom/1.15); });
+$("zoomFit").addEventListener("click", function(){ fitZoom(); render(); });
+$("stage").addEventListener("wheel", function(e){
+  if(!(e.ctrlKey||e.metaKey)) return;
+  e.preventDefault(); setZoom(zoom * (e.deltaY<0 ? 1.1 : 1/1.1));
+}, {passive:false});
+window.addEventListener("resize", function(){
+  if(!autoZoom) return;
+  clearTimeout(window._rz); window._rz=setTimeout(function(){ fitZoom(); render(); },120);
+});
+
+/* ---------------- print / files ---------------- */
+function doPrint(){
+  var keep=new Set(sel);
+  sel=new Set(); paintSel();
+  window.print();
+  setTimeout(function(){ sel=keep; paintSel(); }, 400);
+}
+$("printBtn").addEventListener("click", doPrint);
+
+$("exportBtn").addEventListener("click", function(){
+  var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="label-sheet-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+});
+$("importBtn").addEventListener("click", function(){ $("importFile").click(); });
+$("importFile").addEventListener("change", function(e){
+  var f=e.target.files && e.target.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var s=JSON.parse(rd.result);
+      if(!s || !s.g || !s.cells) throw new Error("bad file");
+      s.images=s.images||{}; s.custom=s.custom||[];
+      s.style=Object.assign({},DEF_STYLE,s.style||{});
+      s.opts=Object.assign({guides:false,idx:true,tint:true,printMarkers:false},s.opts||{});
+      resize(s);
+      S=s; sel=new Set(); curImg=null;
+      fillGeo(); syncPresetSel(); renderLib(); syncOpts(); fitZoom(); save(); render();
+      toast("Sheet imported");
+    }catch(err){ toast("That file could not be read"); }
+  };
+  rd.readAsText(f); e.target.value="";
+});
+$("clearAll").addEventListener("click", function(){
+  if(!confirm("Empty every label on this sheet? (Images and markers go too.)")) return;
+  S.cells=blankCells(count()); sel=new Set(); save(); render(); toast("Sheet cleared");
+});
+
+/* ---------------- init ---------------- */
+function syncOpts(){
+  $("tintChk").checked=!!S.opts.tint;
+  $("printMarkers").checked=!!S.opts.printMarkers;
+  $("guideChk").checked=!!S.opts.guides;
+  $("idxChk").checked=!!S.opts.idx;
+  var st=Object.assign({},DEF_STYLE,S.style||{});
+  $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
+  $("layoutSel").value=st.lay; $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
+  setToggle($("boldBtn"),st.b); setToggle($("upperBtn"),st.up); setToggle($("fitBtn"),st.fit);
+}
+S = load();
+fillGeo(); syncPresetSel(); syncOpts(); buildPal(); renderLib();
+fitZoom(); render();
+var pageEl=null;
+function pageStyle(){
+  if(!pageEl){ pageEl=document.createElement("style"); document.head.appendChild(pageEl); }
+  pageEl.textContent = "@page{size:"+S.g.pw+"mm "+S.g.ph+"mm;margin:0}" +
+    "@media print{html,body{width:"+S.g.pw+"mm;height:"+S.g.ph+"mm;overflow:hidden}}";
+}
+pageStyle();
+})();
+</script>
+</body>
+</html>
