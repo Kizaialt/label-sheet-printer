@@ -27,12 +27,14 @@ as your own preset (stored in the browser).
   long shrinks itself to fit.
 - **Auto-number** — `SKU-001, SKU-002, …` across the selection, with prefix, suffix and zero padding.
 - **Paste a list** — one SKU per line, filled in reading order, optionally repeating.
-- **Logo** — drop in a PNG/JPG/SVG and place it alone, above the text, or beside it. Images are
-  downscaled and kept in the browser.
-- **Colour tags** — mark labels with a small colour dot to track which stickers on a part-used
-  sheet are already gone. Ten colours, each a colour-to-white gradient bead that reads at a glance
-  without covering the label. Hover a colour to spotlight every label carrying it; each swatch shows
-  how many it has. Dots are screen-only unless you ask for them. *Paint mode* tags by dragging.
+- **Logo** — drop in a PNG/JPG/SVG. A label shows whatever it holds: text alone, logo alone, or
+  both together (choose whether the logo sits above, below, left or right of the text). Logos and
+  text always print. Images are downscaled and kept in the browser.
+- **Colour tags** — mark labels with a small dot to track which stickers on a part-used sheet are
+  already gone. Ten flat colours by default; flip the switch to **Gradient** and the dot fades from
+  that colour to white, so you get twenty distinguishable tags without covering the label. Hover a
+  colour to spotlight every label carrying it; each swatch shows how many it has. Dots are
+  screen-only unless you tick *Print the dots too*. *Paint mode* tags by dragging.
 - **Keyboard** — arrows move the cursor, Shift extends, Space toggles, Del clears, Ctrl+P prints.
 - **Export / Import** — the whole sheet, images included, as a JSON file.
 
