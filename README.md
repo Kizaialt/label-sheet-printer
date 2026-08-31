@@ -36,6 +36,8 @@ as your own preset (stored in the browser).
   colour to spotlight every label carrying it; each swatch shows how many it has. Dots are
   screen-only unless you tick *Print the dots too*. *Paint mode* tags by dragging.
 - **Keyboard** — arrows move the cursor, Shift extends, Space toggles, Del clears, Ctrl+P prints.
+- **Light or dark** — light by default, since you are usually comparing the screen against a real
+  sheet under office light. The toggle is in the toolbar and is remembered.
 - **Export / Import** — the whole sheet, images included, as a JSON file.
 
 Everything autosaves to `localStorage`, so the sheet is still there next time you open the page.
@@ -50,3 +52,10 @@ your printer runs off-centre.
 ## Offline use
 
 Save `index.html` anywhere and open it — it is fully self-contained.
+
+## Design notes
+
+The chrome is deliberately achromatic. The ten tag colours are the only saturated things on screen,
+so they read as data rather than decoration, and the sheet is always the brightest element on the
+page. Type runs on three sizes (10.5 / 13.5 / 17px) and the system UI face; there are no webfonts,
+no gradients outside the tag dots, and one filled button per screen.
