@@ -175,6 +175,18 @@ details.sec[open]>summary::after{transform:rotate(225deg) translate(-1px,-1px)}
 details.sec .body{display:flex;flex-direction:column;gap:var(--s-3);padding-bottom:var(--s-5)}
 
 .lbl{display:block;font-size:var(--fs-micro);color:var(--ink-3);margin-bottom:4px}
+details.sub{border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel-2)}
+details.sub>summary{
+  padding:8px 10px;cursor:pointer;list-style:none;font-size:var(--fs-micro);color:var(--ink-2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary::after{
+  content:"";width:5px;height:5px;border-right:1.4px solid var(--ink-3);border-bottom:1.4px solid var(--ink-3);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform var(--t) var(--ease);
+}
+details.sub[open]>summary::after{transform:rotate(225deg) translate(-1px,-1px)}
+details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0 10px 10px}
 .row{display:flex;gap:var(--s-2);align-items:center}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2)}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-2)}
@@ -527,31 +539,45 @@ details.sec .body{display:flex;flex-direction:column;gap:var(--s-3);padding-bott
         <summary>Sheet</summary>
         <div class="body">
           <div class="well" id="calcInfo"></div>
-          <div class="g2">
-            <div><label class="lbl" for="pw">Page width (mm)</label><input type="number" id="pw" step="0.1"></div>
-            <div><label class="lbl" for="ph">Page height</label><input type="number" id="ph" step="0.1"></div>
-          </div>
-          <div class="g2">
-            <div><label class="lbl" for="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
-            <div><label class="lbl" for="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
+          <div>
+            <label class="lbl" for="sizeSel">Label size &mdash; paper is always A4, 210 &times; 297 mm</label>
+            <select id="sizeSel"></select>
           </div>
           <div>
-            <label class="lbl">Margins &mdash; top, right, bottom, left</label>
-            <div class="g4">
-              <input type="number" id="mt" step="0.1" aria-label="Top margin">
-              <input type="number" id="mr" step="0.1" aria-label="Right margin">
-              <input type="number" id="mb" step="0.1" aria-label="Bottom margin">
-              <input type="number" id="ml" step="0.1" aria-label="Left margin">
-            </div>
-          </div>
-          <div>
-            <label class="lbl">Gap across, gap down, corner radius</label>
+            <label class="lbl">Printer offset &mdash; nudge the whole grid if your printer feeds off-centre</label>
             <div class="g3">
-              <input type="number" id="gx" step="0.1" aria-label="Horizontal gap">
-              <input type="number" id="gy" step="0.1" aria-label="Vertical gap">
-              <input type="number" id="rad" step="0.1" aria-label="Corner radius">
+              <input type="number" id="ox" step="0.1" min="-15" max="15" aria-label="Shift right, mm">
+              <input type="number" id="oy" step="0.1" min="-15" max="15" aria-label="Shift down, mm">
+              <button class="btn" id="offsetReset">Reset</button>
             </div>
+            <div class="hint" style="margin-top:5px">Positive numbers move right and down. Label sizes stay exact.</div>
           </div>
+          <details class="sub">
+            <summary>Fine-tune this size</summary>
+            <div class="subbody">
+              <div class="g2">
+                <div><label class="lbl" for="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
+                <div><label class="lbl" for="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
+              </div>
+              <div>
+                <label class="lbl">Margins &mdash; top, right, bottom, left</label>
+                <div class="g4">
+                  <input type="number" id="mt" step="0.1" aria-label="Top margin">
+                  <input type="number" id="mr" step="0.1" aria-label="Right margin">
+                  <input type="number" id="mb" step="0.1" aria-label="Bottom margin">
+                  <input type="number" id="ml" step="0.1" aria-label="Left margin">
+                </div>
+              </div>
+              <div>
+                <label class="lbl">Gap across, gap down, corner radius</label>
+                <div class="g3">
+                  <input type="number" id="gx" step="0.1" aria-label="Horizontal gap">
+                  <input type="number" id="gy" step="0.1" aria-label="Vertical gap">
+                  <input type="number" id="rad" step="0.1" aria-label="Corner radius">
+                </div>
+              </div>
+            </div>
+          </details>
           <div class="g2">
             <button class="btn" id="savePreset">Save as preset</button>
             <button class="btn warn" id="delPreset">Delete preset</button>
@@ -620,19 +646,25 @@ var LEGACY = {
   "\u26AA":"slate", "\u2705":"green", "\u274C":"red", "\u2B50":"amber"
 };
 
+var A4 = {pw:210, ph:297};
 var BUILTIN = [
-  {id:"a4-6x17", name:"A4 \u00b7 6\u00d717 \u00b7 32\u00d715 mm", pw:210,ph:297,cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
-  {id:"a4-5x13", name:"A4 \u00b7 5\u00d713 \u00b7 38\u00d721 mm", pw:210,ph:297,cols:5,rows:13,mt:10.7,mr:5,mb:10.7,ml:5,gx:2.5,gy:0,rad:1.5},
-  {id:"a4-4x10", name:"A4 \u00b7 4\u00d710 \u00b7 48\u00d725 mm", pw:210,ph:297,cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
-  {id:"a4-3x8",  name:"A4 \u00b7 3\u00d78 \u00b7 70\u00d737 mm",  pw:210,ph:297,cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:1.5},
-  {id:"a4-2x7",  name:"A4 \u00b7 2\u00d77 \u00b7 105\u00d742 mm", pw:210,ph:297,cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:1.5},
-  {id:"ltr-6x17",name:"Letter \u00b7 6\u00d717",                  pw:215.9,ph:279.4,cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5}
+  {id:"s-32x15",  name:"32 × 15 mm  ·  6×17  ·  102 per sheet", cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
+  {id:"s-38x21",  name:"38 × 21 mm  ·  5×13  ·  65 per sheet",  cols:5,rows:13,mt:10.7,mr:4.75,mb:10.7,ml:4.75,gx:2.5,gy:0,rad:1.5},
+  {id:"s-48x25",  name:"48 × 25 mm  ·  4×10  ·  40 per sheet",  cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
+  {id:"s-63x38",  name:"63 × 38 mm  ·  3×7  ·  21 per sheet",   cols:3,rows:7, mt:15.15,mr:7.25,mb:15.15,ml:7.25,gx:2.5,gy:0,rad:2},
+  {id:"s-70x37",  name:"70 × 37 mm  ·  3×8  ·  24 per sheet",   cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-99x67",  name:"99 × 68 mm  ·  2×4  ·  8 per sheet",    cols:2,rows:4, mt:13.1,mr:4.65,mb:13.1,ml:4.65,gx:2.5,gy:0,rad:2},
+  {id:"s-105x42", name:"105 × 42 mm  ·  2×7  ·  14 per sheet",  cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-105x148",name:"105 × 149 mm  ·  2×2  ·  4 per sheet",  cols:2,rows:2, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-full",   name:"Full sheet  ·  1×1  ·  210 × 297 mm",   cols:1,rows:1, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:0}
 ];
+BUILTIN.forEach(function(b){ b.pw=A4.pw; b.ph=A4.ph; });
 var DEF_STYLE = {fs:8, ff:0, b:true, up:false, lay:"img-top", is:55, fit:true};
 var FONTS = ["system-ui, 'Segoe UI', Arial, sans-serif",
              "Georgia, 'Times New Roman', serif",
              "ui-monospace, Consolas, 'Courier New', monospace"];
 var GEO = ["pw","ph","cols","rows","mt","mr","mb","ml","gx","gy","rad"];
+var GEO_EDIT = ["cols","rows","mt","mr","mb","ml","gx","gy","rad"];
 
 var S = null;
 var sel = new Set();
@@ -676,14 +708,14 @@ function freshState(){
   return {
     presetId:g.id, g:g, cells:blankCells(g.cols*g.rows), images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:false, idx:true, printMarkers:false, theme:"light"}
+    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}
   };
 }
 function normalise(s){
   s.images = s.images || {};
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light"}, s.opts || {});
+  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
@@ -723,6 +755,14 @@ function resize(s, oldCols, oldRows){
   while(s.cells.length < need) s.cells.push({});
   if(s.cells.length > need) s.cells.length = need;
 }
+/* The shift is clamped to the margins: padding-left gains what padding-right
+   loses, so the label geometry stays exact no matter how far it is nudged. */
+function effOffset(){
+  var g=S.g, ox=parseFloat(S.opts.ox)||0, oy=parseFloat(S.opts.oy)||0;
+  var cx=Math.max(-g.ml, Math.min(g.mr, ox));
+  var cy=Math.max(-g.mt, Math.min(g.mb, oy));
+  return {x:cx, y:cy, clamped:(cx!==ox || cy!==oy)};
+}
 function labelW(){ var g=S.g; return (g.pw - g.ml - g.mr - g.gx*(g.cols-1)) / g.cols; }
 function labelH(){ var g=S.g; return (g.ph - g.mt - g.mb - g.gy*(g.rows-1)) / g.rows; }
 
@@ -737,7 +777,8 @@ function pageStyle(){
 function render(){
   var g=S.g, lw=labelW(), lh=labelH(), n=count(), sheet=$("sheet");
   sheet.style.width=g.pw+"mm"; sheet.style.height=g.ph+"mm";
-  sheet.style.padding=g.mt+"mm "+g.mr+"mm "+g.mb+"mm "+g.ml+"mm";
+  var off=effOffset();
+  sheet.style.padding=(g.mt+off.y)+"mm "+(g.mr-off.x)+"mm "+(g.mb-off.y)+"mm "+(g.ml+off.x)+"mm";
   sheet.style.gridTemplateColumns="repeat("+g.cols+", 1fr)";
   sheet.style.gridTemplateRows="repeat("+g.rows+", 1fr)";
   sheet.style.columnGap=g.gx+"mm";
@@ -754,12 +795,13 @@ function render(){
   sheet.innerHTML = html;
   sheet.classList.remove("spot");
 
-  headers(lw, lh);
+  headers(lw, lh, off);
   var bad = (lw<=0 || lh<=0);
   $("dimChip").innerHTML = g.cols+"&times;"+g.rows+" &middot; "+r2(lw)+"&times;"+r2(lh)+" mm";
   $("calcInfo").innerHTML = bad
     ? "<b style='color:var(--danger)'>The margins and gaps are larger than the page.</b>"
-    : "<b>"+r2(lw)+" &times; "+r2(lh)+" mm</b> per label &middot; "+n+" on a "+g.pw+" &times; "+g.ph+" mm sheet";
+    : "<b>"+r2(lw)+" &times; "+r2(lh)+" mm</b> per label &middot; <b>"+n+"</b> on an A4 sheet" +
+      ((off.x||off.y) ? "<br>Shifted "+r2(off.x)+" mm across, "+r2(off.y)+" mm down"+(off.clamped?" (limited by the margins)":"") : "");
   autofit();
   syncSelUI();
   drawSwatchCounts();
@@ -802,13 +844,13 @@ function cellHTML(i, c){
          dot+'<span class="idx">'+(i+1)+'</span></div>';
 }
 
-function headers(lw, lh){
-  var g=S.g, K=PXMM*zoom, h="", i;
+function headers(lw, lh, off){
+  var g=S.g, K=PXMM*zoom, h="", i, x0=g.ml+off.x, y0=g.mt+off.y;
   for(i=0;i<g.cols;i++)
-    h += '<div data-col="'+i+'" style="left:'+((g.ml+i*(lw+g.gx))*K)+'px;width:'+(lw*K)+'px">'+colName(i)+'</div>';
+    h += '<div data-col="'+i+'" style="left:'+((x0+i*(lw+g.gx))*K)+'px;width:'+(lw*K)+'px">'+colName(i)+'</div>';
   $("colhdr").innerHTML=h; h="";
   for(i=0;i<g.rows;i++)
-    h += '<div data-row="'+i+'" style="top:'+((g.mt+i*(lh+g.gy))*K)+'px;height:'+(lh*K)+'px">'+(i+1)+'</div>';
+    h += '<div data-row="'+i+'" style="top:'+((y0+i*(lh+g.gy))*K)+'px;height:'+(lh*K)+'px">'+(i+1)+'</div>';
   $("rowhdr").innerHTML=h;
 }
 
@@ -1243,8 +1285,11 @@ $("imgSize").addEventListener("change", liveStyle);
 });
 
 /* ================= geometry & presets ================= */
-function fillGeo(){ GEO.forEach(function(k){ $(k).value=S.g[k]; }); }
-GEO.forEach(function(k){
+function fillGeo(){
+  GEO_EDIT.forEach(function(k){ $(k).value=S.g[k]; });
+  $("ox").value=S.opts.ox||0; $("oy").value=S.opts.oy||0;
+}
+GEO_EDIT.forEach(function(k){
   $(k).addEventListener("change", function(){
     var v=parseFloat(this.value);
     if(isNaN(v)){ this.value=S.g[k]; return; }
@@ -1260,24 +1305,41 @@ GEO.forEach(function(k){
     fitZoom(); save(); render(); syncPresetSel();
   });
 });
+["ox","oy"].forEach(function(k){
+  $(k).addEventListener("change", function(){
+    var v=parseFloat(this.value);
+    S.opts[k]=isNaN(v)?0:Math.max(-15,Math.min(15,v));
+    this.value=S.opts[k];
+    save(); render();
+    if(effOffset().clamped) toast("This size has no room to shift that far, so it stopped at the margin");
+  });
+});
+$("offsetReset").addEventListener("click", function(){
+  S.opts.ox=0; S.opts.oy=0; $("ox").value=0; $("oy").value=0;
+  save(); render(); toast("Printer offset cleared");
+});
+
 function allPresets(){ return BUILTIN.concat(S.custom||[]); }
 function syncPresetSel(){
-  var s=$("presetSel"), h="";
+  var h="";
   allPresets().forEach(function(p){
     h += '<option value="'+p.id+'">'+p.name+(p.custom?" \u2605":"")+'</option>';
   });
-  if(S.presetId==="custom") h += '<option value="custom">Custom (unsaved)</option>';
-  s.innerHTML=h; s.value=S.presetId;
+  if(S.presetId==="custom") h += '<option value="custom">Custom size (unsaved)</option>';
+  ["presetSel","sizeSel"].forEach(function(id){ $(id).innerHTML=h; $(id).value=S.presetId; });
   $("delPreset").disabled = !(S.custom||[]).some(function(p){ return p.id===S.presetId; });
 }
-$("presetSel").addEventListener("change", function(){
-  var id=this.value, p=allPresets().filter(function(x){ return x.id===id; })[0];
+function pickPreset(id){
+  var p=allPresets().filter(function(x){ return x.id===id; })[0];
   if(!p) return;
   var oc=S.g.cols, or=S.g.rows;
   GEO.forEach(function(k){ S.g[k]=p[k]; });
   S.presetId=p.id;
   resize(S, oc, or); sel=new Set(); cur=0; anchor=0;
   fillGeo(); fitZoom(); save(); render(); syncPresetSel();
+}
+["presetSel","sizeSel"].forEach(function(id){
+  $(id).addEventListener("change", function(){ pickPreset(this.value); });
 });
 $("savePreset").addEventListener("click", function(){
   var suggested = S.g.cols+"\u00d7"+S.g.rows+" \u00b7 "+r2(labelW())+"\u00d7"+r2(labelH())+" mm";

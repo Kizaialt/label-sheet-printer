@@ -5,7 +5,7 @@ millimetre positions. No install, no server, no dependencies — open the page a
 
 **Live:** https://kizaialt.github.io/label-sheet-printer/
 
-## The sheet it ships with
+## Sheet sizes
 
 | | |
 |---|---|
@@ -16,8 +16,12 @@ millimetre positions. No install, no server, no dependencies — open the page a
 | Gaps | 2 mm between labels, both directions |
 | Corner | 1.5 mm radius |
 
-Other layouts are in the preset dropdown, and **Sheet setup** lets you type any geometry and save it
-as your own preset (stored in the browser).
+Paper is always A4. You pick the **label size** from the toolbar dropdown; nine standard A4 sticker
+layouts ship with it, from 32 x 15 mm (102 up) to a full uncut sheet, and every one is computed to
+land exactly on the page. Anything unusual can be fine-tuned by hand and saved as your own size.
+
+**Printer offset** shifts the whole grid a fraction of a millimetre to match a printer that feeds
+off-centre, without changing the label dimensions. Set it once, and it applies to every size.
 
 ## What it does
 
