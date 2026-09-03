@@ -381,21 +381,23 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">Label Sheet</div>
+    <div class="brand" id="brandName"></div>
     <div class="sep"></div>
-    <label class="lbl" for="presetSel" hidden>Sheet</label>
-    <select id="presetSel" style="width:220px;height:30px" title="Sheet layout"></select>
+    <select id="presetSel" style="width:252px;height:30px"></select>
     <div class="sep zoomgrp"></div>
     <div class="row zoomgrp" style="gap:2px">
-      <button class="btn sm ghost" id="zoomOut" title="Zoom out" aria-label="Zoom out">&minus;</button>
-      <button class="btn sm ghost" id="zoomVal" title="Reset to 100%" style="width:52px;font-variant-numeric:tabular-nums">100%</button>
-      <button class="btn sm ghost" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
-      <button class="btn sm ghost" id="zoomFit" title="Fit the sheet in the window">Fit</button>
+      <button class="btn sm ghost" id="zoomOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut">&minus;</button>
+      <button class="btn sm ghost" id="zoomVal" data-i18n-title="zoomReset" style="width:52px;font-variant-numeric:tabular-nums">100%</button>
+      <button class="btn sm ghost" id="zoomIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn">+</button>
+      <button class="btn sm ghost" id="zoomFit" data-i18n="fit" data-i18n-title="fitTitle">Fit</button>
     </div>
     <div class="spacer"></div>
     <span class="hint" id="dimChip" style="white-space:nowrap"></span>
-    <button class="btn sm ghost" id="themeBtn" aria-label="Switch colour theme">Dark</button>
-    <button class="btn primary" id="printBtn" title="Print (Ctrl+P)">Print</button>
+    <a class="btn sm ghost" id="buyLink" target="_blank" rel="noopener"
+       data-i18n="buyPaper" data-i18n-title="buyPaperTitle" style="text-decoration:none"></a>
+    <button class="btn sm ghost" id="langBtn" data-i18n-aria="langAria" data-i18n-title="langTitle">MN</button>
+    <button class="btn sm ghost" id="themeBtn" data-i18n-aria="themeAria">Dark</button>
+    <button class="btn primary" id="printBtn" data-i18n="print" data-i18n-title="printTitle">Print</button>
   </header>
 
   <div class="main">
@@ -405,7 +407,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <div class="rowhdr" id="rowhdr"></div>
         <div class="sheetouter" id="sheetouter">
           <div class="sheet" id="sheet" role="listbox" aria-multiselectable="true"
-               aria-label="Label sheet" tabindex="0"></div>
+               data-i18n-aria="secSheet" tabindex="0"></div>
           <div id="band" class="band" hidden></div>
         </div>
       </div>
@@ -415,110 +417,106 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
       <div class="selbar">
         <div class="count" id="selCount"></div>
         <div class="chips">
-          <button class="chip" data-sel="all">All</button>
-          <button class="chip" data-sel="none">None</button>
-          <button class="chip" data-sel="invert">Invert</button>
-          <button class="chip" data-sel="empty">Blank</button>
-          <button class="chip" data-sel="filled">Filled</button>
-          <button class="chip" data-sel="marked">Tagged</button>
+          <button class="chip" data-sel="all" data-i18n="chipAll">All</button>
+          <button class="chip" data-sel="none" data-i18n="chipNone">None</button>
+          <button class="chip" data-sel="invert" data-i18n="chipInvert">Invert</button>
+          <button class="chip" data-sel="empty" data-i18n="chipBlank">Blank</button>
+          <button class="chip" data-sel="filled" data-i18n="chipFilled">Filled</button>
+          <button class="chip" data-sel="marked" data-i18n="chipTagged">Tagged</button>
         </div>
       </div>
 
       <details class="sec" open>
-        <summary>Content</summary>
+        <summary data-i18n="secContent">Content</summary>
         <div class="body">
           <div>
-            <label class="lbl" for="txtInput">Label text</label>
+            <label class="lbl" for="txtInput" data-i18n="lblText">Label text</label>
             <textarea id="txtInput" rows="3" placeholder="ABC-1234"></textarea>
           </div>
           <div class="g2">
-            <button class="btn primary" id="applyText">Apply to selection</button>
-            <button class="btn" id="clearCells">Clear</button>
+            <button class="btn primary" id="applyText" data-i18n="applyText">Apply to selection</button>
+            <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
           </div>
           <div>
-            <label class="lbl">Auto-number</label>
+            <label class="lbl" data-i18n="lblAutoNum">Auto-number</label>
             <div class="g3">
-              <input type="text" id="seqPrefix" placeholder="SKU-" title="Prefix" aria-label="Number prefix">
-              <input type="number" id="seqStart" value="1" title="Start at" aria-label="Start number">
-              <input type="number" id="seqPad" value="3" min="0" max="8" title="Zero-padded digits" aria-label="Digits">
+              <input type="text" id="seqPrefix" placeholder="SKU-" data-i18n-title="tPrefix" data-i18n-aria="tPrefix">
+              <input type="number" id="seqStart" value="1" data-i18n-title="tStart" data-i18n-aria="tStart">
+              <input type="number" id="seqPad" value="3" min="0" max="8" data-i18n-title="tDigits" data-i18n-aria="tDigits">
             </div>
           </div>
           <div class="g2">
-            <input type="text" id="seqSuffix" placeholder="Suffix" aria-label="Number suffix">
-            <button class="btn" id="applySeq">Fill numbered</button>
+            <input type="text" id="seqSuffix" data-i18n-ph="phSuffix" data-i18n-aria="phSuffix">
+            <button class="btn" id="applySeq" data-i18n="fillNum">Fill numbered</button>
           </div>
           <div>
-            <label class="lbl" for="listInput">Or paste a list, one label per line</label>
+            <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
             <textarea id="listInput" rows="4" placeholder="ABC-001&#10;ABC-002&#10;ABC-003"></textarea>
           </div>
           <div class="g2">
-            <button class="btn" id="applyList">Fill from list</button>
-            <label class="check"><input type="checkbox" id="listRepeat"> Repeat to fill</label>
+            <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
+            <label class="check"><input type="checkbox" id="listRepeat"> <span data-i18n="repeatFill">Repeat to fill</span></label>
           </div>
         </div>
       </details>
 
       <details class="sec" open>
-        <summary>Colour tags</summary>
+        <summary data-i18n="secColour">Colour tags</summary>
         <div class="body">
-          <div class="seg" id="dotStyle" role="group" aria-label="Dot style">
-            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i>Solid</button>
-            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i>Gradient</button>
+          <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
+            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
+            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
           </div>
           <div class="swatches" id="swatches"></div>
           <div class="g2">
-            <button class="btn" id="markSelect">Select tagged</button>
-            <button class="btn" id="markClear">Untag</button>
+            <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
+            <button class="btn" id="markClear" data-i18n="untag">Untag</button>
           </div>
-          <button class="btn wide" id="paintBtn" aria-pressed="false">Paint mode</button>
-          <div class="hint">
-            Hover a colour to spotlight it on the sheet. Click one with labels selected to tag them.
-            Tags show as a dot on screen and <b>never print</b> unless you turn that on below.
-            Logos and label text always print.
-          </div>
-          <label class="check"><input type="checkbox" id="printMarkers"> Print the dots too</label>
+          <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
+          <div class="hint" data-i18n-html="colourHint"></div>
+          <label class="check"><input type="checkbox" id="printMarkers"> <span data-i18n="printDots">Print the dots too</span></label>
         </div>
       </details>
 
       <details class="sec">
-        <summary>Logo</summary>
+        <summary data-i18n="secLogo">Logo</summary>
         <div class="body">
           <label class="drop" id="drop">
             <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
-            <span>Drop an image here, or <u>browse</u></span>
-            <span>PNG, JPG, SVG &middot; stays in your browser</span>
+            <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
+            <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
           </label>
           <div class="imglib" id="imgLib"></div>
           <div class="g2">
-            <button class="btn primary" id="applyImg">Place on selection</button>
-            <button class="btn" id="removeImg">Remove</button>
+            <button class="btn primary" id="applyImg" data-i18n="placeImg">Place on selection</button>
+            <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
           </div>
           <div>
-            <label class="lbl" for="layoutSel">When a label has both</label>
+            <label class="lbl" for="layoutSel" data-i18n="lblArrange">When a label has both</label>
             <select id="layoutSel">
-              <option value="img-top">Image above the text</option>
-              <option value="img-bottom">Image below the text</option>
-              <option value="img-left">Image left of the text</option>
-              <option value="img-right">Image right of the text</option>
+              <option value="img-top" data-i18n="layTop">Image above the text</option>
+              <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
+              <option value="img-left" data-i18n="layLeft">Image left of the text</option>
+              <option value="img-right" data-i18n="layRight">Image right of the text</option>
             </select>
           </div>
           <div>
-            <label class="lbl" for="imgSize">Image size &mdash; <span id="imgSizeVal">55%</span> of the label</label>
+            <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span id="imgSizeVal">55%</span> <span data-i18n="ofLabel">of the label</span></label>
             <input type="range" id="imgSize" min="10" max="100" value="55">
           </div>
         </div>
       </details>
 
       <details class="sec">
-        <summary>Type</summary>
+        <summary data-i18n="secType">Type</summary>
         <div class="body">
           <div class="g2">
             <div>
-              <label class="lbl" for="fontSize">Size (pt)</label>
+              <label class="lbl" for="fontSize" data-i18n="lblSize">Size (pt)</label>
               <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5">
             </div>
             <div>
-              <label class="lbl" for="fontFam">Typeface</label>
+              <label class="lbl" for="fontFam" data-i18n="lblFace">Typeface</label>
               <select id="fontFam">
                 <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans</option>
                 <option value="Georgia, 'Times New Roman', serif">Serif</option>
@@ -527,40 +525,40 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             </div>
           </div>
           <div class="g3">
-            <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700">Bold</button>
-            <button class="btn sm" id="upperBtn" aria-pressed="false">UPPER</button>
-            <button class="btn sm" id="fitBtn" aria-pressed="true">Shrink</button>
+            <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700" data-i18n="bold">Bold</button>
+            <button class="btn sm" id="upperBtn" aria-pressed="false" data-i18n="upper">UPPER</button>
+            <button class="btn sm" id="fitBtn" aria-pressed="true" data-i18n="shrink">Shrink</button>
           </div>
-          <div class="hint"><b>Shrink</b> reduces the type until the text fits the label. Changes apply to the selection immediately.</div>
+          <div class="hint" data-i18n-html="typeHint"></div>
         </div>
       </details>
 
       <details class="sec">
-        <summary>Sheet</summary>
+        <summary data-i18n="secSheet">Sheet</summary>
         <div class="body">
           <div class="well" id="calcInfo"></div>
           <div>
-            <label class="lbl" for="sizeSel">Label size &mdash; paper is always A4, 210 &times; 297 mm</label>
+            <label class="lbl" for="sizeSel" data-i18n="lblSizeSel"></label>
             <select id="sizeSel"></select>
           </div>
           <div>
-            <label class="lbl">Printer offset &mdash; nudge the whole grid if your printer feeds off-centre</label>
+            <label class="lbl" data-i18n="lblOffset"></label>
             <div class="g3">
-              <input type="number" id="ox" step="0.1" min="-15" max="15" aria-label="Shift right, mm">
-              <input type="number" id="oy" step="0.1" min="-15" max="15" aria-label="Shift down, mm">
-              <button class="btn" id="offsetReset">Reset</button>
+              <input type="number" id="ox" step="0.1" min="-15" max="15" data-i18n-aria="offXAria">
+              <input type="number" id="oy" step="0.1" min="-15" max="15" data-i18n-aria="offYAria">
+              <button class="btn" id="offsetReset" data-i18n="resetBtn">Reset</button>
             </div>
-            <div class="hint" style="margin-top:5px">Positive numbers move right and down. Label sizes stay exact.</div>
+            <div class="hint" style="margin-top:5px" data-i18n="offsetHint"></div>
           </div>
           <details class="sub">
-            <summary>Fine-tune this size</summary>
+            <summary data-i18n="fineTune">Fine-tune this size</summary>
             <div class="subbody">
               <div class="g2">
-                <div><label class="lbl" for="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
-                <div><label class="lbl" for="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
+                <div><label class="lbl" for="cols" data-i18n="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
+                <div><label class="lbl" for="rows" data-i18n="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
               </div>
               <div>
-                <label class="lbl">Margins &mdash; top, right, bottom, left</label>
+                <label class="lbl" data-i18n="lblMargins"></label>
                 <div class="g4">
                   <input type="number" id="mt" step="0.1" aria-label="Top margin">
                   <input type="number" id="mr" step="0.1" aria-label="Right margin">
@@ -569,7 +567,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                 </div>
               </div>
               <div>
-                <label class="lbl">Gap across, gap down, corner radius</label>
+                <label class="lbl" data-i18n="lblGaps"></label>
                 <div class="g3">
                   <input type="number" id="gx" step="0.1" aria-label="Horizontal gap">
                   <input type="number" id="gy" step="0.1" aria-label="Vertical gap">
@@ -579,39 +577,33 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             </div>
           </details>
           <div class="g2">
-            <button class="btn" id="savePreset">Save as preset</button>
-            <button class="btn warn" id="delPreset">Delete preset</button>
+            <button class="btn" id="savePreset" data-i18n="savePreset">Save as preset</button>
+            <button class="btn warn" id="delPreset" data-i18n="delPreset">Delete preset</button>
           </div>
-          <label class="check"><input type="checkbox" id="guideChk"> Print label outlines (alignment test)</label>
-          <label class="check"><input type="checkbox" id="idxChk" checked> Number the blank labels on screen</label>
+          <label class="check"><input type="checkbox" id="guideChk"> <span data-i18n="optCut">Print cut lines</span></label>
+          <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
           <div class="g3">
-            <button class="btn sm" id="exportBtn">Export</button>
-            <button class="btn sm" id="importBtn">Import</button>
-            <button class="btn sm warn" id="clearAll">Empty sheet</button>
+            <button class="btn sm" id="exportBtn" data-i18n="exportBtn">Export</button>
+            <button class="btn sm" id="importBtn" data-i18n="importBtn">Import</button>
+            <button class="btn sm warn" id="clearAll" data-i18n="emptySheet">Empty sheet</button>
           </div>
           <input type="file" id="importFile" accept="application/json" hidden>
         </div>
       </details>
 
       <details class="sec">
-        <summary>Printing &amp; shortcuts</summary>
+        <summary data-i18n="secPrintHelp">Printing &amp; shortcuts</summary>
         <div class="body">
-          <div class="hint">
-            In the print dialog: <b>A4</b> paper, <b>margins None</b>, <b>scale 100%</b> (never
-            &ldquo;fit to page&rdquo;), headers and footers off. Turn on background graphics only if you
-            are printing outlines or dots.<br><br>
-            Run one test on plain paper, hold it against the sticker sheet up to the light, then nudge
-            the margin fields by a few tenths of a mm if your printer sits off-centre.
-          </div>
+          <div class="hint" data-i18n-html="printHint"></div>
           <div class="hint" style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center">
-            <span class="kbd">Click</span><span>Select one label</span>
-            <span class="kbd">Drag</span><span>Select a block</span>
-            <span class="kbd">Ctrl</span><span>Add or remove from the selection</span>
-            <span class="kbd">Shift</span><span>Extend the selection</span>
-            <span class="kbd">Arrows</span><span>Move the cursor, with Shift to extend</span>
-            <span class="kbd">Space</span><span>Toggle the label under the cursor</span>
-            <span class="kbd">Del</span><span>Clear the selected labels</span>
-            <span class="kbd">Ctrl P</span><span>Print</span>
+            <span class="kbd">Click</span><span data-i18n="kbClick">Select one label</span>
+            <span class="kbd">Drag</span><span data-i18n="kbDrag">Select a block</span>
+            <span class="kbd">Ctrl</span><span data-i18n="kbCtrl">Add or remove from the selection</span>
+            <span class="kbd">Shift</span><span data-i18n="kbShift">Extend the selection</span>
+            <span class="kbd">Arrows</span><span data-i18n="kbArrows">Move the cursor, with Shift to extend</span>
+            <span class="kbd">Space</span><span data-i18n="kbSpace">Toggle the label under the cursor</span>
+            <span class="kbd">Del</span><span data-i18n="kbDel">Clear the selected labels</span>
+            <span class="kbd">Ctrl P</span><span data-i18n="kbPrint">Print</span>
           </div>
         </div>
       </details>
@@ -622,6 +614,250 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 <script>
 (function(){
 "use strict";
+
+/* ===== brand =====
+   Change these two lines to rebrand or repoint the shop link. */
+var BRAND = {
+  name:  "Peaklab Labels",
+  store: "https://peaklab-qvbe.onrender.com/"
+};
+
+/* ===== translations =====
+   Deliberately left in English, per the Peaklab terminology rule: units and
+   standards the customer reads off the box or the keyboard (A4, mm, pt, PNG,
+   JPG, SVG, SKU, Ctrl, Shift, Del) and the three typeface names. */
+var I18N = {};
+I18N.en = {
+  buyPaper:"Buy paper", buyPaperTitle:"A4 sticker paper from the Peaklab store",
+  zoomOut:"Zoom out", zoomIn:"Zoom in", zoomReset:"Reset to 100%",
+  fit:"Fit", fitTitle:"Fit the sheet in the window",
+  print:"Print", printTitle:"Print (Ctrl+P)",
+  toDark:"Dark", toLight:"Light", themeAria:"Switch colour theme",
+  toDarkTitle:"Switch to the dark theme", toLightTitle:"Switch to the light theme",
+  langAria:"Switch language", langTitle:"Mongol khel рүү шилжих",
+
+  selNone:"Nothing selected \u2014 click a label, or drag across a few",
+  selected:"selected", filledW:"filled", taggedW:"tagged",
+  chipAll:"All", chipNone:"None", chipInvert:"Invert",
+  chipBlank:"Blank", chipFilled:"Filled", chipTagged:"Tagged",
+  wBlank:"blank", wImage:"image",
+
+  secContent:"Content", lblText:"Label text",
+  applyText:"Apply to selection", clearBtn:"Clear",
+  lblAutoNum:"Auto-number", tPrefix:"Prefix", tStart:"Start at", tDigits:"Zero-padded digits",
+  phSuffix:"Suffix", fillNum:"Fill numbered",
+  lblList:"Or paste a list, one label per line",
+  fillList:"Fill from list", repeatFill:"Repeat to fill",
+
+  secColour:"Colour tags", dotSolid:"Solid", dotGrad:"Gradient", dotStyleAria:"Dot style",
+  selectTagged:"Select tagged", untag:"Untag", paint:"Paint mode", paintOnLbl:"Paint mode on",
+  colourHint:"Hover a colour to spotlight it on the sheet. Click one with labels selected to tag them. Tags show as a dot on screen and <b>never print</b> unless you turn that on below. Logos and label text always print.",
+  printDots:"Print the dots too",
+  cred:"Red", corange:"Orange", camber:"Amber", cgreen:"Green", cteal:"Teal",
+  cblue:"Blue", cviolet:"Violet", cpink:"Pink", cslate:"Slate", cblack:"Black",
+
+  secLogo:"Logo", dropMain:"Drop an image here, or", dropBrowse:"browse",
+  dropSub:"PNG, JPG, SVG \u00b7 stays in your browser",
+  placeImg:"Place on selection", removeImg:"Remove",
+  lblArrange:"When a label has both",
+  layTop:"Image above the text", layBottom:"Image below the text",
+  layLeft:"Image left of the text", layRight:"Image right of the text",
+  lblImgSize:"Image size", ofLabel:"of the label",
+
+  secType:"Type", lblSize:"Size (pt)", lblFace:"Typeface",
+  bold:"Bold", upper:"UPPER", shrink:"Shrink",
+  typeHint:"<b>Shrink</b> reduces the type until the text fits the label. Changes apply to the selection immediately.",
+
+  secSheet:"Sheet",
+  lblSizeSel:"Label size \u2014 paper is always A4, 210 \u00d7 297 mm",
+  lblOffset:"Printer offset \u2014 nudge the whole grid if your printer feeds off-centre",
+  offsetHint:"Positive numbers move right and down. Label sizes stay exact.",
+  offXAria:"Shift right, mm", offYAria:"Shift down, mm", resetBtn:"Reset",
+  fineTune:"Fine-tune this size", cols:"Columns", rows:"Rows",
+  lblMargins:"Margins \u2014 top, right, bottom, left",
+  lblGaps:"Gap across, gap down, corner radius",
+  savePreset:"Save as preset", delPreset:"Delete preset",
+  optCut:"Print cut lines", optIdx:"Number the blank labels on screen",
+  exportBtn:"Export", importBtn:"Import", emptySheet:"Empty sheet",
+  calcFmt:"<b>{w} &times; {h} mm</b> per label &middot; <b>{n}</b> on an A4 sheet",
+  shiftedFmt:"Shifted {x} mm across, {y} mm down", limited:" (limited by the margins)",
+  badGeom:"The margins and gaps are larger than the page.",
+  sizeFmt:"{w} \u00d7 {h} mm  \u00b7  {c}\u00d7{r}  \u00b7  {n} per sheet",
+  sizeFull:"Full sheet  \u00b7  1\u00d71  \u00b7  210 \u00d7 297 mm",
+  customUnsaved:"Custom size (unsaved)",
+
+  secPrintHelp:"Printing &amp; shortcuts",
+  printHint:"In the print dialog: <b>A4</b> paper, <b>margins None</b>, <b>scale 100%</b> (never &ldquo;fit to page&rdquo;), headers and footers off. Turn on background graphics only if you are printing cut lines or dots.<br><br>Run one test on plain paper, hold it against the sticker sheet up to the light, then use <b>Printer offset</b> if your printer sits off-centre.",
+  kbClick:"Select one label", kbDrag:"Select a block",
+  kbCtrl:"Add or remove from the selection", kbShift:"Extend the selection",
+  kbArrows:"Move the cursor, with Shift to extend", kbSpace:"Toggle the label under the cursor",
+  kbDel:"Clear the selected labels", kbPrint:"Print"
+};
+I18N.en.tNeedSel   = "Pick some labels on the sheet first";
+I18N.en.tSet       = "Set {n} {lbl}";
+I18N.en.tEmptied   = "Emptied the text on {n} {lbl}";
+I18N.en.tCleared   = "Cleared {n} {lbl}, colour tags kept";
+I18N.en.tNumbered  = "Numbered {n} {lbl}";
+I18N.en.tListEmpty = "Paste some lines into the list box first";
+I18N.en.tFilled    = "Filled {n} {lbl} from {k} line(s)";
+I18N.en.tLeftover  = " \u2014 {n} left over";
+I18N.en.tNoMatch   = "No labels match that";
+I18N.en.tImgAdded  = "Image added \u2014 select labels, then Place on selection";
+I18N.en.tNotImage  = "That file is not an image";
+I18N.en.tImgRead   = "That image could not be read";
+I18N.en.tImgDel    = "Image deleted";
+I18N.en.tImgPlaced = "Placed the image on {n} {lbl}";
+I18N.en.tImgGone   = "Image removed";
+I18N.en.tAddImg    = "Add an image first";
+I18N.en.tTagged    = "Tagged {n} {lbl} {c}";
+I18N.en.tUntagged  = "Untagged {n} {lbl}";
+I18N.en.tTagCount  = "{n} {lbl} tagged {c}";
+I18N.en.tNoTag     = "Nothing is tagged {c} yet";
+I18N.en.tPaintOn   = "Click or drag the sheet to tag labels {c}";
+I18N.en.tPaintOff  = "Paint mode off";
+I18N.en.tRestyled  = "Restyled {n} {lbl}";
+I18N.en.tNewSolid  = "New tags will be a flat colour";
+I18N.en.tNewGrad   = "New tags will fade to white";
+I18N.en.tColourRdy = "{c} ready \u2014 select some labels, or turn on paint mode";
+I18N.en.tSaved     = "Saved as a preset";
+I18N.en.tDeleted   = "Deleted the preset {name}";
+I18N.en.tBuiltin   = "Built-in sizes cannot be deleted";
+I18N.en.tOffClear  = "Printer offset cleared";
+I18N.en.tOffClamp  = "This size has no room to shift that far, so it stopped at the margin";
+I18N.en.tExported  = "Exported this sheet";
+I18N.en.tImported  = "Imported that sheet";
+I18N.en.tImportBad = "That file could not be read as a sheet";
+I18N.en.tSheetEmpty= "Sheet emptied";
+I18N.en.tFull      = "Storage is full, so this sheet has stopped autosaving. Export it to keep a copy.";
+I18N.en.tNoStore   = "This browser will not save the sheet here. Export it to keep a copy.";
+I18N.en.pPresetName= "Name this sheet layout:";
+I18N.en.cEmptyAll  = "Empty all {n} filled or tagged labels on this sheet?";
+I18N.en.label1     = "label";
+I18N.en.labelN     = "labels";
+I18N.en.langTitle = "Монгол хэл рүү шилжих";
+
+I18N.mn = {
+  buyPaper:"Цаас авах", buyPaperTitle:"Peaklab дэлгүүрээс A4 наалттай цаас",
+  zoomOut:"Багасгах", zoomIn:"Томруулах", zoomReset:"100% болгох",
+  fit:"Багтаах", fitTitle:"Хуудсыг цонхонд багтаах",
+  print:"Хэвлэх", printTitle:"Хэвлэх (Ctrl+P)",
+  toDark:"Бараан", toLight:"Цайвар", themeAria:"Өнгөний загвар солих",
+  toDarkTitle:"Бараан загвар руу шилжих", toLightTitle:"Цайвар загвар руу шилжих",
+  langAria:"Хэл солих", langTitle:"Switch to English",
+
+  selNone:"Юу ч сонгоогүй байна \u2014 шошго дээр дарж, эсвэл чирж сонгоно уу",
+  selected:"сонгосон", filledW:"бөглөсөн", taggedW:"тэмдэглэсэн",
+  chipAll:"Бүгд", chipNone:"Цуцлах", chipInvert:"Эсрэгээр",
+  chipBlank:"Хоосон", chipFilled:"Бөглөсөн", chipTagged:"Тэмдэглэсэн",
+  wBlank:"хоосон", wImage:"зураг",
+
+  secContent:"Агуулга", lblText:"Шошгоны текст",
+  applyText:"Сонгосонд хэрэглэх", clearBtn:"Арилгах",
+  lblAutoNum:"Автоматаар дугаарлах", tPrefix:"Угтвар", tStart:"Эхлэх дугаар",
+  tDigits:"Тэгээр гүйцээх орон", phSuffix:"Дагавар", fillNum:"Дугаарлаж бөглөх",
+  lblList:"Эсвэл жагсаалт буулгана уу \u2014 мөр тутамд нэг шошго",
+  fillList:"Жагсаалтаас бөглөх", repeatFill:"Давтаж дүүргэх",
+
+  secColour:"Өнгөт тэмдэг", dotSolid:"Бүтэн", dotGrad:"Градиент", dotStyleAria:"Цэгийн загвар",
+  selectTagged:"Тэмдэглэснийг сонгох", untag:"Тэмдэг авах",
+  paint:"Будах горим", paintOnLbl:"Будах горим асаалттай",
+  colourHint:"Өнгө дээр хулгана аваачихад тэр өнгөөр тэмдэглэсэн шошгууд тодорно. Шошго сонгоод өнгө дарвал тэмдэглэнэ. Тэмдэг нь дэлгэц дээр цэг болж харагдах бөгөөд доорх сонголтыг асаахгүй бол <b>хэвлэгдэхгүй</b>. Лого болон шошгоны текст үргэлж хэвлэгдэнэ.",
+  printDots:"Цэгийг бас хэвлэх",
+  cred:"Улаан", corange:"Улбар шар", camber:"Шар", cgreen:"Ногоон", cteal:"Ногоон цэнхэр",
+  cblue:"Цэнхэр", cviolet:"Нил ягаан", cpink:"Ягаан", cslate:"Саарал", cblack:"Хар",
+
+  secLogo:"Лого", dropMain:"Зургаа энд чирж оруулах, эсвэл", dropBrowse:"сонгох",
+  dropSub:"PNG, JPG, SVG \u00b7 зөвхөн таны хөтөч дээр хадгалагдана",
+  placeImg:"Сонгосонд байрлуулах", removeImg:"Хасах",
+  lblArrange:"Шошгонд хоёулаа байвал",
+  layTop:"Зураг текстийн дээр", layBottom:"Зураг текстийн доор",
+  layLeft:"Зураг текстийн зүүнд", layRight:"Зураг текстийн баруунд",
+  lblImgSize:"Зургийн хэмжээ", ofLabel:"шошгоны",
+
+  secType:"Үсэг", lblSize:"Хэмжээ (pt)", lblFace:"Фонт",
+  bold:"Тод", upper:"ТОМООР", shrink:"Багасгах",
+  typeHint:"<b>Багасгах</b> нь текст шошгонд багтах хүртэл үсгийн хэмжээг жижигрүүлнэ. Өөрчлөлт сонгосон шошгонд шууд орно.",
+
+  secSheet:"Хуудас",
+  lblSizeSel:"Шошгоны хэмжээ \u2014 цаас үргэлж A4, 210 \u00d7 297 мм",
+  lblOffset:"Принтерийн зөрүү \u2014 принтер тэгш татдаггүй бол бүх торыг шилжүүлнэ",
+  offsetHint:"Эерэг тоо баруун тийш, доош шилжүүлнэ. Шошгоны хэмжээ яг хэвээрээ үлдэнэ.",
+  offXAria:"Баруун тийш, мм", offYAria:"Доош, мм", resetBtn:"Тэглэх",
+  fineTune:"Энэ хэмжээг нарийвчлан тохируулах", cols:"Багана", rows:"Мөр",
+  lblMargins:"Захын зай \u2014 дээд, баруун, доод, зүүн",
+  lblGaps:"Хөндлөн зай, босоо зай, булангийн дугуйрал",
+  savePreset:"Хэмжээг хадгалах", delPreset:"Устгах",
+  optCut:"Тайрах шугам хэвлэх", optIdx:"Хоосон шошгыг дэлгэц дээр дугаарлах",
+  exportBtn:"Экспорт", importBtn:"Импорт", emptySheet:"Хуудас хоослох",
+  calcFmt:"Нэг шошго <b>{w} &times; {h} мм</b> &middot; A4 хуудсанд <b>{n}</b>",
+  shiftedFmt:"{x} мм хөндлөн, {y} мм доош шилжсэн", limited:" (захын зайд хүрсэн)",
+  badGeom:"Захын зай болон завсар нь хуудаснаас том байна.",
+  sizeFmt:"{w} \u00d7 {h} мм  \u00b7  {c}\u00d7{r}  \u00b7  хуудсанд {n}",
+  sizeFull:"Бүтэн хуудас  \u00b7  1\u00d71  \u00b7  210 \u00d7 297 мм",
+  customUnsaved:"Өөрийн хэмжээ (хадгалаагүй)",
+
+  secPrintHelp:"Хэвлэх ба товчлол",
+  printHint:"Хэвлэх цонхонд: <b>A4</b> цаас, <b>захын зай None</b>, <b>масштаб 100%</b> (&laquo;fit to page&raquo; сонгохгүй), толгой хөлийг унтраана. Тайрах шугам эсвэл цэг хэвлэх үед л background graphics-ыг асаана.<br><br>Эхлээд энгийн цаасан дээр туршиж хэвлээд наалттай хуудастай харьцуулан гэрэлд харна уу. Принтер тэгш биш бол <b>Принтерийн зөрүү</b>-г ашиглана.",
+  kbClick:"Нэг шошго сонгох", kbDrag:"Блокоор сонгох",
+  kbCtrl:"Сонголтод нэмэх, хасах", kbShift:"Сонголтыг үргэлжлүүлэх",
+  kbArrows:"Курсор зөөх, Shift дарвал сонголт нэмэгдэнэ",
+  kbSpace:"Курсор доорх шошгыг сонгох, цуцлах",
+  kbDel:"Сонгосон шошгыг арилгах", kbPrint:"Хэвлэх"
+};
+I18N.mn.tNeedSel   = "Эхлээд хуудсан дээрээс шошго сонгоно уу";
+I18N.mn.tSet       = "{n} {lbl} тохирууллаа";
+I18N.mn.tEmptied   = "{n} шошгоны текстийг арилгалаа";
+I18N.mn.tCleared   = "{n} {lbl} арилгалаа, өнгөт тэмдэг үлдлээ";
+I18N.mn.tNumbered  = "{n} {lbl} дугаарлалаа";
+I18N.mn.tListEmpty = "Эхлээд жагсаалтын нүдэнд мөрүүд оруулна уу";
+I18N.mn.tFilled    = "{k} мөрөөс {n} {lbl} бөглөлөө";
+I18N.mn.tLeftover  = " \u2014 {n} үлдлээ";
+I18N.mn.tNoMatch   = "Тохирох шошго алга";
+I18N.mn.tImgAdded  = "Зураг нэмэгдлээ \u2014 шошго сонгоод «Сонгосонд байрлуулах» дарна уу";
+I18N.mn.tNotImage  = "Энэ файл зураг биш байна";
+I18N.mn.tImgRead   = "Энэ зургийг уншиж чадсангүй";
+I18N.mn.tImgDel    = "Зураг устлаа";
+I18N.mn.tImgPlaced = "{n} {lbl} дээр зураг байрлууллаа";
+I18N.mn.tImgGone   = "Зургийг хаслаа";
+I18N.mn.tAddImg    = "Эхлээд зураг нэмнэ үү";
+I18N.mn.tTagged    = "{n} шошгыг {c} өнгөөр тэмдэглэлээ";
+I18N.mn.tUntagged  = "{n} шошгоны тэмдгийг авлаа";
+I18N.mn.tTagCount  = "{c} өнгөөр тэмдэглэсэн {n} {lbl}";
+I18N.mn.tNoTag     = "{c} өнгөөр тэмдэглэсэн шошго алга байна";
+I18N.mn.tPaintOn   = "Хуудсан дээр дарж эсвэл чирч {c} өнгөөр тэмдэглэнэ";
+I18N.mn.tPaintOff  = "Будах горим унтраалаа";
+I18N.mn.tRestyled  = "{n} шошгоны загварыг сольлоо";
+I18N.mn.tNewSolid  = "Шинэ тэмдэг бүтэн өнгөтэй байна";
+I18N.mn.tNewGrad   = "Шинэ тэмдэг цагаан руу шилжинэ";
+I18N.mn.tColourRdy = "{c} бэлэн \u2014 шошго сонгох, эсвэл будах горимыг асаана уу";
+I18N.mn.tSaved     = "Хэмжээг хадгаллаа";
+I18N.mn.tDeleted   = "{name} хэмжээг устгалаа";
+I18N.mn.tBuiltin   = "Бэлэн хэмжээг устгах боломжгүй";
+I18N.mn.tOffClear  = "Принтерийн зөрүүг тэглэлээ";
+I18N.mn.tOffClamp  = "Энэ хэмжээнд тийм их шилжих зай алга тул захад хүрээд зогслоо";
+I18N.mn.tExported  = "Хуудсыг экспортлолоо";
+I18N.mn.tImported  = "Хуудсыг импортлолоо";
+I18N.mn.tImportBad = "Энэ файлыг хуудас болгож уншиж чадсангүй";
+I18N.mn.tSheetEmpty= "Хуудсыг хоослолоо";
+I18N.mn.tFull      = "Хадгалах зай дүүрсэн тул энэ хуудас автоматаар хадгалагдахаа больсон. Экспорт хийж хуулбар аваарай.";
+I18N.mn.tNoStore   = "Энэ хөтөч дээр хуудас хадгалагдахгүй. Экспорт хийж хуулбар аваарай.";
+I18N.mn.pPresetName= "Энэ хуудасны хэмжээнд нэр өгнө үү:";
+I18N.mn.cEmptyAll  = "Энэ хуудсан дээрх бөглөсөн, тэмдэглэсэн {n} шошгыг бүгдийг хоослох уу?";
+I18N.mn.label1     = "шошго";
+I18N.mn.labelN     = "шошго";
+
+/* ===== lookup ===== */
+var lang = "en";
+function t(key, vars){
+  var pack = I18N[lang] || I18N.en;
+  var str = pack[key];
+  if(str === undefined) str = I18N.en[key];
+  if(str === undefined) return key;
+  if(vars) for(var k in vars) if(vars.hasOwnProperty(k))
+    str = str.split("{"+k+"}").join(vars[k]);
+  return str;
+}
+function plural(n){ return n===1 ? t("label1") : t("labelN"); }
 var PXMM = 96/25.4;
 var KEY  = "labelsheet.v2";
 
@@ -638,7 +874,7 @@ var COLORS = [
   {id:"black",  name:"Black",  hex:"#1f2430"}
 ];
 var HEX = {}; COLORS.forEach(function(c){ HEX[c.id]=c.hex; });
-var NAME = {}; COLORS.forEach(function(c){ NAME[c.id]=c.name; });
+function cname(id){ return t("c"+id); }
 /* sheets saved by the emoji-marker version keep working */
 var LEGACY = {
   "\u{1F534}":"red", "\u{1F7E0}":"orange", "\u{1F7E1}":"amber", "\u{1F7E2}":"green",
@@ -647,18 +883,24 @@ var LEGACY = {
 };
 
 var A4 = {pw:210, ph:297};
+/* w/h are the printed label size; the visible name is built per language */
 var BUILTIN = [
-  {id:"s-32x15",  name:"32 × 15 mm  ·  6×17  ·  102 per sheet", cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
-  {id:"s-38x21",  name:"38 × 21 mm  ·  5×13  ·  65 per sheet",  cols:5,rows:13,mt:10.7,mr:4.75,mb:10.7,ml:4.75,gx:2.5,gy:0,rad:1.5},
-  {id:"s-48x25",  name:"48 × 25 mm  ·  4×10  ·  40 per sheet",  cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
-  {id:"s-63x38",  name:"63 × 38 mm  ·  3×7  ·  21 per sheet",   cols:3,rows:7, mt:15.15,mr:7.25,mb:15.15,ml:7.25,gx:2.5,gy:0,rad:2},
-  {id:"s-70x37",  name:"70 × 37 mm  ·  3×8  ·  24 per sheet",   cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-99x67",  name:"99 × 68 mm  ·  2×4  ·  8 per sheet",    cols:2,rows:4, mt:13.1,mr:4.65,mb:13.1,ml:4.65,gx:2.5,gy:0,rad:2},
-  {id:"s-105x42", name:"105 × 42 mm  ·  2×7  ·  14 per sheet",  cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-105x148",name:"105 × 149 mm  ·  2×2  ·  4 per sheet",  cols:2,rows:2, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-full",   name:"Full sheet  ·  1×1  ·  210 × 297 mm",   cols:1,rows:1, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:0}
+  {id:"s-32x15",  w:32,  h:15,  cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
+  {id:"s-38x21",  w:38,  h:21,  cols:5,rows:13,mt:10.7,mr:4.75,mb:10.7,ml:4.75,gx:2.5,gy:0,rad:1.5},
+  {id:"s-48x25",  w:48,  h:25,  cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
+  {id:"s-63x38",  w:63,  h:38,  cols:3,rows:7, mt:15.15,mr:7.25,mb:15.15,ml:7.25,gx:2.5,gy:0,rad:2},
+  {id:"s-70x37",  w:70,  h:37,  cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-99x67",  w:99,  h:68,  cols:2,rows:4, mt:13.1,mr:4.65,mb:13.1,ml:4.65,gx:2.5,gy:0,rad:2},
+  {id:"s-105x42", w:105, h:42,  cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-105x148",w:105, h:149, cols:2,rows:2, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-full",   full:true,    cols:1,rows:1, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:0}
 ];
 BUILTIN.forEach(function(b){ b.pw=A4.pw; b.ph=A4.ph; });
+function presetName(p){
+  if(p.name) return p.name;
+  if(p.full) return t("sizeFull");
+  return t("sizeFmt",{w:p.w,h:p.h,c:p.cols,r:p.rows,n:p.cols*p.rows});
+}
 var DEF_STYLE = {fs:8, ff:0, b:true, up:false, lay:"img-top", is:55, fit:true};
 var FONTS = ["system-ui, 'Segoe UI', Arial, sans-serif",
              "Georgia, 'Times New Roman', serif",
@@ -708,14 +950,14 @@ function freshState(){
   return {
     presetId:g.id, g:g, cells:blankCells(g.cols*g.rows), images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}
+    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, lang:"en"}
   };
 }
 function normalise(s){
   s.images = s.images || {};
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}, s.opts || {});
+  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, lang:"en"}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
@@ -729,8 +971,7 @@ function save(){
     if(saveWarned) return;
     saveWarned = true;
     toast(/quota|exceed/i.test(String(e.name)+String(e.message))
-      ? "Storage is full, so this sheet has stopped autosaving. Export it to keep a copy."
-      : "This browser will not save the sheet here. Export it to keep a copy.");
+      ? t("tFull") : t("tNoStore"));
   }
 }
 function load(){
@@ -799,9 +1040,9 @@ function render(){
   var bad = (lw<=0 || lh<=0);
   $("dimChip").innerHTML = g.cols+"&times;"+g.rows+" &middot; "+r2(lw)+"&times;"+r2(lh)+" mm";
   $("calcInfo").innerHTML = bad
-    ? "<b style='color:var(--danger)'>The margins and gaps are larger than the page.</b>"
-    : "<b>"+r2(lw)+" &times; "+r2(lh)+" mm</b> per label &middot; <b>"+n+"</b> on an A4 sheet" +
-      ((off.x||off.y) ? "<br>Shifted "+r2(off.x)+" mm across, "+r2(off.y)+" mm down"+(off.clamped?" (limited by the margins)":"") : "");
+    ? "<b style='color:var(--danger)'>"+esc(t("badGeom"))+"</b>"
+    : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
+      ((off.x||off.y) ? "<br>"+t("shiftedFmt",{x:r2(off.x),y:r2(off.y)})+(off.clamped?t("limited"):"") : "");
   autofit();
   syncSelUI();
   drawSwatchCounts();
@@ -835,9 +1076,9 @@ function cellHTML(i, c){
   var dot = HEX[base]
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
       '" style="--c:'+HEX[base]+'"></span>' : "";
-  var label = ref(i) + (c.t ? ", "+c.t.replace(/\n/g," ") : "") + (hasImg ? ", image" : "") +
-              (!hasTxt && !hasImg ? ", blank" : "") +
-              (base ? ", tagged "+NAME[base] : "");
+  var label = ref(i) + (c.t ? ", "+c.t.replace(/\n/g," ") : "") + (hasImg ? ", "+t("wImage") : "") +
+              (!hasTxt && !hasImg ? ", "+t("wBlank") : "") +
+              (base ? ", "+t("taggedW")+" "+cname(base) : "");
   return '<div class="'+cls+'" data-i="'+i+'" role="option" aria-selected="'+(sel.has(i)?"true":"false")+
          '" aria-label="'+esc(label)+'" style="border-radius:'+S.g.rad+'mm">'+
          '<div class="inner '+dir+'">'+(textFirst ? txt+img : img+txt)+'</div>'+
@@ -890,15 +1131,15 @@ function syncSelUI(){
 function selCount(){
   var el=$("selCount"), arr=selArr();
   if(!arr.length){
-    el.innerHTML = '<span>Nothing selected &mdash; click a label, or drag across a few</span>';
+    el.innerHTML = '<span>'+esc(t("selNone"))+'</span>';
     return;
   }
   var filled=0, tagged=0;
   arr.forEach(function(i){ var c=S.cells[i]||{}; if(!isEmpty(c)) filled++; if(c.m) tagged++; });
   if(arr.length===1){
     var c=S.cells[arr[0]]||{}, st=Object.assign({},DEF_STYLE,c);
-    el.innerHTML = "<b>"+ref(arr[0])+"</b><em>"+(c.t ? esc(c.t.split("\n")[0]) : (c.img ? "image" : "blank"))+
-                   "</em>"+(c.m ? '<span>&middot; '+NAME[c.m]+'</span>' : "");
+    el.innerHTML = "<b>"+ref(arr[0])+"</b><em>"+(c.t ? esc(c.t.split("\n")[0]) : (c.img ? t("wImage") : t("wBlank")))+
+                   "</em>"+(c.m ? '<span>&middot; '+cname(mBase(c.m))+'</span>' : "");
     $("txtInput").value = c.t || "";
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
@@ -906,7 +1147,8 @@ function selCount(){
     press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
     S.style = {fs:st.fs, ff:st.ff||0, b:st.b, up:st.up, lay:st.lay, is:st.is, fit:st.fit};
   } else {
-    el.innerHTML = "<b>"+arr.length+"</b><span>selected &middot; "+filled+" filled &middot; "+tagged+" tagged</span>";
+    el.innerHTML = "<b>"+arr.length+"</b><span>"+t("selected")+" &middot; "+filled+" "+t("filledW")+
+                   " &middot; "+tagged+" "+t("taggedW")+"</span>";
   }
 }
 function press(btn, on){
@@ -1033,11 +1275,11 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-sel]"), function(b
       else if(mode==="marked"){ if(c.m) out.add(i); }
     }
     sel=out; syncSelUI();
-    if(mode!=="none" && !out.size) toast("No labels match that");
+    if(mode!=="none" && !out.size) toast(t("tNoMatch"));
   });
 });
 function needSel(){
-  if(!sel.size){ toast("Pick some labels on the sheet first"); return false; }
+  if(!sel.size){ toast(t("tNeedSel")); return false; }
   return true;
 }
 
@@ -1055,7 +1297,6 @@ function applyStyleTo(c){
   var st=styleNow();
   c.fs=st.fs; c.ff=st.ff; c.b=st.b; c.up=st.up; c.lay=st.lay; c.is=st.is; c.fit=st.fit;
 }
-function plural(n){ return n===1 ? "label" : "labels"; }
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
@@ -1064,13 +1305,14 @@ $("applyText").addEventListener("click", function(){
     var c=S.cells[i]||(S.cells[i]={});
     c.t=v; applyStyleTo(c);
   });
-  save(); render(); toast(v.trim() ? "Set "+n+" "+plural(n) : "Emptied the text on "+n+" "+plural(n));
+  save(); render();
+  toast(v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
 });
 function clearCells(){
   if(!needSel()) return;
   var n=sel.size;
   selArr().forEach(function(i){ var m=(S.cells[i]||{}).m; S.cells[i] = m ? {m:m} : {}; });
-  save(); render(); toast("Cleared "+n+" "+plural(n)+", colour tags kept");
+  save(); render(); toast(t("tCleared",{n:n,lbl:plural(n)}));
 }
 $("clearCells").addEventListener("click", clearCells);
 
@@ -1083,13 +1325,13 @@ $("applySeq").addEventListener("click", function(){
     var c=S.cells[i]||(S.cells[i]={});
     c.t=p+num+sfx; applyStyleTo(c);
   });
-  save(); render(); toast("Numbered "+n+" "+plural(n));
+  save(); render(); toast(t("tNumbered",{n:n,lbl:plural(n)}));
 });
 
 $("applyList").addEventListener("click", function(){
   if(!needSel()) return;
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
-  if(!lines.length){ toast("Paste some lines into the list box first"); return; }
+  if(!lines.length){ toast(t("tListEmpty")); return; }
   var rep=$("listRepeat").checked, used=0;
   selArr().forEach(function(i,k){
     if(k>=lines.length && !rep) return;
@@ -1097,16 +1339,17 @@ $("applyList").addEventListener("click", function(){
     c.t=lines[rep ? (k%lines.length) : k]; applyStyleTo(c); used++;
   });
   save(); render();
-  toast("Filled "+used+" "+plural(used)+" from "+lines.length+" line"+(lines.length===1?"":"s")+
-        (!rep && lines.length>used ? " \u2014 "+(lines.length-used)+" left over" : ""));
+  toast(t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
+        (!rep && lines.length>used ? t("tLeftover",{n:lines.length-used}) : ""));
 });
 
 /* ================= colour tags ================= */
 function buildSwatches(){
   var h="";
   COLORS.forEach(function(c){
-    h += '<button class="sw'+(c.id===curColor?" act":"")+'" data-c="'+c.id+'" title="'+c.name+
-         '" aria-label="'+c.name+'" aria-pressed="'+(c.id===curColor)+'">'+
+    var nm=esc(cname(c.id));
+    h += '<button class="sw'+(c.id===curColor?" act":"")+'" data-c="'+c.id+'" title="'+nm+
+         '" aria-label="'+nm+'" aria-pressed="'+(c.id===curColor)+'">'+
          '<span class="bead'+(gradMode?" grad":"")+'" style="--c:'+c.hex+'"></span>'+
          '<span class="n" data-n="'+c.id+'"></span></button>';
   });
@@ -1125,7 +1368,7 @@ $("swatches").addEventListener("click", function(e){
   curColor=b.dataset.c;
   buildSwatches(); drawSwatchCounts();
   if(sel.size && !paint) applyMarker();
-  else toast(NAME[curColor]+" ready \u2014 select some labels, or turn on paint mode");
+  else toast(t("tColourRdy",{c:cname(curColor)}));
   spotlight(curColor);
 });
 $("dotStyle").addEventListener("click", function(e){
@@ -1137,9 +1380,9 @@ $("dotStyle").addEventListener("click", function(e){
   if(hit.length){
     hit.forEach(function(i){ S.cells[i].m = mBase(S.cells[i].m) + (gradMode ? ".g" : ""); });
     save(); render();
-    toast("Restyled "+hit.length+" "+plural(hit.length));
+    toast(t("tRestyled",{n:hit.length,lbl:plural(hit.length)}));
   } else {
-    toast(gradMode ? "New tags will fade to white" : "New tags will be a flat colour");
+    toast(gradMode ? t("tNewGrad") : t("tNewSolid"));
   }
 });
 $("swatches").addEventListener("mouseover", function(e){
@@ -1166,35 +1409,58 @@ function applyMarker(){
   var val = curColor + (gradMode ? ".g" : "");
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.m=val; });
   save(); render();
-  toast("Tagged "+n+" "+plural(n)+" "+NAME[curColor].toLowerCase()+(gradMode?" gradient":""));
+  toast(t("tTagged",{n:n,lbl:plural(n),c:cname(curColor).toLowerCase()}));
 }
 $("markClear").addEventListener("click", function(){
   if(!needSel()) return;
   var n=sel.size;
   selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].m=""; });
-  save(); render(); toast("Untagged "+n+" "+plural(n));
+  save(); render(); toast(t("tUntagged",{n:n,lbl:plural(n)}));
 });
 $("markSelect").addEventListener("click", function(){
   var n=count(), i, out=new Set();
   for(i=0;i<n;i++) if(mBase((S.cells[i]||{}).m)===curColor) out.add(i);
   sel=out; syncSelUI();
-  toast(out.size ? out.size+" "+plural(out.size)+" tagged "+NAME[curColor].toLowerCase()
-                 : "Nothing is tagged "+NAME[curColor].toLowerCase()+" yet");
+  toast(out.size ? t("tTagCount",{n:out.size,lbl:plural(out.size),c:cname(curColor).toLowerCase()})
+                 : t("tNoTag",{c:cname(curColor).toLowerCase()}));
 });
 $("paintBtn").addEventListener("click", function(){
   paint=!paint; press(this, paint);
-  this.textContent = paint ? "Paint mode on" : "Paint mode";
+  this.textContent = paint ? t("paintOnLbl") : t("paint");
   $("sheet").style.cursor = paint ? "crosshair" : "";
-  toast(paint ? "Click or drag the sheet to tag labels "+NAME[curColor].toLowerCase()
-              : "Paint mode off");
+  toast(paint ? t("tPaintOn",{c:cname(curColor).toLowerCase()}) : t("tPaintOff"));
 });
 $("printMarkers").addEventListener("change", function(){ S.opts.printMarkers=this.checked; save(); render(); });
+
+function applyLang(){
+  lang = (S.opts.lang === "mn") ? "mn" : "en";
+  document.documentElement.lang = lang;
+  var q = function(a){ return document.querySelectorAll(a); };
+  Array.prototype.forEach.call(q("[data-i18n]"), function(el){ el.textContent = t(el.dataset.i18n); });
+  Array.prototype.forEach.call(q("[data-i18n-html]"), function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
+  Array.prototype.forEach.call(q("[data-i18n-ph]"), function(el){ el.placeholder = t(el.dataset.i18nPh); });
+  Array.prototype.forEach.call(q("[data-i18n-title]"), function(el){ el.title = t(el.dataset.i18nTitle); });
+  Array.prototype.forEach.call(q("[data-i18n-aria]"), function(el){ el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+
+  $("brandName").textContent = BRAND.name;
+  $("buyLink").href = BRAND.store;
+  $("langBtn").textContent = (lang === "en") ? "MN" : "EN";
+  $("paintBtn").textContent = paint ? t("paintOnLbl") : t("paint");
+  buildSwatches(); drawSwatchCounts();
+  applyTheme();
+  syncPresetSel();
+  render();
+}
+$("langBtn").addEventListener("click", function(){
+  S.opts.lang = (S.opts.lang === "mn") ? "en" : "mn";
+  save(); applyLang();
+});
 
 function applyTheme(){
   var dark = S.opts.theme === "dark";
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  $("themeBtn").textContent = dark ? "Light" : "Dark";
-  $("themeBtn").title = dark ? "Switch to the light theme" : "Switch to the dark theme";
+  $("themeBtn").textContent = dark ? t("toLight") : t("toDark");
+  $("themeBtn").title = dark ? t("toLightTitle") : t("toDarkTitle");
 }
 $("themeBtn").addEventListener("click", function(){
   S.opts.theme = (S.opts.theme === "dark") ? "light" : "dark";
@@ -1204,7 +1470,7 @@ $("themeBtn").addEventListener("click", function(){
 /* ================= images ================= */
 function readImage(f){
   if(!f) return;
-  if(!/^image\//.test(f.type)){ toast("That file is not an image"); return; }
+  if(!/^image\//.test(f.type)){ toast(t("tNotImage")); return; }
   var rd=new FileReader();
   rd.onload=function(){
     if(/svg/.test(f.type)){ addImage(rd.result); return; }
@@ -1217,7 +1483,7 @@ function readImage(f){
       cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
       addImage(cv.toDataURL("image/png"));
     };
-    im.onerror=function(){ toast("That image could not be read"); };
+    im.onerror=function(){ toast(t("tImgRead")); };
     im.src=rd.result;
   };
   rd.readAsDataURL(f);
@@ -1234,7 +1500,7 @@ $("drop").addEventListener("drop", function(e){
 });
 function addImage(dataUrl){
   var id=uid(); S.images[id]=dataUrl; curImg=id; save(); renderLib();
-  toast("Image added \u2014 select labels, then Place on selection");
+  toast(t("tImgAdded"));
 }
 function renderLib(){
   var box=$("imgLib"), h="", k;
@@ -1252,7 +1518,7 @@ $("imgLib").addEventListener("click", function(e){
     delete S.images[del];
     S.cells.forEach(function(c){ if(c && c.img===del) c.img=null; });
     if(curImg===del) curImg=null;
-    save(); renderLib(); render(); toast("Image deleted");
+    save(); renderLib(); render(); toast(t("tImgDel"));
     return;
   }
   var it=e.target.closest(".thumb"); if(!it) return;
@@ -1260,15 +1526,15 @@ $("imgLib").addEventListener("click", function(e){
 });
 $("applyImg").addEventListener("click", function(){
   if(!needSel()) return;
-  if(!curImg){ toast("Add an image first"); return; }
+  if(!curImg){ toast(t("tAddImg")); return; }
   var n=sel.size;
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.img=curImg; applyStyleTo(c); });
-  save(); render(); toast("Placed the image on "+n+" "+plural(n));
+  save(); render(); toast(t("tImgPlaced",{n:n,lbl:plural(n)}));
 });
 $("removeImg").addEventListener("click", function(){
   if(!needSel()) return;
   selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].img=null; });
-  save(); render(); toast("Image removed");
+  save(); render(); toast(t("tImgGone"));
 });
 
 /* ================= type controls ================= */
@@ -1311,21 +1577,21 @@ GEO_EDIT.forEach(function(k){
     S.opts[k]=isNaN(v)?0:Math.max(-15,Math.min(15,v));
     this.value=S.opts[k];
     save(); render();
-    if(effOffset().clamped) toast("This size has no room to shift that far, so it stopped at the margin");
+    if(effOffset().clamped) toast(t("tOffClamp"));
   });
 });
 $("offsetReset").addEventListener("click", function(){
   S.opts.ox=0; S.opts.oy=0; $("ox").value=0; $("oy").value=0;
-  save(); render(); toast("Printer offset cleared");
+  save(); render(); toast(t("tOffClear"));
 });
 
 function allPresets(){ return BUILTIN.concat(S.custom||[]); }
 function syncPresetSel(){
   var h="";
   allPresets().forEach(function(p){
-    h += '<option value="'+p.id+'">'+p.name+(p.custom?" \u2605":"")+'</option>';
+    h += '<option value="'+p.id+'">'+esc(presetName(p))+(p.custom?" \u2605":"")+'</option>';
   });
-  if(S.presetId==="custom") h += '<option value="custom">Custom size (unsaved)</option>';
+  if(S.presetId==="custom") h += '<option value="custom">'+esc(t("customUnsaved"))+'</option>';
   ["presetSel","sizeSel"].forEach(function(id){ $(id).innerHTML=h; $(id).value=S.presetId; });
   $("delPreset").disabled = !(S.custom||[]).some(function(p){ return p.id===S.presetId; });
 }
@@ -1343,19 +1609,19 @@ function pickPreset(id){
 });
 $("savePreset").addEventListener("click", function(){
   var suggested = S.g.cols+"\u00d7"+S.g.rows+" \u00b7 "+r2(labelW())+"\u00d7"+r2(labelH())+" mm";
-  var name=prompt("Name this sheet layout:", suggested);
+  var name=prompt(t("pPresetName"), suggested);
   if(!name) return;
   var p={id:"c_"+uid(), name:name, custom:true};
   GEO.forEach(function(k){ p[k]=S.g[k]; });
-  S.custom.push(p); S.presetId=p.id; save(); syncPresetSel(); toast("Saved as a preset");
+  S.custom.push(p); S.presetId=p.id; save(); syncPresetSel(); toast(t("tSaved"));
 });
 $("delPreset").addEventListener("click", function(){
   var id=S.presetId, idx=-1, i;
   for(i=0;i<S.custom.length;i++) if(S.custom[i].id===id) idx=i;
-  if(idx<0){ toast("Built-in layouts cannot be deleted"); return; }
+  if(idx<0){ toast(t("tBuiltin")); return; }
   var nm=S.custom[idx].name;
   S.custom.splice(idx,1); S.presetId="custom"; save(); syncPresetSel();
-  toast("Deleted the preset " + nm);
+  toast(t("tDeleted",{name:nm}));
 });
 $("guideChk").addEventListener("change", function(){ S.opts.guides=this.checked; save(); render(); });
 $("idxChk").addEventListener("change", function(){ S.opts.idx=this.checked; save(); render(); });
@@ -1400,7 +1666,7 @@ $("exportBtn").addEventListener("click", function(){
   a.download="label-sheet-"+new Date().toISOString().slice(0,10)+".json";
   document.body.appendChild(a); a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
-  toast("Exported this sheet");
+  toast(t("tExported"));
 });
 $("importBtn").addEventListener("click", function(){ $("importFile").click(); });
 $("importFile").addEventListener("change", function(e){
@@ -1411,16 +1677,16 @@ $("importFile").addEventListener("change", function(e){
       var s=JSON.parse(rd.result);
       if(!s || !s.g || !s.cells) throw new Error("bad file");
       S=normalise(s); sel=new Set(); cur=0; anchor=0; curImg=null;
-      fillGeo(); syncPresetSel(); renderLib(); syncOpts(); fitZoom(); save(); render();
-      toast("Imported that sheet");
-    }catch(err){ toast("That file could not be read as a sheet"); }
+      fillGeo(); renderLib(); syncOpts(); fitZoom(); save(); applyLang();
+      toast(t("tImported"));
+    }catch(err){ toast(t("tImportBad")); }
   };
   rd.readAsText(f); e.target.value="";
 });
 $("clearAll").addEventListener("click", function(){
   var used=S.cells.filter(function(c){ return !isEmpty(c) || c.m; }).length;
-  if(used && !confirm("Empty all "+used+" filled or tagged labels on this sheet?")) return;
-  S.cells=blankCells(count()); sel=new Set(); save(); render(); toast("Sheet emptied");
+  if(used && !confirm(t("cEmptyAll",{n:used}))) return;
+  S.cells=blankCells(count()); sel=new Set(); save(); render(); toast(t("tSheetEmpty"));
 });
 
 /* ================= init ================= */
@@ -1434,8 +1700,8 @@ function syncOpts(){
   press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
 }
 S = load();
-fillGeo(); syncPresetSel(); syncOpts(); buildSwatches(); renderLib(); applyTheme();
-fitZoom(); render();
+fillGeo(); syncOpts(); buildSwatches(); renderLib();
+fitZoom(); applyLang();
 })();
 </script>
 </body>

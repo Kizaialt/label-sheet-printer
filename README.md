@@ -57,6 +57,24 @@ your printer runs off-centre.
 
 Save `index.html` anywhere and open it — it is fully self-contained.
 
+## Language and branding
+
+The interface ships in **English and Mongolian** (toolbar toggle, remembered between visits).
+Units and standards a customer reads off the box or the keyboard stay in English throughout:
+A4, mm, pt, PNG/JPG/SVG, SKU, Ctrl/Shift/Del, and the three typeface names.
+
+Brand name and shop link live in one `BRAND` object at the top of the script:
+
+```js
+var BRAND = {
+  name:  "Peaklab Labels",
+  store: "https://peaklab-qvbe.onrender.com/"
+};
+```
+
+Cut lines print by default, on the assumption the paper is plain rather than die-cut. Turn them
+off in **Sheet** if your stock arrives pre-cut.
+
 ## Design notes
 
 The chrome is deliberately achromatic. The ten tag colours are the only saturated things on screen,
