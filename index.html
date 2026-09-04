@@ -209,13 +209,13 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .bead{border-radius:50%;background:var(--c)}
 .bead.grad{background:linear-gradient(135deg, var(--c) 0%, #ffffff 100%)}
 
-.seg4{grid-template-columns:repeat(4,1fr)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-2);border-radius:var(--r-1);overflow:hidden}
 .segb{
   height:27px;font-size:var(--fs-micro);color:var(--ink-3);
   display:flex;align-items:center;justify-content:center;gap:6px;
   transition:background var(--t) var(--ease),color var(--t) var(--ease);
 }
+.seg.seg4{grid-template-columns:repeat(4,1fr)}
 .segb+.segb{border-left:1px solid var(--line-2)}
 .segb:hover{background:var(--panel-2);color:var(--ink)}
 .segb.on{background:var(--selected);color:var(--ink);font-weight:550}
@@ -366,6 +366,21 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .thumb:hover .x,.thumb .x:focus-visible{opacity:1}
 
+.modalwrap{
+  position:fixed;inset:0;z-index:var(--z-toast);display:flex;
+  align-items:center;justify-content:center;background:rgba(0,0,0,.42);
+}
+.modal{
+  width:min(92vw,360px);display:flex;flex-direction:column;gap:var(--s-3);
+  padding:var(--s-6);border-radius:var(--r-2);
+  background:var(--panel);border:1px solid var(--line-2);
+  box-shadow:0 12px 40px rgba(0,0,0,.35);
+}
+.modal h2{margin:0;font-size:var(--fs-lead);font-weight:600}
+.checklist{margin:0;padding-left:18px;font-size:var(--fs-body);color:var(--ink-2);
+  display:flex;flex-direction:column;gap:5px}
+.checklist b{color:var(--ink)}
+@media print{ .modalwrap{display:none !important} }
 #toast{
   position:fixed;left:50%;bottom:22px;z-index:var(--z-toast);
   display:flex;align-items:center;gap:8px;
@@ -710,6 +725,23 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     </aside>
   </div>
 </div>
+<div class="modalwrap" id="printDlg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlgH">
+    <h2 id="dlgH" data-i18n="dlgTitle">Before you print</h2>
+    <ul class="checklist">
+      <li data-i18n-html="dlgA4"></li>
+      <li data-i18n-html="dlgMargin"></li>
+      <li data-i18n-html="dlgScale"></li>
+    </ul>
+    <p class="hint" data-i18n="dlgWhy"></p>
+    <label class="check"><input type="checkbox" id="dlgNever">
+      <span data-i18n="dlgNever">Do not show again</span></label>
+    <div class="g2">
+      <button class="btn primary" id="dlgGo" data-i18n="dlgGo">Print</button>
+      <button class="btn" id="dlgCancel" data-i18n="dlgCancel">Cancel</button>
+    </div>
+  </div>
+</div>
 <div id="toast"><span class="pip"></span><span id="toastMsg"></span></div>
 <script>
 (function(){
@@ -772,6 +804,16 @@ var STR = {
   tLastPage: "Ганц хуудсыг устгах боломжгүй",
   tAllPages: "{p} хуудас, нийт {n} шошго хэвлэнэ",
   cPageDel: "Энэ хуудсан дээрх бүх шошгыг устгах уу?",
+  dlgTitle: "Хэвлэхийн өмнө шалгаарай",
+  dlgA4: "Цаас: <b>A4</b>",
+  dlgMargin: "Захын зай: <b>None</b> (Тэг)",
+  dlgScale: "Масштаб: <b>100%</b> — «Fit to page» биш",
+  dlgWhy: "Эдгээрийн аль нэг буруу бол шошго цаасны нүхэн дээр таарахгүй.",
+  dlgGo: "Хэвлэх",
+  dlgCancel: "Болих",
+  dlgNever: "Дахиж бүү харуул",
+  ptAuto: "«Автомат» асаалттай үед үсгийн хэмжээг өөрөө тохируулна",
+  cSizeLoss: "Энэ хэмжээнд {n} шошго багтахгүй тул устана. Үргэлжлүүлэх үү?",
   modeAsk: "Юу хийх вэ?",
   modePlain: "Энгийн",
   modePrice: "Үнэ",
@@ -948,6 +990,20 @@ function t(key, vars){
     str = str.split("{"+k+"}").join(vars[k]);
   return str;
 }
+function parseRows(lines){
+  var rows=[];
+  lines.forEach(function(line){
+    var f=line.split(SEP).map(function(x){ return x.trim(); });
+    var copies=1;
+    /* Cyrillic \u0445 looks identical to Latin x and is what a Mongolian
+       keyboard produces, so both count as a multiplier. */
+    var m = f.length>1 ? /^[x\u0445\u00d7*]\s*(\d{1,3})$/i.exec(f[f.length-1]) : null;
+    if(m){ copies=Math.max(1, parseInt(m[1],10)||1); f.pop(); }
+    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).join(" ")};
+    for(var q=0;q<copies;q++) rows.push(row);
+  });
+  return rows;
+}
 var SEP=/\t|\s\|\s|;/;   /* tab, " | " or ";" splits a row into name and price */
 function plural(n){ return n===1 ? t("label1") : t("labelN"); }
 var PXMM = 96/25.4;
@@ -1054,7 +1110,7 @@ function freshState(){
   var st = {
     presetId:g.id, g:g, pages:[blankCells(g.cols*g.rows)], page:0, images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain"}
+    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}
   };
   st.cells = st.pages[0];
   return st;
@@ -1076,7 +1132,7 @@ function normalise(s){
   s.images = s.images || {};
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain"}, s.opts || {});
+  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
@@ -1612,11 +1668,15 @@ function selCount(){
     var c=S.cells[arr[0]]||{}, st=Object.assign({},DEF_STYLE,c);
     el.innerHTML = "<b>"+ref(arr[0])+"</b><em>"+(c.t ? esc(c.t.split("\n")[0]) : (c.img ? t("wImage") : t("wBlank")))+
                    "</em>"+(c.m ? '<span>&middot; '+cname(mBase(c.m))+'</span>' : "");
-    $("txtInput").value = c.t || "";
-    $("priceInput").value = c.p || "";
-    $("subInput").value = c.s || "";
-    $("bcChk").checked = !!c.bc;
-    $("qrInput").value = c.qr || "";
+    if(!isEmpty(c)){
+      $("txtInput").value = c.t || "";
+      $("priceInput").value = c.p || "";
+      $("subInput").value = c.s || "";
+      $("bcChk").checked = !!c.bc;
+      $("qrInput").value = c.qr || "";
+      var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
+      if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
+    }
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
@@ -1636,7 +1696,7 @@ function selArr(){ return Array.from(sel).sort(function(a,b){ return a-b; }); }
 /* ================= pointer selection ================= */
 /* ---------------- history ---------------- */
 var undoStack=[], redoStack=[], UNDO_MAX=50;
-function snap(){ S.pages[S.page]=S.cells; return JSON.stringify({pages:S.pages, page:S.page, g:S.g}); }
+function snap(){ S.pages[S.page]=S.cells; return JSON.stringify({pages:S.pages, page:S.page, g:S.g, presetId:S.presetId}); }
 function mark(){
   undoStack.push(snap());
   if(undoStack.length>UNDO_MAX) undoStack.shift();
@@ -1645,6 +1705,7 @@ function mark(){
 function restore(json){
   var o=JSON.parse(json);
   S.pages=o.pages; S.g=o.g;
+  if(o.presetId) S.presetId=o.presetId;
   usePage(o.page);
   sel=new Set(); if(cur>=count()) cur=0;
   fitCache={}; fillGeo(); save(); render(); syncPresetSel();
@@ -1711,23 +1772,23 @@ function pasteClip(){
   sel=out; save(); render(); toast(t("tPasted",{n:k,lbl:plural(k)}));
 }
 function pasteText(txt){
-  var rowsIn=txt.replace(/\r/g,"").split("\n");
-  while(rowsIn.length && !rowsIn[rowsIn.length-1].trim()) rowsIn.pop();
-  if(!rowsIn.length) return false;
-  var grid=rowsIn.map(function(l){ return l.split("\t"); });
-  var cols=S.g.cols, rows=S.g.rows;
-  var start = sel.size ? selArr()[0] : cur;
-  var r0=Math.floor(start/cols), c0=start%cols;
+  var lines=txt.replace(/\r/g,"").split("\n").filter(function(l){ return l.trim().length; });
+  if(!lines.length) return false;
+  var rows=parseRows(lines), ex=modeExtras();
+  var start = sel.size ? selArr()[0] : cur, n=count();
   mark();
-  var out=new Set(), k=0, r, c;
-  for(r=0;r<grid.length;r++) for(c=0;c<grid[r].length;c++){
-    var rr=r0+r, cc=c0+c;
-    if(rr>=rows || cc>=cols) continue;
-    var idx=rr*cols+cc, cell=S.cells[idx]||(S.cells[idx]={});
-    cell.t=grid[r][c]; applyStyleTo(cell);
+  var out=new Set(), k=0, i;
+  for(i=0;i<rows.length && start+i<n;i++){
+    var idx=start+i, cell=S.cells[idx]||(S.cells[idx]={});
+    cell.t=rows[i].t; cell.s=rows[i].s;
+    if(rows[i].p) cell.p=rows[i].p;
+    writeExtras(cell, ex, true);
+    applyStyleTo(cell);
     out.add(idx); k++;
   }
-  sel=out; save(); render(); toast(t("tPastedTxt",{n:k,lbl:plural(k)}));
+  sel=out; save(); render();
+  toast(t("tPastedTxt",{n:k,lbl:plural(k)}) +
+        (rows.length>k ? t("tLeftover",{n:rows.length-k}) : ""));
   return true;
 }
 function fillFromFirst(){
@@ -1859,7 +1920,7 @@ document.addEventListener("keydown", function(e){
   if(ctrl && k.toLowerCase()==="d"){ e.preventDefault(); fillFromFirst(); return; }
   if(ctrl && k.toLowerCase()==="z"){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
   if(ctrl && k.toLowerCase()==="y"){ e.preventDefault(); redo(); return; }
-  if(ctrl && k.toLowerCase()==="p"){ e.preventDefault(); doPrint(); return; }
+  if(ctrl && k.toLowerCase()==="p"){ e.preventDefault(); askThenPrint(); return; }
   if(k==="Escape"){ sel=new Set(); syncSelUI(); return; }
   if(k==="Delete"||k==="Backspace"){ e.preventDefault(); clearCells(); return; }
 
@@ -1921,6 +1982,22 @@ function styleNow(){
           is:parseInt($("imgSize").value,10),
           fit:$("fitBtn").classList.contains("on")};
 }
+/* The job picker chooses what you are editing, not what gets destroyed:
+   a field the current job does not show is left untouched. */
+function modeExtras(){
+  var mode=S.opts.mode||"plain";
+  return {
+    mode: mode,
+    p:  mode==="price" ? $("priceInput").value : null,
+    bc: mode==="sku"   ? ($("bcChk").checked?1:0) : null,
+    qr: mode==="qr"    ? $("qrInput").value : null
+  };
+}
+function writeExtras(c, ex, ownText){
+  if(ex.p  !== null) c.p  = ex.p;
+  if(ex.bc !== null) c.bc = ex.bc;
+  if(ex.qr !== null) c.qr = ex.qr || (ownText ? c.t : "");
+}
 function applyStyleTo(c){
   var st=styleNow();
   c.fs=st.fs; c.ff=st.ff; c.b=st.b; c.up=st.up; c.lay=st.lay; c.is=st.is; c.fit=st.fit;
@@ -1928,22 +2005,19 @@ function applyStyleTo(c){
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
-  var mode=S.opts.mode||"plain";
+  var ex=modeExtras();
   var v=$("txtInput").value, sv=$("subInput").value, n=sel.size;
-  var pv = mode==="price" ? $("priceInput").value : "";
-  var bc = mode==="sku"   ? $("bcChk").checked    : false;
-  var qv = mode==="qr"    ? $("qrInput").value    : "";
-  if(bc && v && code128(v)===null){ toast(t("tBadBarcode")); return; }
-  if(qv && !qrBuild(qv)){ toast(t("tQrLong")); return; }
+  if(ex.bc && v && code128(v)===null){ toast(t("tBadBarcode")); return; }
+  if(ex.qr && !qrBuild(ex.qr)){ toast(t("tQrLong")); return; }
   var thin=false;
-  if(bc && v){
+  if(ex.bc && v){
     var enc=code128(v);
     if(enc && (labelW()*0.96)/enc.width < 0.25) thin=true;
   }
   mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=v; c.p=pv; c.s=sv; c.bc=bc?1:0; c.qr=qv; applyStyleTo(c);
+    c.t=v; c.s=sv; writeExtras(c, ex, true); applyStyleTo(c);
   });
   save(); render();
   if(thin) toast(t("tThinBarcode"));
@@ -1965,11 +2039,12 @@ $("applySeq").addEventListener("click", function(){
   if(!needSel()) return;
   var p=$("seqPrefix").value, sfx=$("seqSuffix").value, n=sel.size;
   var start=parseInt($("seqStart").value,10)||0, pad=parseInt($("seqPad").value,10)||0;
+  var ex=modeExtras();
   mark();
   selArr().forEach(function(i,k){
     var num=String(start+k); while(num.length<pad) num="0"+num;
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=p+num+sfx; applyStyleTo(c);
+    c.t=p+num+sfx; writeExtras(c, ex, true); applyStyleTo(c);
   });
   save(); render(); toast(t("tNumbered",{n:n,lbl:plural(n)}));
 });
@@ -1979,24 +2054,17 @@ $("applyList").addEventListener("click", function(){
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
   if(!lines.length){ toast(t("tListEmpty")); return; }
   /* name, price, small line, copies - a trailing bare number means repeat */
-  var rows=[];
-  lines.forEach(function(line){
-    var f=line.split(SEP).map(function(x){ return x.trim(); });
-    var copies=1;
-    /* Cyrillic \u0445 looks identical to Latin x and is what a Mongolian
-       keyboard produces, so both count as a multiplier. */
-    var m = f.length>1 ? /^[x\u0445\u00d7*]\s*(\d{1,3})$/i.exec(f[f.length-1]) : null;
-    if(m){ copies=Math.max(1, parseInt(m[1],10)||1); f.pop(); }
-    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).join(" ")};
-    for(var q=0;q<copies;q++) rows.push(row);
-  });
+  var rows=parseRows(lines);
   var rep=$("listRepeat").checked, used=0;
+  var ex=modeExtras();
   mark();
   selArr().forEach(function(i,k){
     if(k>=rows.length && !rep) return;
     var c=S.cells[i]||(S.cells[i]={});
     var row=rows[rep ? (k%rows.length) : k];
-    c.t=row.t; c.p=row.p; c.s=row.s;
+    c.t=row.t; c.s=row.s;
+    if(row.p) c.p=row.p;
+    writeExtras(c, ex, true);
     applyStyleTo(c); used++;
   });
   save(); render();
@@ -2210,8 +2278,17 @@ function liveStyle(){
 $("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
 $("imgSize").addEventListener("change", liveStyle);
 ["boldBtn","upperBtn","fitBtn"].forEach(function(id){
-  $(id).addEventListener("click", function(){ press(this, !this.classList.contains("on")); liveStyle(); });
+  $(id).addEventListener("click", function(){
+    press(this, !this.classList.contains("on"));
+    if(id==="fitBtn") syncFitUI();
+    liveStyle();
+  });
 });
+function syncFitUI(){
+  var auto=$("fitBtn").classList.contains("on");
+  $("fontSize").disabled = auto;
+  $("fontSize").title = auto ? t("ptAuto") : "";
+}
 
 /* ================= geometry & presets ================= */
 function fillGeo(){
@@ -2248,6 +2325,19 @@ $("offsetReset").addEventListener("click", function(){
   save(); render(); toast(t("tOffClear"));
 });
 
+/* How many filled labels a smaller grid would drop. The remap is positional,
+   so anything outside the new rows/columns is gone. */
+function countLost(nc, nr){
+  var lost=0, pg, r, c, arr;
+  for(pg=0; pg<S.pages.length; pg++){
+    arr=S.pages[pg];
+    for(r=0; r<S.g.rows; r++) for(c=0; c<S.g.cols; c++){
+      if(r<nr && c<nc) continue;
+      if(!isEmpty(arr[r*S.g.cols+c])) lost++;
+    }
+  }
+  return lost;
+}
 function allPresets(){ return BUILTIN.concat(S.custom||[]); }
 function syncPresetSel(){
   var h="";
@@ -2262,6 +2352,9 @@ function pickPreset(id){
   var p=allPresets().filter(function(x){ return x.id===id; })[0];
   if(!p) return;
   var oc=S.g.cols, or=S.g.rows;
+  var lost=countLost(p.cols, p.rows);
+  if(lost && !confirm(t("cSizeLoss",{n:lost}))){ syncPresetSel(); return; }
+  mark();
   GEO.forEach(function(k){ S.g[k]=p[k]; });
   S.presetId=p.id;
   resize(S, oc, or); sel=new Set(); cur=0; anchor=0;
@@ -2371,7 +2464,20 @@ function doPrint(){
     sel=keep; cur=keepCur; syncSelUI();
   }, 400);
 }
-$("printBtn").addEventListener("click", doPrint);
+function askThenPrint(){
+  if(S.opts.noPrintDlg){ doPrint(); return; }
+  $("dlgNever").checked=false;
+  $("printDlg").hidden=false;
+  $("dlgGo").focus();
+}
+$("dlgCancel").addEventListener("click", function(){ $("printDlg").hidden=true; });
+$("printDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
+$("dlgGo").addEventListener("click", function(){
+  if($("dlgNever").checked){ S.opts.noPrintDlg=1; save(); }
+  $("printDlg").hidden=true;
+  setTimeout(doPrint, 30);
+});
+$("printBtn").addEventListener("click", askThenPrint);
 $("undoBtn").addEventListener("click", undo);
 $("redoBtn").addEventListener("click", redo);
 
@@ -2415,6 +2521,7 @@ function syncOpts(){
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
   $("layoutSel").value=arrange(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
   press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
+  syncFitUI();
 }
 S = load();
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
