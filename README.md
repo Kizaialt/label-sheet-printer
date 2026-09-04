@@ -23,6 +23,21 @@ land exactly on the page. Anything unusual can be fine-tuned by hand and saved a
 **Printer offset** shifts the whole grid a fraction of a millimetre to match a printer that feeds
 off-centre, without changing the label dimensions. Set it once, and it applies to every size.
 
+## Pick the job, not the settings
+
+A job picker at the top of the sidebar decides what you are making, and only that job's
+fields appear:
+
+| Job | Extra field |
+|---|---|
+| **Энгийн** — plain | none |
+| **Үнэ** — price tag | price, rendered at 2x the name with `₮` and thousands separators added |
+| **Бараа** — goods | Code 128 barcode |
+| **QR** | QR content |
+
+Applying writes that job's fields and clears the others, so choosing "price tag" means the
+label *is* a price tag.
+
 ## What it does
 
 - **Pick labels** — click, drag a box, `Ctrl`+click to toggle, `Shift`+click for a block, or click a
@@ -39,11 +54,20 @@ off-centre, without changing the label dimensions. Set it once, and it applies t
   that colour to white, so you get twenty distinguishable tags without covering the label. Hover a
   colour to spotlight every label carrying it; each swatch shows how many it has. Dots are
   screen-only unless you tick *Print the dots too*. *Paint mode* tags by dragging.
+- **Barcodes** — Code 128, subset B, written out rather than pulled from a library. Cyrillic is
+  refused with an explanation, and a barcode whose modules fall below the 0.25 mm the spec wants
+  for reliable scanning warns rather than quietly printing a sheet no scanner will read. For
+  dependable scanning use 48 × 25 mm or larger.
+- **QR codes** — model 2, byte mode, EC level M, versions 1–10, also written out. Byte mode carries
+  UTF-8, so unlike Code 128 this handles Cyrillic — menus, Facebook links, QPay. Verified by
+  round-tripping through a real QR decoder, not by eye.
+- **Multiple sheets** — a page bar under the sheet adds and removes pages; printing emits every page.
 - **Copy, paste, cut** — `Ctrl+C` / `Ctrl+V` / `Ctrl+X` on a block of labels, carrying text, logo,
   colour tag and styling. Paste repeats the copied block to fill a larger selection. Copying also
   writes plain text to the system clipboard, so a sheet round-trips through a spreadsheet.
 - **Undo / redo** — `Ctrl+Z` and `Ctrl+Shift+Z`, 50 deep, covering every edit.
 - **Fill** — `Ctrl+D` copies the first selected label across the whole selection.
+- **Edit in place** — double-click a label to type straight into it.
 - **Keyboard** — arrows move the cursor, Shift extends, Space toggles, Del clears, Ctrl+P prints.
 - **Light or dark** — light by default, since you are usually comparing the screen against a real
   sheet under office light. The toggle is in the toolbar and is remembered.
