@@ -286,6 +286,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   max-width:100%;max-height:100%;min-width:0;min-height:0;flex:0 1 auto;
   font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
 }
+.cell .nm{display:block}
+.cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
+.cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
+.cell .bc rect{fill:#000}
 .cell img{object-fit:contain;display:block;max-width:100%;max-height:100%;flex:0 0 auto}
 .cell .dot{
   position:absolute;top:.5mm;right:.5mm;width:2.1mm;height:2.1mm;pointer-events:none;
@@ -451,6 +455,18 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <textarea id="txtInput" rows="3" placeholder="ABC-1234"></textarea>
           </div>
           <div class="g2">
+            <div>
+              <label class="lbl" for="priceInput" data-i18n="lblPrice">Price</label>
+              <input type="text" id="priceInput" data-i18n-ph="phPrice" inputmode="numeric">
+            </div>
+            <div>
+              <label class="lbl">&nbsp;</label>
+              <label class="check" style="height:30px"><input type="checkbox" id="bcChk">
+                <span data-i18n="optBarcode">Barcode</span></label>
+            </div>
+          </div>
+          <div class="hint" data-i18n="priceHint"></div>
+          <div class="g2">
             <button class="btn primary" id="applyText" data-i18n="applyText">Apply to selection</button>
             <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
           </div>
@@ -473,6 +489,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           </div>
           <div>
             <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
+            <div class="hint" style="margin:-2px 0 5px" data-i18n="listCols"></div>
             <textarea id="listInput" rows="4" placeholder="ABC-001&#10;ABC-002&#10;ABC-003"></textarea>
           </div>
           <div class="g2">
@@ -688,6 +705,14 @@ var STR = {
   dropBrowse: "сонгох",
   dropMain: "Зургаа энд чирж оруулах, эсвэл",
   dropSub: "PNG, JPG, SVG · зөвхөн таны хөтөч дээр үлдэнэ",
+  lblPrice: "Үнэ",
+  phPrice: "89000",
+  optBarcode: "Баркод",
+  barcodeHint: "Шошгоны текстийг Code 128 баркод болгож хэвлэнэ. Зөвхөн латин үсэг, тоо, тэмдэгт ажиллана.",
+  priceHint: "Үнэ бичвэл шошгон дээр том, тодоор гарч, мянгатын таслал ба ₮ өөрөө нэмэгдэнэ.",
+  tThinBarcode: "Баркод хэт нарийн байна — сканнер уншихгүй байж магадгүй. Илүү том шошго сонговол найдвартай.",
+  tBadBarcode: "Баркодод кирилл үсэг орохгүй — латинаар бичнэ үү",
+  listCols: "Хоёр багана буулгавал: 1-р багана нэр, 2-р багана үнэ",
   emptyTitle: "Хуудас хоосон байна",
   emptyBody: "Шошгоо чирж сонгоод, баруун талын «Агуулга» хэсэгт текстээ бичээрэй",
   emptySheet: "Хоослох",
@@ -838,6 +863,7 @@ function t(key, vars){
     str = str.split("{"+k+"}").join(vars[k]);
   return str;
 }
+var SEP=/\t|\s\|\s|;/;   /* tab, " | " or ";" splits a row into name and price */
 function plural(n){ return n===1 ? t("label1") : t("labelN"); }
 var PXMM = 96/25.4;
 var KEY  = "labelsheet.v2";
@@ -900,7 +926,7 @@ var paint = false;
 
 function $(id){ return document.getElementById(id); }
 function count(){ return S.g.cols * S.g.rows; }
-function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img); }
+function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length)); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function r2(n){ return Math.round(n*100)/100; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -995,6 +1021,52 @@ function pageStyle(){
     "@media print{html,body{width:"+S.g.pw+"mm;height:"+S.g.ph+"mm;overflow:hidden}}";
 }
 
+/* ================= Code 128 =================
+   Written out rather than pulled from a library: the tool ships as one file
+   with no dependencies, and a barcode is what makes an SKU label countable
+   with a scanner instead of by hand. Subset B, rendered as SVG so it stays
+   crisp at printer resolution rather than screen resolution. */
+var C128 = "212222222122222221121223121322131222122213122312132212221213221312231212112232122132122231113222123122123221223211221132221231213212223112312131311222321122321221312212322112322211212123212321232121111323131123131321112313132113132311211313231113231311112133112331132131113123113321133121313121211331231131213113213311213131311123311321331121312113312311332111314111221411431111111224111422121124121421141122141221112214112412122114122411142112142211241211221114413111241112134111111242121142121241114212124112124211411212421112421211212141214121412121111143111341131141114113114311411113411311113141114131311141411131211412211214211232";
+function code128(text){
+  var vals=[104], i, ch;                       /* Start B */
+  for(i=0;i<text.length;i++){
+    ch=text.charCodeAt(i);
+    if(ch<32 || ch>126) return null;           /* subset B covers ASCII 32-126 */
+    vals.push(ch-32);
+  }
+  var sum=104;
+  for(i=1;i<vals.length;i++) sum += vals[i]*i;
+  vals.push(sum%103);                          /* checksum */
+  vals.push(106);                              /* Stop */
+
+  var bars=[], x=0, j, w;
+  for(i=0;i<vals.length;i++){
+    var v=vals[i], pat = (v===106) ? "2331112" : C128.substr(v*6,6);
+    for(j=0;j<pat.length;j++){
+      w=parseInt(pat.charAt(j),10);
+      if(j%2===0) bars.push([x,w]);            /* even index is a bar */
+      x+=w;
+    }
+  }
+  return {width:x, bars:bars};
+}
+function barcodeSVG(text, heightMm){
+  var b=code128(String(text));
+  if(!b) return "";
+  var r='<svg class="bc" viewBox="0 0 '+b.width+' 40" preserveAspectRatio="none" ' +
+        'style="height:'+heightMm+'mm" shape-rendering="crispEdges" aria-hidden="true">';
+  for(var i=0;i<b.bars.length;i++)
+    r+='<rect x="'+b.bars[i][0]+'" y="0" width="'+b.bars[i][1]+'" height="40"/>';
+  return r+'</svg>';
+}
+function money(v){
+  var txt=String(v).trim();
+  if(!txt) return "";
+  var digits=txt.replace(/[\s,]/g,"");
+  if(!/^\d+$/.test(digits)) return txt;        /* leave anything non-numeric alone */
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "\u20ae";
+}
+
 /* ================= render ================= */
 function render(){
   var g=S.g, lw=labelW(), lh=labelH(), n=count(), sheet=$("sheet");
@@ -1043,6 +1115,7 @@ function cellHTML(i, c){
 
   var hasImg = !!(c.img && S.images[c.img]);
   var hasTxt = !!(c.t && c.t.length);
+  var hasPrice = !!(c.p && String(c.p).length);
   var lay = arrange(st.lay);
   var img="", txt="", dir="stack", textFirst=false;
   if(hasImg){
@@ -1053,10 +1126,14 @@ function cellHTML(i, c){
     if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
-  if(hasTxt){
+  if(hasTxt || hasPrice){
+    var inner1 = (c.t ? '<span class="nm">'+esc(c.t)+'</span>' : "") +
+                 (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "");
     txt = '<div class="txt" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
-          ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+esc(c.t)+'</div>';
+          ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
+  var bcs = "";
+  if(c.bc && c.t) bcs = barcodeSVG(c.t, Math.max(3, labelH()*0.28));
   var base = mBase(c.m);
   var dot = HEX[base]
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
@@ -1066,7 +1143,7 @@ function cellHTML(i, c){
               (base ? ", "+cname(base)+" "+t("taggedW") : "");
   return '<div class="'+cls+'" data-i="'+i+'" role="option" aria-selected="'+(sel.has(i)?"true":"false")+
          '" aria-label="'+esc(label)+'" style="border-radius:'+S.g.rad+'mm">'+
-         '<div class="inner '+dir+'">'+(textFirst ? txt+img : img+txt)+'</div>'+
+         '<div class="inner '+dir+'">'+(textFirst ? txt+img : img+txt)+bcs+'</div>'+
          dot+'<span class="idx">'+(i+1)+'</span></div>';
 }
 
@@ -1095,26 +1172,27 @@ function availBox(t){
   var inner=t.parentNode, cs=getComputedStyle(inner);
   var w=inner.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   var h=inner.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
-  var img=inner.querySelector("img");
-  if(img){
-    var gap=parseFloat(cs.gap)||0;
-    if(cs.flexDirection==="row") w -= img.offsetWidth + gap;
-    else h -= img.offsetHeight + gap;
+  var gap=parseFloat(cs.gap)||0, kids=inner.children, i, el;
+  for(i=0;i<kids.length;i++){
+    el=kids[i];
+    if(el===t) continue;
+    if(cs.flexDirection==="row") w -= el.offsetWidth + gap;
+    else h -= el.offsetHeight + gap;
   }
   return {w:Math.max(4,w), h:Math.max(4,h)};
 }
 function autofit(){
   var sheet=$("sheet"), n=count(), i;
   for(i=0;i<n;i++){
-    var c=S.cells[i]; if(!c || !c.t) continue;
+    var c=S.cells[i]; if(!c || (!c.t && !c.p)) continue;
     var st=Object.assign({},DEF_STYLE,c);
     var el=sheet.children[i]; if(!el) continue;
     var t=el.querySelector(".txt"); if(!t) continue;
     if(!st.fit){ t.style.fontSize=st.fs+"pt"; continue; }
 
     var box=t.parentNode;
-    var key=[c.t, box.clientWidth, box.clientHeight, st.ff, st.b?1:0, st.up?1:0,
-             (c.img?1:0), st.lay, st.is].join("|");
+    var key=[c.t, c.p||"", c.bc?1:0, box.clientWidth, box.clientHeight, st.ff,
+             st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
 
     var av=availBox(t);
@@ -1161,6 +1239,8 @@ function selCount(){
     el.innerHTML = "<b>"+ref(arr[0])+"</b><em>"+(c.t ? esc(c.t.split("\n")[0]) : (c.img ? t("wImage") : t("wBlank")))+
                    "</em>"+(c.m ? '<span>&middot; '+cname(mBase(c.m))+'</span>' : "");
     $("txtInput").value = c.t || "";
+    $("priceInput").value = c.p || "";
+    $("bcChk").checked = !!c.bc;
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
@@ -1438,14 +1518,21 @@ function applyStyleTo(c){
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
-  var v=$("txtInput").value, n=sel.size;
+  var v=$("txtInput").value, pv=$("priceInput").value, bc=$("bcChk").checked, n=sel.size;
+  if(bc && v && code128(v)===null){ toast(t("tBadBarcode")); return; }
+  var thin=false;
+  if(bc && v){
+    var enc=code128(v);
+    if(enc && (labelW()*0.96)/enc.width < 0.25) thin=true;
+  }
   mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=v; applyStyleTo(c);
+    c.t=v; c.p=pv; c.bc=bc?1:0; applyStyleTo(c);
   });
   save(); render();
-  toast(v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
+  if(thin) toast(t("tThinBarcode"));
+  else toast(v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
 });
 function clearCells(){
   if(!needSel()) return;
@@ -1480,8 +1567,12 @@ $("applyList").addEventListener("click", function(){
   mark();
   selArr().forEach(function(i,k){
     if(k>=lines.length && !rep) return;
+    var raw=lines[rep ? (k%lines.length) : k];
+    var parts=raw.split(SEP);
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=lines[rep ? (k%lines.length) : k]; applyStyleTo(c); used++;
+    c.t=parts[0].trim();
+    if(parts.length>1) c.p=parts.slice(1).join(" ").trim();
+    applyStyleTo(c); used++;
   });
   save(); render();
   toast(t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
