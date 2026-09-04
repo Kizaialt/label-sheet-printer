@@ -39,6 +39,11 @@ off-centre, without changing the label dimensions. Set it once, and it applies t
   that colour to white, so you get twenty distinguishable tags without covering the label. Hover a
   colour to spotlight every label carrying it; each swatch shows how many it has. Dots are
   screen-only unless you tick *Print the dots too*. *Paint mode* tags by dragging.
+- **Copy, paste, cut** — `Ctrl+C` / `Ctrl+V` / `Ctrl+X` on a block of labels, carrying text, logo,
+  colour tag and styling. Paste repeats the copied block to fill a larger selection. Copying also
+  writes plain text to the system clipboard, so a sheet round-trips through a spreadsheet.
+- **Undo / redo** — `Ctrl+Z` and `Ctrl+Shift+Z`, 50 deep, covering every edit.
+- **Fill** — `Ctrl+D` copies the first selected label across the whole selection.
 - **Keyboard** — arrows move the cursor, Shift extends, Space toggles, Del clears, Ctrl+P prints.
 - **Light or dark** — light by default, since you are usually comparing the screen against a real
   sheet under office light. The toggle is in the toolbar and is remembered.
@@ -57,11 +62,12 @@ your printer runs off-centre.
 
 Save `index.html` anywhere and open it — it is fully self-contained.
 
-## Language and branding
+## Language
 
-The interface ships in **English and Mongolian** (toolbar toggle, remembered between visits).
-Units and standards a customer reads off the box or the keyboard stay in English throughout:
-A4, mm, pt, PNG/JPG/SVG, SKU, Ctrl/Shift/Del, and the three typeface names.
+The interface is **Mongolian only**, professionally translated. Latin script is kept on purpose
+for anything read off a box, a keyboard or a print dialog: A4, mm, pt, PNG/JPG/SVG, SKU,
+Ctrl/Shift/Del, and the typeface names. The translation source, its glossary and the translator's
+notes live in `locale/`.
 
 Brand name and shop link live in one `BRAND` object at the top of the script:
 

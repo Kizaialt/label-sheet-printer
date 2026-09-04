@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="mn">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Label Sheet Printer</title>
+<title>Peaklab Labels</title>
 <style>
 /* ============================================================
    Colour belongs to the labels, not the chrome.
@@ -304,6 +304,17 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   outline:.3mm solid var(--c);outline-offset:-.3mm;
 }
+.blankhint{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:none;flex-direction:column;align-items:center;gap:6px;text-align:center;
+  padding:18px 22px;max-width:min(78%,340px);pointer-events:none;z-index:var(--z-band);
+  background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-2);
+  box-shadow:0 2px 10px rgba(0,0,0,.12);
+}
+.blankhint.on{display:flex}
+.blankhint b{font-size:var(--fs-body);font-weight:600;color:var(--ink)}
+.blankhint span{font-size:var(--fs-micro);color:var(--ink-2);line-height:1.5}
+@media print{ .blankhint{display:none !important} }
 .band{position:absolute;pointer-events:none;z-index:var(--z-band);border:1px solid var(--accent);background:var(--accent-soft)}
 
 /* ================= dropzone, images, toast ================= */
@@ -384,6 +395,9 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <div class="brand" id="brandName"></div>
     <div class="sep"></div>
     <select id="presetSel" style="width:252px;height:30px"></select>
+    <div class="sep"></div>
+    <button class="btn sm ghost" id="undoBtn" data-i18n-title="kbUndo" aria-label="Undo">&#8630;</button>
+    <button class="btn sm ghost" id="redoBtn" data-i18n-title="kbRedo" aria-label="Redo">&#8631;</button>
     <div class="sep zoomgrp"></div>
     <div class="row zoomgrp" style="gap:2px">
       <button class="btn sm ghost" id="zoomOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut">&minus;</button>
@@ -395,7 +409,6 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <span class="hint" id="dimChip" style="white-space:nowrap"></span>
     <a class="btn sm ghost" id="buyLink" target="_blank" rel="noopener"
        data-i18n="buyPaper" data-i18n-title="buyPaperTitle" style="text-decoration:none"></a>
-    <button class="btn sm ghost" id="langBtn" data-i18n-aria="langAria" data-i18n-title="langTitle">MN</button>
     <button class="btn sm ghost" id="themeBtn" data-i18n-aria="themeAria">Dark</button>
     <button class="btn primary" id="printBtn" data-i18n="print" data-i18n-title="printTitle">Print</button>
   </header>
@@ -409,6 +422,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <div class="sheet" id="sheet" role="listbox" aria-multiselectable="true"
                data-i18n-aria="secSheet" tabindex="0"></div>
           <div id="band" class="band" hidden></div>
+          <div id="blank" class="blankhint">
+            <b data-i18n="emptyTitle"></b>
+            <span data-i18n="emptyBody"></span>
+          </div>
         </div>
       </div>
     </main>
@@ -436,6 +453,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <div class="g2">
             <button class="btn primary" id="applyText" data-i18n="applyText">Apply to selection</button>
             <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
+          </div>
+          <div class="g3">
+            <button class="btn sm" id="copyBtn" data-i18n="copyBtn">Copy</button>
+            <button class="btn sm" id="pasteBtn" data-i18n="pasteBtn">Paste</button>
+            <button class="btn sm" id="fillBtn" data-i18n="fillBtn">Fill</button>
           </div>
           <div>
             <label class="lbl" data-i18n="lblAutoNum">Auto-number</label>
@@ -501,7 +523,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             </select>
           </div>
           <div>
-            <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span id="imgSizeVal">55%</span> <span data-i18n="ofLabel">of the label</span></label>
+            <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
             <input type="range" id="imgSize" min="10" max="100" value="55">
           </div>
         </div>
@@ -602,6 +624,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <span class="kbd">Shift</span><span data-i18n="kbShift">Extend the selection</span>
             <span class="kbd">Arrows</span><span data-i18n="kbArrows">Move the cursor, with Shift to extend</span>
             <span class="kbd">Space</span><span data-i18n="kbSpace">Toggle the label under the cursor</span>
+            <span class="kbd">Ctrl C</span><span data-i18n="kbCopy">Copy the selected labels</span>
+            <span class="kbd">Ctrl V</span><span data-i18n="kbPaste">Paste, repeating to fill the selection</span>
+            <span class="kbd">Ctrl D</span><span data-i18n="kbFill">Fill the selection from the first label</span>
+            <span class="kbd">Ctrl Z</span><span data-i18n="kbUndo">Undo, Ctrl+Shift+Z to redo</span>
             <span class="kbd">Del</span><span data-i18n="kbDel">Clear the selected labels</span>
             <span class="kbd">Ctrl P</span><span data-i18n="kbPrint">Print</span>
           </div>
@@ -622,236 +648,191 @@ var BRAND = {
   store: "https://peaklab-qvbe.onrender.com/"
 };
 
-/* ===== translations =====
-   Deliberately left in English, per the Peaklab terminology rule: units and
-   standards the customer reads off the box or the keyboard (A4, mm, pt, PNG,
-   JPG, SVG, SKU, Ctrl, Shift, Del) and the three typeface names. */
-var I18N = {};
-I18N.en = {
-  buyPaper:"Buy paper", buyPaperTitle:"A4 sticker paper from the Peaklab store",
-  zoomOut:"Zoom out", zoomIn:"Zoom in", zoomReset:"Reset to 100%",
-  fit:"Fit", fitTitle:"Fit the sheet in the window",
-  print:"Print", printTitle:"Print (Ctrl+P)",
-  toDark:"Dark", toLight:"Light", themeAria:"Switch colour theme",
-  toDarkTitle:"Switch to the dark theme", toLightTitle:"Switch to the light theme",
-  langAria:"Switch language", langTitle:"Mongol khel рүү шилжих",
-
-  selNone:"Nothing selected \u2014 click a label, or drag across a few",
-  selected:"selected", filledW:"filled", taggedW:"tagged",
-  chipAll:"All", chipNone:"None", chipInvert:"Invert",
-  chipBlank:"Blank", chipFilled:"Filled", chipTagged:"Tagged",
-  wBlank:"blank", wImage:"image",
-
-  secContent:"Content", lblText:"Label text",
-  applyText:"Apply to selection", clearBtn:"Clear",
-  lblAutoNum:"Auto-number", tPrefix:"Prefix", tStart:"Start at", tDigits:"Zero-padded digits",
-  phSuffix:"Suffix", fillNum:"Fill numbered",
-  lblList:"Or paste a list, one label per line",
-  fillList:"Fill from list", repeatFill:"Repeat to fill",
-
-  secColour:"Colour tags", dotSolid:"Solid", dotGrad:"Gradient", dotStyleAria:"Dot style",
-  selectTagged:"Select tagged", untag:"Untag", paint:"Paint mode", paintOnLbl:"Paint mode on",
-  colourHint:"Hover a colour to spotlight it on the sheet. Click one with labels selected to tag them. Tags show as a dot on screen and <b>never print</b> unless you turn that on below. Logos and label text always print.",
-  printDots:"Print the dots too",
-  cred:"Red", corange:"Orange", camber:"Amber", cgreen:"Green", cteal:"Teal",
-  cblue:"Blue", cviolet:"Violet", cpink:"Pink", cslate:"Slate", cblack:"Black",
-
-  secLogo:"Logo", dropMain:"Drop an image here, or", dropBrowse:"browse",
-  dropSub:"PNG, JPG, SVG \u00b7 stays in your browser",
-  placeImg:"Place on selection", removeImg:"Remove",
-  lblArrange:"When a label has both",
-  layTop:"Image above the text", layBottom:"Image below the text",
-  layLeft:"Image left of the text", layRight:"Image right of the text",
-  lblImgSize:"Image size", ofLabel:"of the label",
-
-  secType:"Type", lblSize:"Size (pt)", lblFace:"Typeface",
-  bold:"Bold", upper:"UPPER", shrink:"Shrink",
-  typeHint:"<b>Shrink</b> reduces the type until the text fits the label. Changes apply to the selection immediately.",
-
-  secSheet:"Sheet",
-  lblSizeSel:"Label size \u2014 paper is always A4, 210 \u00d7 297 mm",
-  lblOffset:"Printer offset \u2014 nudge the whole grid if your printer feeds off-centre",
-  offsetHint:"Positive numbers move right and down. Label sizes stay exact.",
-  offXAria:"Shift right, mm", offYAria:"Shift down, mm", resetBtn:"Reset",
-  fineTune:"Fine-tune this size", cols:"Columns", rows:"Rows",
-  lblMargins:"Margins \u2014 top, right, bottom, left",
-  lblGaps:"Gap across, gap down, corner radius",
-  savePreset:"Save as preset", delPreset:"Delete preset",
-  optCut:"Print cut lines", optIdx:"Number the blank labels on screen",
-  exportBtn:"Export", importBtn:"Import", emptySheet:"Empty sheet",
-  calcFmt:"<b>{w} &times; {h} mm</b> per label &middot; <b>{n}</b> on an A4 sheet",
-  shiftedFmt:"Shifted {x} mm across, {y} mm down", limited:" (limited by the margins)",
-  badGeom:"The margins and gaps are larger than the page.",
-  sizeFmt:"{w} \u00d7 {h} mm  \u00b7  {c}\u00d7{r}  \u00b7  {n} per sheet",
-  sizeFull:"Full sheet  \u00b7  1\u00d71  \u00b7  210 \u00d7 297 mm",
-  customUnsaved:"Custom size (unsaved)",
-
-  secPrintHelp:"Printing & shortcuts",
-  printHint:"In the print dialog: <b>A4</b> paper, <b>margins None</b>, <b>scale 100%</b> (never &ldquo;fit to page&rdquo;), headers and footers off. Turn on background graphics only if you are printing cut lines or dots.<br><br>Run one test on plain paper, hold it against the sticker sheet up to the light, then use <b>Printer offset</b> if your printer sits off-centre.",
-  kbClick:"Select one label", kbDrag:"Select a block",
-  kbCtrl:"Add or remove from the selection", kbShift:"Extend the selection",
-  kbArrows:"Move the cursor, with Shift to extend", kbSpace:"Toggle the label under the cursor",
-  kbDel:"Clear the selected labels", kbPrint:"Print"
+/* ===== Mongolian UI strings =====
+   Translated by a professional Mongolian localiser. Latin script is kept on
+   purpose for anything read off a box, a keyboard or a print dialog:
+   A4, mm, pt, PNG, JPG, SVG, SKU, Ctrl, Shift, Del, Sans, Serif, Mono. */
+var STR = {
+  applyText: "Сонгосонд бичих",
+  badGeom: "Захын зай, завсар нь хуудаснаас том байна.",
+  bold: "Тод",
+  buyPaper: "Цаас авах",
+  buyPaperTitle: "Peaklab дэлгүүрийн A4 наалтын цаас",
+  cEmptyAll: "Энэ хуудсан дээрх бөглөсөн, тэмдэгтэй {n} шошгыг бүгдийг нь хоослох уу?",
+  calcFmt: "Нэг шошго <b>{w} &times; {h} mm</b> &middot; A4 хуудсанд <b>{n}</b> ширхэг",
+  camber: "Шар",
+  cblack: "Хар",
+  cblue: "Цэнхэр",
+  cgreen: "Ногоон",
+  chipAll: "Бүгд",
+  chipBlank: "Хоосон",
+  chipFilled: "Бөглөсөн",
+  chipInvert: "Эсрэгээр",
+  chipNone: "Цуцлах",
+  chipTagged: "Тэмдэгтэй",
+  clearBtn: "Арилгах",
+  colourHint: "Өнгөн дээр хулгана аваачихад тухайн өнгөөр тэмдэглэсэн шошго тодорно. Шошгоо сонгоод өнгө дарвал тэмдэглэнэ. Тэмдэг дэлгэц дээр цэг болж харагдах бөгөөд доорх сонголтыг асаагаагүй бол <b>хэвлэгдэхгүй</b>. Лого болон шошгоны текст үргэлж хэвлэгдэнэ.",
+  cols: "Багана",
+  copyBtn: "Хуулах",
+  corange: "Улбар шар",
+  cpink: "Ягаан",
+  cred: "Улаан",
+  cslate: "Саарал",
+  cteal: "Хөх ногоон",
+  customUnsaved: "Өөрийн хэмжээ (хадгалаагүй)",
+  cviolet: "Нил ягаан",
+  delPreset: "Хэмжээг устгах",
+  dotGrad: "Градиент",
+  dotSolid: "Бүтэн",
+  dotStyleAria: "Цэгийн загвар",
+  dropBrowse: "сонгох",
+  dropMain: "Зургаа энд чирж оруулах, эсвэл",
+  dropSub: "PNG, JPG, SVG · зөвхөн таны хөтөч дээр үлдэнэ",
+  emptyTitle: "Хуудас хоосон байна",
+  emptyBody: "Шошгоо чирж сонгоод, баруун талын «Агуулга» хэсэгт текстээ бичээрэй",
+  emptySheet: "Хоослох",
+  exportBtn: "Экспорт",
+  fillBtn: "Бөглөх",
+  fillList: "Жагсаалтаар бөглөх",
+  fillNum: "Дугаарлах",
+  filledW: "бөглөсөн",
+  fineTune: "Энэ хэмжээг нарийн тохируулах",
+  fit: "Багтаах",
+  fitTitle: "Хуудсыг цонхонд багтаах",
+  importBtn: "Импорт",
+  kbArrows: "Курсор зөөх, Shift-тэй бол сонголт сунгана",
+  kbClick: "Нэг шошго сонгох",
+  kbCopy: "Сонгосон шошгыг хуулах",
+  kbCtrl: "Сонголтод нэмэх, хасах",
+  kbDel: "Сонгосон шошгыг арилгах",
+  kbDrag: "Хэсэг шошго сонгох",
+  kbFill: "Эхний шошгоор сонгосныг бөглөх",
+  kbPaste: "Буулгах, сонгосныг дүүртэл давтах",
+  kbPrint: "Хэвлэх",
+  kbRedo: "Дахин хийх",
+  kbShift: "Сонголтыг сунгах",
+  kbSpace: "Курсор дээрх шошгыг сонгох, цуцлах",
+  kbUndo: "Буцаах, Ctrl+Shift+Z дахин хийх",
+  label1: "шошго",
+  labelN: "шошго",
+  layBottom: "Зураг текстийн доор",
+  layLeft: "Зураг текстийн зүүнд",
+  layRight: "Зураг текстийн баруунд",
+  layTop: "Зураг текстийн дээр",
+  lblArrange: "Шошгонд хоёулаа байвал",
+  lblAutoNum: "Автоматаар дугаарлах",
+  lblFace: "Фонт",
+  lblGaps: "Хөндлөн завсар, босоо завсар, булангийн дугуйрал",
+  lblImgSize: "Зургийн хэмжээ",
+  lblList: "Эсвэл жагсаалтаа буулгах — мөр бүрд нэг шошго",
+  lblMargins: "Захын зай — дээд, баруун, доод, зүүн",
+  lblOffset: "Принтерийн зөрүү — принтер цаасыг хазайлгаж татдаг бол бүх торыг шилжүүлнэ",
+  lblSize: "Хэмжээ (pt)",
+  lblSizeSel: "Шошгоны хэмжээ — цаас үргэлж A4, 210 × 297 mm",
+  lblText: "Шошгоны текст",
+  limited: " (захын зайд хүрлээ)",
+  ofLabel: "шошгоны",
+  offXAria: "Баруун тийш шилжих, mm",
+  offYAria: "Доош шилжих, mm",
+  offsetHint: "Эерэг тоо баруун, доош шилжүүлнэ. Шошгоны хэмжээ өөрчлөгдөхгүй.",
+  optCut: "Тайрах шугам хэвлэх",
+  optIdx: "Хоосон шошгыг дэлгэц дээр дугаарлах",
+  pPresetName: "Энэ хэмжээнд нэр өгнө үү:",
+  paint: "Будах горим",
+  paintOnLbl: "Будах горим асаалттай",
+  pasteBtn: "Буулгах",
+  phSuffix: "Дагавар",
+  placeImg: "Сонгосонд тавих",
+  print: "Хэвлэх",
+  printDots: "Цэгийг бас хэвлэх",
+  printHint: "Хэвлэх цонхонд: <b>A4</b> цаас, <b>захын зай None</b>, <b>масштаб 100%</b> (&laquo;fit to page&raquo; сонгохгүй), толгой, хөлийг унтраана. Background graphics-ыг зөвхөн тайрах шугам эсвэл цэг хэвлэх үед асаана.<br><br>Эхлээд энгийн цаасан дээр нэг туршиж хэвлээд, наалтын хуудастай давхарлаж гэрэлд харна. Принтер хазайж татдаг бол <b>Принтерийн зөрүү</b>-г тохируулна.",
+  printTitle: "Хэвлэх (Ctrl+P)",
+  removeImg: "Хасах",
+  repeatFill: "Давтан бөглөх",
+  resetBtn: "Тэглэх",
+  rows: "Мөр",
+  savePreset: "Хэмжээг хадгалах",
+  secColour: "Өнгөт тэмдэг",
+  secContent: "Агуулга",
+  secLogo: "Лого",
+  secPrintHelp: "Хэвлэх ба гарын товчлол",
+  secSheet: "Хуудас",
+  secType: "Үсэг",
+  selNone: "Юу ч сонгоогүй — шошго дээр дарж, эсвэл чирж сонгоорой",
+  selectTagged: "Тэмдэгтэйг сонгох",
+  selected: "сонгосон",
+  shiftedFmt: "Хөндлөн {x} mm, доош {y} mm шилжсэн",
+  shrink: "Автомат",
+  sizeFmt: "{w} × {h} mm  ·  {c}×{r}  ·  хуудсанд {n}",
+  sizeFull: "Бүтэн хуудас  ·  1×1  ·  210 × 297 mm",
+  tAddImg: "Эхлээд зураг нэмээрэй",
+  tBuiltin: "Бэлэн хэмжээг устгах боломжгүй",
+  tCleared: "{n} {lbl} арилгалаа, өнгөт тэмдэг үлдлээ",
+  tClipEmpty: "Хуулсан зүйл алга",
+  tColourRdy: "{c} бэлэн — шошгоо сонгоорой, эсвэл будах горимыг асаагаарай",
+  tCopied: "{n} {lbl} хууллаа",
+  tCut: "{n} {lbl} тасаллаа",
+  tDeleted: "{name} хэмжээг устгалаа",
+  tDigits: "Тэгээр гүйцээх орон",
+  tEmptied: "{n} {lbl} дээрх текстийг арилгалаа",
+  tExported: "Хуудсыг экспортлолоо",
+  tFilled: "{k} мөрөөр {n} {lbl} бөглөлөө",
+  tFilledOne: "Эхний шошгоор {n} {lbl} бөглөлөө",
+  tFull: "Хадгалах зай дүүрсэн тул энэ хуудас автоматаар хадгалагдахаа больлоо. Экспорт хийж хуулбараа аваарай.",
+  tImgAdded: "Зураг нэмлээ — шошгоо сонгоод «Сонгосонд тавих» дарна",
+  tImgDel: "Зургийг устгалаа",
+  tImgGone: "Зургийг хаслаа",
+  tImgPlaced: "{n} {lbl} дээр зураг тавилаа",
+  tImgRead: "Энэ зургийг уншиж чадсангүй",
+  tImportBad: "Энэ файлыг хуудас болгож уншиж чадсангүй",
+  tImported: "Хуудсыг импортлолоо",
+  tLeftover: " — {n} мөр үлдлээ",
+  tListEmpty: "Эхлээд жагсаалтын нүдэнд мөрүүдээ буулгаарай",
+  tNeedSel: "Эхлээд хуудсан дээрээс шошго сонгоорой",
+  tNewGrad: "Шинэ тэмдэг цагаан руу бүдгэрнэ",
+  tNewSolid: "Шинэ тэмдэг бүтэн өнгөтэй болно",
+  tNoMatch: "Тохирох шошго алга",
+  tNoRedo: "Дахин хийх зүйл алга",
+  tNoStore: "Энэ хөтөч дээр хуудас хадгалагдахгүй. Экспорт хийж хуулбараа аваарай.",
+  tNoTag: "{c} тэмдэгтэй шошго алга байна",
+  tNoUndo: "Буцаах зүйл алга",
+  tNotImage: "Энэ файл зураг биш байна",
+  tNumbered: "{n} {lbl} дугаарлалаа",
+  tOffClamp: "Энэ хэмжээнд тийм хол шилжих зай алга тул захад хүрээд зогслоо",
+  tOffClear: "Принтерийн зөрүүг тэглэлээ",
+  tPaintOff: "Будах горим унтарлаа",
+  tPaintOn: "Хуудсан дээр дарж, эсвэл чирч {c} тэмдэг тавина",
+  tPasted: "{n} {lbl} дээр буулгалаа",
+  tPastedTxt: "Буулгасан текстээр {n} {lbl} бөглөлөө",
+  tPrefix: "Угтвар",
+  tRedone: "Дахин хийлээ",
+  tRestyled: "{n} {lbl} дээрх тэмдгийн загварыг сольлоо",
+  tSaved: "Хэмжээг хадгаллаа",
+  tSet: "{n} {lbl} дээр бичлээ",
+  tSheetEmpty: "Хуудсыг хоослолоо",
+  tStart: "Эхлэх дугаар",
+  tTagCount: "{c} тэмдэгтэй {n} {lbl} сонголоо",
+  tTagged: "{n} {lbl} дээр {c} тэмдэг тавилаа",
+  tUndone: "Буцаалаа",
+  tUntagged: "{n} {lbl} дээрх тэмдгийг арилгалаа",
+  taggedW: "тэмдэгтэй",
+  themeAria: "Өнгөний загвар солих",
+  toDark: "Бараан",
+  toDarkTitle: "Бараан загвар руу шилжих",
+  toLight: "Цайвар",
+  toLightTitle: "Цайвар загвар руу шилжих",
+  typeHint: "<b>Автомат</b> нь текстийг шошгыг дүүргэх хэмжээгээр өөрөө тохируулна. Өөрчлөлт сонгосон шошгонд шууд орно.",
+  untag: "Тэмдэг арилгах",
+  upper: "ТОМООР",
+  wBlank: "хоосон",
+  wImage: "зураг",
+  zoomIn: "Томруулах",
+  zoomOut: "Багасгах",
+  zoomReset: "100% болгох"
 };
-I18N.en.tNeedSel   = "Pick some labels on the sheet first";
-I18N.en.tSet       = "Set {n} {lbl}";
-I18N.en.tEmptied   = "Emptied the text on {n} {lbl}";
-I18N.en.tCleared   = "Cleared {n} {lbl}, colour tags kept";
-I18N.en.tNumbered  = "Numbered {n} {lbl}";
-I18N.en.tListEmpty = "Paste some lines into the list box first";
-I18N.en.tFilled    = "Filled {n} {lbl} from {k} line(s)";
-I18N.en.tLeftover  = " \u2014 {n} left over";
-I18N.en.tNoMatch   = "No labels match that";
-I18N.en.tImgAdded  = "Image added \u2014 select labels, then Place on selection";
-I18N.en.tNotImage  = "That file is not an image";
-I18N.en.tImgRead   = "That image could not be read";
-I18N.en.tImgDel    = "Image deleted";
-I18N.en.tImgPlaced = "Placed the image on {n} {lbl}";
-I18N.en.tImgGone   = "Image removed";
-I18N.en.tAddImg    = "Add an image first";
-I18N.en.tTagged    = "Tagged {n} {lbl} {c}";
-I18N.en.tUntagged  = "Untagged {n} {lbl}";
-I18N.en.tTagCount  = "{n} {lbl} tagged {c}";
-I18N.en.tNoTag     = "Nothing is tagged {c} yet";
-I18N.en.tPaintOn   = "Click or drag the sheet to tag labels {c}";
-I18N.en.tPaintOff  = "Paint mode off";
-I18N.en.tRestyled  = "Restyled {n} {lbl}";
-I18N.en.tNewSolid  = "New tags will be a flat colour";
-I18N.en.tNewGrad   = "New tags will fade to white";
-I18N.en.tColourRdy = "{c} ready \u2014 select some labels, or turn on paint mode";
-I18N.en.tSaved     = "Saved as a preset";
-I18N.en.tDeleted   = "Deleted the preset {name}";
-I18N.en.tBuiltin   = "Built-in sizes cannot be deleted";
-I18N.en.tOffClear  = "Printer offset cleared";
-I18N.en.tOffClamp  = "This size has no room to shift that far, so it stopped at the margin";
-I18N.en.tExported  = "Exported this sheet";
-I18N.en.tImported  = "Imported that sheet";
-I18N.en.tImportBad = "That file could not be read as a sheet";
-I18N.en.tSheetEmpty= "Sheet emptied";
-I18N.en.tFull      = "Storage is full, so this sheet has stopped autosaving. Export it to keep a copy.";
-I18N.en.tNoStore   = "This browser will not save the sheet here. Export it to keep a copy.";
-I18N.en.pPresetName= "Name this sheet layout:";
-I18N.en.cEmptyAll  = "Empty all {n} filled or tagged labels on this sheet?";
-I18N.en.label1     = "label";
-I18N.en.labelN     = "labels";
-I18N.en.langTitle = "Монгол хэл рүү шилжих";
-
-I18N.mn = {
-  buyPaper:"Цаас авах", buyPaperTitle:"Peaklab дэлгүүрээс A4 наалттай цаас",
-  zoomOut:"Багасгах", zoomIn:"Томруулах", zoomReset:"100% болгох",
-  fit:"Багтаах", fitTitle:"Хуудсыг цонхонд багтаах",
-  print:"Хэвлэх", printTitle:"Хэвлэх (Ctrl+P)",
-  toDark:"Бараан", toLight:"Цайвар", themeAria:"Өнгөний загвар солих",
-  toDarkTitle:"Бараан загвар руу шилжих", toLightTitle:"Цайвар загвар руу шилжих",
-  langAria:"Хэл солих", langTitle:"Switch to English",
-
-  selNone:"Юу ч сонгоогүй байна \u2014 шошго дээр дарж, эсвэл чирж сонгоно уу",
-  selected:"сонгосон", filledW:"бөглөсөн", taggedW:"тэмдэглэсэн",
-  chipAll:"Бүгд", chipNone:"Цуцлах", chipInvert:"Эсрэгээр",
-  chipBlank:"Хоосон", chipFilled:"Бөглөсөн", chipTagged:"Тэмдэглэсэн",
-  wBlank:"хоосон", wImage:"зураг",
-
-  secContent:"Агуулга", lblText:"Шошгоны текст",
-  applyText:"Сонгосонд хэрэглэх", clearBtn:"Арилгах",
-  lblAutoNum:"Автоматаар дугаарлах", tPrefix:"Угтвар", tStart:"Эхлэх дугаар",
-  tDigits:"Тэгээр гүйцээх орон", phSuffix:"Дагавар", fillNum:"Дугаарлаж бөглөх",
-  lblList:"Эсвэл жагсаалт буулгана уу \u2014 мөр тутамд нэг шошго",
-  fillList:"Жагсаалтаас бөглөх", repeatFill:"Давтаж дүүргэх",
-
-  secColour:"Өнгөт тэмдэг", dotSolid:"Бүтэн", dotGrad:"Градиент", dotStyleAria:"Цэгийн загвар",
-  selectTagged:"Тэмдэглэснийг сонгох", untag:"Тэмдэг авах",
-  paint:"Будах горим", paintOnLbl:"Будах горим асаалттай",
-  colourHint:"Өнгө дээр хулгана аваачихад тэр өнгөөр тэмдэглэсэн шошгууд тодорно. Шошго сонгоод өнгө дарвал тэмдэглэнэ. Тэмдэг нь дэлгэц дээр цэг болж харагдах бөгөөд доорх сонголтыг асаахгүй бол <b>хэвлэгдэхгүй</b>. Лого болон шошгоны текст үргэлж хэвлэгдэнэ.",
-  printDots:"Цэгийг бас хэвлэх",
-  cred:"Улаан", corange:"Улбар шар", camber:"Шар", cgreen:"Ногоон", cteal:"Ногоон цэнхэр",
-  cblue:"Цэнхэр", cviolet:"Нил ягаан", cpink:"Ягаан", cslate:"Саарал", cblack:"Хар",
-
-  secLogo:"Лого", dropMain:"Зургаа энд чирж оруулах, эсвэл", dropBrowse:"сонгох",
-  dropSub:"PNG, JPG, SVG \u00b7 зөвхөн таны хөтөч дээр хадгалагдана",
-  placeImg:"Сонгосонд байрлуулах", removeImg:"Хасах",
-  lblArrange:"Шошгонд хоёулаа байвал",
-  layTop:"Зураг текстийн дээр", layBottom:"Зураг текстийн доор",
-  layLeft:"Зураг текстийн зүүнд", layRight:"Зураг текстийн баруунд",
-  lblImgSize:"Зургийн хэмжээ", ofLabel:"шошгоны",
-
-  secType:"Үсэг", lblSize:"Хэмжээ (pt)", lblFace:"Фонт",
-  bold:"Тод", upper:"ТОМООР", shrink:"Багасгах",
-  typeHint:"<b>Багасгах</b> нь текст шошгонд багтах хүртэл үсгийн хэмжээг жижигрүүлнэ. Өөрчлөлт сонгосон шошгонд шууд орно.",
-
-  secSheet:"Хуудас",
-  lblSizeSel:"Шошгоны хэмжээ \u2014 цаас үргэлж A4, 210 \u00d7 297 мм",
-  lblOffset:"Принтерийн зөрүү \u2014 принтер тэгш татдаггүй бол бүх торыг шилжүүлнэ",
-  offsetHint:"Эерэг тоо баруун тийш, доош шилжүүлнэ. Шошгоны хэмжээ яг хэвээрээ үлдэнэ.",
-  offXAria:"Баруун тийш, мм", offYAria:"Доош, мм", resetBtn:"Тэглэх",
-  fineTune:"Энэ хэмжээг нарийвчлан тохируулах", cols:"Багана", rows:"Мөр",
-  lblMargins:"Захын зай \u2014 дээд, баруун, доод, зүүн",
-  lblGaps:"Хөндлөн зай, босоо зай, булангийн дугуйрал",
-  savePreset:"Хэмжээг хадгалах", delPreset:"Устгах",
-  optCut:"Тайрах шугам хэвлэх", optIdx:"Хоосон шошгыг дэлгэц дээр дугаарлах",
-  exportBtn:"Экспорт", importBtn:"Импорт", emptySheet:"Хуудас хоослох",
-  calcFmt:"Нэг шошго <b>{w} &times; {h} мм</b> &middot; A4 хуудсанд <b>{n}</b>",
-  shiftedFmt:"{x} мм хөндлөн, {y} мм доош шилжсэн", limited:" (захын зайд хүрсэн)",
-  badGeom:"Захын зай болон завсар нь хуудаснаас том байна.",
-  sizeFmt:"{w} \u00d7 {h} мм  \u00b7  {c}\u00d7{r}  \u00b7  хуудсанд {n}",
-  sizeFull:"Бүтэн хуудас  \u00b7  1\u00d71  \u00b7  210 \u00d7 297 мм",
-  customUnsaved:"Өөрийн хэмжээ (хадгалаагүй)",
-
-  secPrintHelp:"Хэвлэх ба товчлол",
-  printHint:"Хэвлэх цонхонд: <b>A4</b> цаас, <b>захын зай None</b>, <b>масштаб 100%</b> (&laquo;fit to page&raquo; сонгохгүй), толгой хөлийг унтраана. Тайрах шугам эсвэл цэг хэвлэх үед л background graphics-ыг асаана.<br><br>Эхлээд энгийн цаасан дээр туршиж хэвлээд наалттай хуудастай харьцуулан гэрэлд харна уу. Принтер тэгш биш бол <b>Принтерийн зөрүү</b>-г ашиглана.",
-  kbClick:"Нэг шошго сонгох", kbDrag:"Блокоор сонгох",
-  kbCtrl:"Сонголтод нэмэх, хасах", kbShift:"Сонголтыг үргэлжлүүлэх",
-  kbArrows:"Курсор зөөх, Shift дарвал сонголт нэмэгдэнэ",
-  kbSpace:"Курсор доорх шошгыг сонгох, цуцлах",
-  kbDel:"Сонгосон шошгыг арилгах", kbPrint:"Хэвлэх"
-};
-I18N.mn.tNeedSel   = "Эхлээд хуудсан дээрээс шошго сонгоно уу";
-I18N.mn.tSet       = "{n} {lbl} тохирууллаа";
-I18N.mn.tEmptied   = "{n} шошгоны текстийг арилгалаа";
-I18N.mn.tCleared   = "{n} {lbl} арилгалаа, өнгөт тэмдэг үлдлээ";
-I18N.mn.tNumbered  = "{n} {lbl} дугаарлалаа";
-I18N.mn.tListEmpty = "Эхлээд жагсаалтын нүдэнд мөрүүд оруулна уу";
-I18N.mn.tFilled    = "{k} мөрөөс {n} {lbl} бөглөлөө";
-I18N.mn.tLeftover  = " \u2014 {n} үлдлээ";
-I18N.mn.tNoMatch   = "Тохирох шошго алга";
-I18N.mn.tImgAdded  = "Зураг нэмэгдлээ \u2014 шошго сонгоод «Сонгосонд байрлуулах» дарна уу";
-I18N.mn.tNotImage  = "Энэ файл зураг биш байна";
-I18N.mn.tImgRead   = "Энэ зургийг уншиж чадсангүй";
-I18N.mn.tImgDel    = "Зураг устлаа";
-I18N.mn.tImgPlaced = "{n} {lbl} дээр зураг байрлууллаа";
-I18N.mn.tImgGone   = "Зургийг хаслаа";
-I18N.mn.tAddImg    = "Эхлээд зураг нэмнэ үү";
-I18N.mn.tTagged    = "{n} шошгыг {c} өнгөөр тэмдэглэлээ";
-I18N.mn.tUntagged  = "{n} шошгоны тэмдгийг авлаа";
-I18N.mn.tTagCount  = "{c} өнгөөр тэмдэглэсэн {n} {lbl}";
-I18N.mn.tNoTag     = "{c} өнгөөр тэмдэглэсэн шошго алга байна";
-I18N.mn.tPaintOn   = "Хуудсан дээр дарж эсвэл чирч {c} өнгөөр тэмдэглэнэ";
-I18N.mn.tPaintOff  = "Будах горим унтраалаа";
-I18N.mn.tRestyled  = "{n} шошгоны загварыг сольлоо";
-I18N.mn.tNewSolid  = "Шинэ тэмдэг бүтэн өнгөтэй байна";
-I18N.mn.tNewGrad   = "Шинэ тэмдэг цагаан руу шилжинэ";
-I18N.mn.tColourRdy = "{c} бэлэн \u2014 шошго сонгох, эсвэл будах горимыг асаана уу";
-I18N.mn.tSaved     = "Хэмжээг хадгаллаа";
-I18N.mn.tDeleted   = "{name} хэмжээг устгалаа";
-I18N.mn.tBuiltin   = "Бэлэн хэмжээг устгах боломжгүй";
-I18N.mn.tOffClear  = "Принтерийн зөрүүг тэглэлээ";
-I18N.mn.tOffClamp  = "Энэ хэмжээнд тийм их шилжих зай алга тул захад хүрээд зогслоо";
-I18N.mn.tExported  = "Хуудсыг экспортлолоо";
-I18N.mn.tImported  = "Хуудсыг импортлолоо";
-I18N.mn.tImportBad = "Энэ файлыг хуудас болгож уншиж чадсангүй";
-I18N.mn.tSheetEmpty= "Хуудсыг хоослолоо";
-I18N.mn.tFull      = "Хадгалах зай дүүрсэн тул энэ хуудас автоматаар хадгалагдахаа больсон. Экспорт хийж хуулбар аваарай.";
-I18N.mn.tNoStore   = "Энэ хөтөч дээр хуудас хадгалагдахгүй. Экспорт хийж хуулбар аваарай.";
-I18N.mn.pPresetName= "Энэ хуудасны хэмжээнд нэр өгнө үү:";
-I18N.mn.cEmptyAll  = "Энэ хуудсан дээрх бөглөсөн, тэмдэглэсэн {n} шошгыг бүгдийг хоослох уу?";
-I18N.mn.label1     = "шошго";
-I18N.mn.labelN     = "шошго";
-
 /* ===== lookup ===== */
-var lang = "en";
 function t(key, vars){
-  var pack = I18N[lang] || I18N.en;
-  var str = pack[key];
-  if(str === undefined) str = I18N.en[key];
+  var str = STR[key];
   if(str === undefined) return key;
   if(vars) for(var k in vars) if(vars.hasOwnProperty(k))
     str = str.split("{"+k+"}").join(vars[k]);
@@ -950,14 +931,14 @@ function freshState(){
   return {
     presetId:g.id, g:g, cells:blankCells(g.cols*g.rows), images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, lang:"en"}
+    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}
   };
 }
 function normalise(s){
   s.images = s.images || {};
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, lang:"en"}, s.opts || {});
+  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
@@ -1031,6 +1012,8 @@ function render(){
   $("sheetouter").style.height=(g.ph*PXMM*zoom)+"px";
 
   if(cur>=n) cur=n-1;
+  var gk=[g.cols,g.rows,g.pw,g.ph,g.ml,g.mt,g.gx,g.gy].join("x");
+  if(fitCacheGeom!==gk){ fitCache={}; fitCacheGeom=gk; }
   var html="", i;
   for(i=0;i<n;i++) html += cellHTML(i, S.cells[i]||{});
   sheet.innerHTML = html;
@@ -1044,6 +1027,8 @@ function render(){
     : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
       ((off.x||off.y) ? "<br>"+t("shiftedFmt",{x:r2(off.x),y:r2(off.y)})+(off.clamped?t("limited"):"") : "");
   autofit();
+  var virgin = !S.cells.some(function(c){ return c && (!isEmpty(c) || c.m); });
+  $("blank").classList.toggle("on", virgin);
   syncSelUI();
   drawSwatchCounts();
 }
@@ -1078,7 +1063,7 @@ function cellHTML(i, c){
       '" style="--c:'+HEX[base]+'"></span>' : "";
   var label = ref(i) + (c.t ? ", "+c.t.replace(/\n/g," ") : "") + (hasImg ? ", "+t("wImage") : "") +
               (!hasTxt && !hasImg ? ", "+t("wBlank") : "") +
-              (base ? ", "+t("taggedW")+" "+cname(base) : "");
+              (base ? ", "+cname(base)+" "+t("taggedW") : "");
   return '<div class="'+cls+'" data-i="'+i+'" role="option" aria-selected="'+(sel.has(i)?"true":"false")+
          '" aria-label="'+esc(label)+'" style="border-radius:'+S.g.rad+'mm">'+
          '<div class="inner '+dir+'">'+(textFirst ? txt+img : img+txt)+'</div>'+
@@ -1095,19 +1080,54 @@ function headers(lw, lh, off){
   $("rowhdr").innerHTML=h;
 }
 
+/* Auto size: find the largest point size whose text still fits the label, so a
+   32x15mm sticker and a 105x149mm one both come out looking deliberate. The old
+   version only ever multiplied down from 8pt, which left big labels near-empty.
+   Cached, because the binary search is the expensive part of a render and most
+   renders do not touch the text. */
+var fitCache = {}, fitCacheGeom = "";
+/* Measure against the container, not the text element's own box: with a tight
+   line-height the element reports scrollHeight one pixel over clientHeight even
+   when the text plainly fits, which made every size look like an overflow.
+   Sizes here are layout pixels, so never mix in getBoundingClientRect - the
+   sheet carries a transform and that would fold the zoom into the maths. */
+function availBox(t){
+  var inner=t.parentNode, cs=getComputedStyle(inner);
+  var w=inner.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  var h=inner.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
+  var img=inner.querySelector("img");
+  if(img){
+    var gap=parseFloat(cs.gap)||0;
+    if(cs.flexDirection==="row") w -= img.offsetWidth + gap;
+    else h -= img.offsetHeight + gap;
+  }
+  return {w:Math.max(4,w), h:Math.max(4,h)};
+}
 function autofit(){
   var sheet=$("sheet"), n=count(), i;
   for(i=0;i<n;i++){
     var c=S.cells[i]; if(!c || !c.t) continue;
-    var st=Object.assign({},DEF_STYLE,c); if(!st.fit) continue;
+    var st=Object.assign({},DEF_STYLE,c);
     var el=sheet.children[i]; if(!el) continue;
     var t=el.querySelector(".txt"); if(!t) continue;
-    var fs=st.fs, guard=0;
-    while(guard++<26 && fs>3 &&
-         (t.scrollHeight > t.clientHeight+0.5 || t.scrollWidth > t.clientWidth+0.5)){
-      fs = Math.round(fs*0.92*100)/100;
-      t.style.fontSize = fs+"pt";
+    if(!st.fit){ t.style.fontSize=st.fs+"pt"; continue; }
+
+    var box=t.parentNode;
+    var key=[c.t, box.clientWidth, box.clientHeight, st.ff, st.b?1:0, st.up?1:0,
+             (c.img?1:0), st.lay, st.is].join("|");
+    if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
+
+    var av=availBox(t);
+    var hi=Math.max(6, av.h*0.75), lo=3, best=3, k, mid;
+    for(k=0;k<10;k++){
+      mid=(lo+hi)/2;
+      t.style.fontSize=mid+"pt";
+      if(t.scrollHeight <= av.h+1 && t.scrollWidth <= av.w+1){ best=mid; lo=mid; }
+      else hi=mid;
     }
+    best=Math.floor(best*10)/10;
+    fitCache[key]=best;
+    t.style.fontSize=best+"pt";
   }
 }
 
@@ -1158,7 +1178,110 @@ function press(btn, on){
 function selArr(){ return Array.from(sel).sort(function(a,b){ return a-b; }); }
 
 /* ================= pointer selection ================= */
-var dragging=false, dragStart=-1, dragBase=null, dragMode="set";
+/* ---------------- history ---------------- */
+var undoStack=[], redoStack=[], UNDO_MAX=50;
+function snap(){ return JSON.stringify({cells:S.cells, g:S.g}); }
+function mark(){
+  undoStack.push(snap());
+  if(undoStack.length>UNDO_MAX) undoStack.shift();
+  redoStack.length=0;
+}
+function restore(json){
+  var o=JSON.parse(json);
+  S.cells=o.cells; S.g=o.g;
+  sel=new Set(); if(cur>=count()) cur=0;
+  fitCache={}; fillGeo(); save(); render(); syncPresetSel();
+}
+function undo(){
+  if(!undoStack.length){ toast(t("tNoUndo")); return; }
+  redoStack.push(snap()); restore(undoStack.pop()); toast(t("tUndone"));
+}
+function redo(){
+  if(!redoStack.length){ toast(t("tNoRedo")); return; }
+  undoStack.push(snap()); restore(redoStack.pop()); toast(t("tRedone"));
+}
+
+/* ---------------- clipboard ----------------
+   The internal clip keeps text, logo, tag and styling. The same content also
+   goes to the system clipboard as plain text, so a sheet can be pasted into a
+   spreadsheet, and a spreadsheet can be pasted back in. */
+var clip=null, clipText="";
+function blockOf(arr){
+  var cols=S.g.cols, rs=[], cs=[], i;
+  for(i=0;i<arr.length;i++){ rs.push(Math.floor(arr[i]/cols)); cs.push(arr[i]%cols); }
+  var r0=Math.min.apply(null,rs), r1=Math.max.apply(null,rs);
+  var c0=Math.min.apply(null,cs), c1=Math.max.apply(null,cs);
+  return {r0:r0,c0:c0,w:c1-c0+1,h:r1-r0+1};
+}
+function copySel(cutIt){
+  if(!needSel()) return;
+  var arr=selArr(), cols=S.g.cols, b=blockOf(arr), out=[], lines=[], r, c;
+  for(r=0;r<b.h;r++){
+    var row=[];
+    for(c=0;c<b.w;c++){
+      var idx=(b.r0+r)*cols+(b.c0+c), take=sel.has(idx);
+      out.push(take ? JSON.parse(JSON.stringify(S.cells[idx]||{})) : null);
+      row.push(take ? ((S.cells[idx]||{}).t||"") : "");
+    }
+    lines.push(row.join("\t"));
+  }
+  clip={w:b.w,h:b.h,cells:out};
+  clipText=lines.join("\n");
+  try { if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(clipText); } catch(e){}
+  var n=arr.length;
+  if(cutIt){
+    mark();
+    arr.forEach(function(i){ var m=(S.cells[i]||{}).m; S.cells[i]= m?{m:m}:{}; });
+    save(); render(); toast(t("tCut",{n:n,lbl:plural(n)}));
+  } else toast(t("tCopied",{n:n,lbl:plural(n)}));
+}
+function pasteClip(){
+  if(!clip){ toast(t("tClipEmpty")); return; }
+  var cols=S.g.cols, rows=S.g.rows;
+  var arr = sel.size ? selArr() : [cur];
+  var b = blockOf(arr), r1, c1;
+  if(arr.length===1){ r1=Math.min(rows-1, b.r0+clip.h-1); c1=Math.min(cols-1, b.c0+clip.w-1); }
+  else { r1=b.r0+b.h-1; c1=b.c0+b.w-1; }
+  mark();
+  var out=new Set(), r, c, k=0;
+  for(r=b.r0;r<=r1;r++) for(c=b.c0;c<=c1;c++){
+    var src=clip.cells[((r-b.r0)%clip.h)*clip.w + ((c-b.c0)%clip.w)];
+    if(!src) continue;
+    var idx=r*cols+c;
+    S.cells[idx]=JSON.parse(JSON.stringify(src));
+    out.add(idx); k++;
+  }
+  sel=out; save(); render(); toast(t("tPasted",{n:k,lbl:plural(k)}));
+}
+function pasteText(txt){
+  var rowsIn=txt.replace(/\r/g,"").split("\n");
+  while(rowsIn.length && !rowsIn[rowsIn.length-1].trim()) rowsIn.pop();
+  if(!rowsIn.length) return false;
+  var grid=rowsIn.map(function(l){ return l.split("\t"); });
+  var cols=S.g.cols, rows=S.g.rows;
+  var start = sel.size ? selArr()[0] : cur;
+  var r0=Math.floor(start/cols), c0=start%cols;
+  mark();
+  var out=new Set(), k=0, r, c;
+  for(r=0;r<grid.length;r++) for(c=0;c<grid[r].length;c++){
+    var rr=r0+r, cc=c0+c;
+    if(rr>=rows || cc>=cols) continue;
+    var idx=rr*cols+cc, cell=S.cells[idx]||(S.cells[idx]={});
+    cell.t=grid[r][c]; applyStyleTo(cell);
+    out.add(idx); k++;
+  }
+  sel=out; save(); render(); toast(t("tPastedTxt",{n:k,lbl:plural(k)}));
+  return true;
+}
+function fillFromFirst(){
+  if(!needSel()) return;
+  var arr=selArr(), src=S.cells[arr[0]]||{};
+  mark();
+  arr.forEach(function(i){ if(i!==arr[0]) S.cells[i]=JSON.parse(JSON.stringify(src)); });
+  save(); render(); toast(t("tFilledOne",{n:arr.length,lbl:plural(arr.length)}));
+}
+
+var dragging=false, dragStart=-1, dragBase=null, dragMode="set", paintMarked=false;
 function rectBetween(a,b){
   var cols=S.g.cols, r1=Math.floor(a/cols), c1=a%cols, r2=Math.floor(b/cols), c2=b%cols;
   var out=[], r, c;
@@ -1175,7 +1298,7 @@ $("sheet").addEventListener("mousedown", function(e){
   var i = idxFrom(e); if(i<0) return;
   e.preventDefault();
   $("sheet").focus({preventScroll:true});
-  if(paint){ dragging=true; dragMode="paint"; cur=i; tagCell(i); return; }
+  if(paint){ dragging=true; dragMode="paint"; paintMarked=false; cur=i; tagCell(i); return; }
   cur=i;
   if(e.shiftKey){ sel = new Set(rectBetween(anchor, i)); syncSelUI(); return; }
   dragging=true; dragStart=i; anchor=i;
@@ -1201,6 +1324,7 @@ window.addEventListener("mouseup", function(){
   dragging=false;
 });
 function tagCell(i){
+  if(!paintMarked){ mark(); paintMarked=true; }
   var c = S.cells[i] || (S.cells[i]={});
   var val = curColor + (gradMode ? ".g" : "");
   c.m = (c.m===val) ? "" : val;
@@ -1240,6 +1364,11 @@ document.addEventListener("keydown", function(e){
   var k=e.key, ctrl=e.ctrlKey||e.metaKey, g=S.g;
 
   if(ctrl && k.toLowerCase()==="a"){ e.preventDefault(); selectAll(); return; }
+  if(ctrl && k.toLowerCase()==="c"){ e.preventDefault(); copySel(false); return; }
+  if(ctrl && k.toLowerCase()==="x"){ e.preventDefault(); copySel(true); return; }
+  if(ctrl && k.toLowerCase()==="d"){ e.preventDefault(); fillFromFirst(); return; }
+  if(ctrl && k.toLowerCase()==="z"){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
+  if(ctrl && k.toLowerCase()==="y"){ e.preventDefault(); redo(); return; }
   if(ctrl && k.toLowerCase()==="p"){ e.preventDefault(); doPrint(); return; }
   if(k==="Escape"){ sel=new Set(); syncSelUI(); return; }
   if(k==="Delete"||k==="Backspace"){ e.preventDefault(); clearCells(); return; }
@@ -1259,6 +1388,15 @@ document.addEventListener("keydown", function(e){
     syncSelUI(); return;
   }
   if(k==="Enter"){ e.preventDefault(); $("txtInput").focus(); $("txtInput").select(); }
+});
+document.addEventListener("paste", function(e){
+  var tag=(e.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"||tag==="select") return;
+  e.preventDefault();
+  var txt = e.clipboardData ? e.clipboardData.getData("text/plain") : "";
+  if(clip && (!txt || txt===clipText)) pasteClip();
+  else if(txt) pasteText(txt);
+  else pasteClip();
 });
 function selectAll(){ var n=count(),i; sel=new Set(); for(i=0;i<n;i++) sel.add(i); syncSelUI(); }
 
@@ -1301,6 +1439,7 @@ function applyStyleTo(c){
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
   var v=$("txtInput").value, n=sel.size;
+  mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
     c.t=v; applyStyleTo(c);
@@ -1311,15 +1450,20 @@ $("applyText").addEventListener("click", function(){
 function clearCells(){
   if(!needSel()) return;
   var n=sel.size;
+  mark();
   selArr().forEach(function(i){ var m=(S.cells[i]||{}).m; S.cells[i] = m ? {m:m} : {}; });
   save(); render(); toast(t("tCleared",{n:n,lbl:plural(n)}));
 }
 $("clearCells").addEventListener("click", clearCells);
+$("copyBtn").addEventListener("click", function(){ copySel(false); });
+$("pasteBtn").addEventListener("click", pasteClip);
+$("fillBtn").addEventListener("click", fillFromFirst);
 
 $("applySeq").addEventListener("click", function(){
   if(!needSel()) return;
   var p=$("seqPrefix").value, sfx=$("seqSuffix").value, n=sel.size;
   var start=parseInt($("seqStart").value,10)||0, pad=parseInt($("seqPad").value,10)||0;
+  mark();
   selArr().forEach(function(i,k){
     var num=String(start+k); while(num.length<pad) num="0"+num;
     var c=S.cells[i]||(S.cells[i]={});
@@ -1333,6 +1477,7 @@ $("applyList").addEventListener("click", function(){
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
   if(!lines.length){ toast(t("tListEmpty")); return; }
   var rep=$("listRepeat").checked, used=0;
+  mark();
   selArr().forEach(function(i,k){
     if(k>=lines.length && !rep) return;
     var c=S.cells[i]||(S.cells[i]={});
@@ -1407,6 +1552,7 @@ function applyMarker(){
   if(!needSel()) return;
   var n=sel.size;
   var val = curColor + (gradMode ? ".g" : "");
+  mark();
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.m=val; });
   save(); render();
   toast(t("tTagged",{n:n,lbl:plural(n),c:cname(curColor).toLowerCase()}));
@@ -1414,6 +1560,7 @@ function applyMarker(){
 $("markClear").addEventListener("click", function(){
   if(!needSel()) return;
   var n=sel.size;
+  mark();
   selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].m=""; });
   save(); render(); toast(t("tUntagged",{n:n,lbl:plural(n)}));
 });
@@ -1433,8 +1580,7 @@ $("paintBtn").addEventListener("click", function(){
 $("printMarkers").addEventListener("change", function(){ S.opts.printMarkers=this.checked; save(); render(); });
 
 function applyLang(){
-  lang = (S.opts.lang === "mn") ? "mn" : "en";
-  document.documentElement.lang = lang;
+  document.documentElement.lang = "mn";
   var q = function(a){ return document.querySelectorAll(a); };
   Array.prototype.forEach.call(q("[data-i18n]"), function(el){ el.textContent = t(el.dataset.i18n); });
   Array.prototype.forEach.call(q("[data-i18n-html]"), function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
@@ -1444,18 +1590,12 @@ function applyLang(){
 
   $("brandName").textContent = BRAND.name;
   $("buyLink").href = BRAND.store;
-  $("langBtn").textContent = (lang === "en") ? "MN" : "EN";
   $("paintBtn").textContent = paint ? t("paintOnLbl") : t("paint");
   buildSwatches(); drawSwatchCounts();
   applyTheme();
   syncPresetSel();
   render();
 }
-$("langBtn").addEventListener("click", function(){
-  S.opts.lang = (S.opts.lang === "mn") ? "en" : "mn";
-  save(); applyLang();
-});
-
 function applyTheme(){
   var dark = S.opts.theme === "dark";
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -1528,11 +1668,13 @@ $("applyImg").addEventListener("click", function(){
   if(!needSel()) return;
   if(!curImg){ toast(t("tAddImg")); return; }
   var n=sel.size;
+  mark();
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.img=curImg; applyStyleTo(c); });
   save(); render(); toast(t("tImgPlaced",{n:n,lbl:plural(n)}));
 });
 $("removeImg").addEventListener("click", function(){
   if(!needSel()) return;
+  mark();
   selArr().forEach(function(i){ if(S.cells[i]) S.cells[i].img=null; });
   save(); render(); toast(t("tImgGone"));
 });
@@ -1658,6 +1800,8 @@ function doPrint(){
   setTimeout(function(){ sel=keep; cur=keepCur; syncSelUI(); }, 400);
 }
 $("printBtn").addEventListener("click", doPrint);
+$("undoBtn").addEventListener("click", undo);
+$("redoBtn").addEventListener("click", redo);
 
 $("exportBtn").addEventListener("click", function(){
   var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
@@ -1686,6 +1830,7 @@ $("importFile").addEventListener("change", function(e){
 $("clearAll").addEventListener("click", function(){
   var used=S.cells.filter(function(c){ return !isEmpty(c) || c.m; }).length;
   if(used && !confirm(t("cEmptyAll",{n:used}))) return;
+  mark();
   S.cells=blankCells(count()); sel=new Set(); save(); render(); toast(t("tSheetEmpty"));
 });
 
