@@ -209,6 +209,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .bead{border-radius:50%;background:var(--c)}
 .bead.grad{background:linear-gradient(135deg, var(--c) 0%, #ffffff 100%)}
 
+.seg4{grid-template-columns:repeat(4,1fr)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-2);border-radius:var(--r-1);overflow:hidden}
 .segb{
   height:27px;font-size:var(--fs-micro);color:var(--ink-3);
@@ -290,6 +291,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .cell .sb{display:block;font-size:.72em;font-weight:400;opacity:.82;line-height:1.15}
 .cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
 .cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
+.cell .qr{display:block;flex:0 0 auto}
 .cell .bc rect{fill:#000}
 .cell img{object-fit:contain;display:block;max-width:100%;max-height:100%;flex:0 0 auto}
 .cell .dot{
@@ -315,6 +317,15 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   border:2px solid var(--accent);border-radius:2px;background:#fff;color:#000;
   box-shadow:0 2px 10px rgba(0,0,0,.25);
 }
+.pagebar{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:-34px;
+  display:flex;align-items:center;gap:2px;padding:3px;
+  background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-2);
+}
+.pagebar .pgnum{font-size:var(--fs-micro);color:var(--ink-2);padding:0 8px;min-width:52px;text-align:center}
+.pagebar .pgsep{width:1px;height:18px;background:var(--line);margin:0 3px}
+.stagewrap{padding-bottom:44px}
+@media print{ .pagebar{display:none !important} }
 .blankhint{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   display:none;flex-direction:column;align-items:center;gap:6px;text-align:center;
@@ -382,8 +393,17 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 
 /* ================= print ================= */
+#printsheets{display:none}
 @media print{
   html,body{height:auto;overflow:visible;background:#fff}
+  #printsheets{display:block}
+  #printsheets .printsheet{
+    position:relative;left:auto;top:auto;margin:0;
+    transform:none !important;box-shadow:none;border-radius:0;
+    break-after:page;page-break-after:always;
+  }
+  #printsheets .printsheet:last-child{break-after:auto;page-break-after:auto}
+  body.multi .stage{display:none !important}
   .topbar,.sidebar,.colhdr,.rowhdr,#toast,.band{display:none !important}
   .app,.main,.stage{display:block;overflow:visible;padding:0;margin:0;background:#fff}
   .stagewrap,.sheetouter{display:block;position:static;width:auto;height:auto;margin:0;padding:0}
@@ -433,6 +453,14 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <div class="sheet" id="sheet" role="listbox" aria-multiselectable="true"
                data-i18n-aria="secSheet" tabindex="0"></div>
           <div id="band" class="band" hidden></div>
+          <div class="pagebar" id="pagebar">
+            <button class="btn sm ghost" id="pgPrev" data-i18n-title="pagePrev" aria-label="prev">&lsaquo;</button>
+            <span class="pgnum mono" id="pgNum">1 / 1</span>
+            <button class="btn sm ghost" id="pgNext" data-i18n-title="pageNext" aria-label="next">&rsaquo;</button>
+            <span class="pgsep"></span>
+            <button class="btn sm ghost" id="pgAdd" data-i18n-title="pageAdd" aria-label="add">+</button>
+            <button class="btn sm ghost" id="pgDel" data-i18n-title="pageDel" aria-label="delete">&minus;</button>
+          </div>
           <div id="blank" class="blankhint">
             <b data-i18n="emptyTitle"></b>
             <span data-i18n="emptyBody"></span>
@@ -458,26 +486,37 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <summary data-i18n="secContent">Content</summary>
         <div class="body">
           <div>
+            <label class="lbl" data-i18n="modeAsk">What are you making?</label>
+            <div class="seg seg4" id="modeSeg" role="group">
+              <button class="segb on" data-mode="plain" data-i18n="modePlain">Plain</button>
+              <button class="segb" data-mode="price" data-i18n="modePrice">Price</button>
+              <button class="segb" data-mode="sku" data-i18n="modeSku">Goods</button>
+              <button class="segb" data-mode="qr" data-i18n="modeQr">QR</button>
+            </div>
+          </div>
+          <div>
             <label class="lbl" for="txtInput" data-i18n="lblText">Label text</label>
             <textarea id="txtInput" rows="3" placeholder="ABC-1234"></textarea>
           </div>
-          <div class="g2">
-            <div>
-              <label class="lbl" for="priceInput" data-i18n="lblPrice">Price</label>
-              <input type="text" id="priceInput" data-i18n-ph="phPrice" inputmode="numeric">
-            </div>
-            <div>
-              <label class="lbl">&nbsp;</label>
-              <label class="check" style="height:30px"><input type="checkbox" id="bcChk">
-                <span data-i18n="optBarcode">Barcode</span></label>
-            </div>
+          <div id="priceRow">
+            <label class="lbl" for="priceInput" data-i18n="lblPrice">Price</label>
+            <input type="text" id="priceInput" data-i18n-ph="phPrice" inputmode="numeric">
+            <div class="hint" style="margin-top:5px" data-i18n="priceHint"></div>
+          </div>
+          <div id="bcRow">
+            <label class="check"><input type="checkbox" id="bcChk">
+              <span data-i18n="optBarcode">Barcode</span></label>
+            <div class="hint" style="margin-top:4px" data-i18n="barcodeHint"></div>
+          </div>
+          <div id="qrRow">
+            <label class="lbl" for="qrInput" data-i18n="lblQr">QR content</label>
+            <input type="text" id="qrInput" data-i18n-ph="phQr">
+            <div class="hint" style="margin-top:5px" data-i18n="qrHint"></div>
           </div>
           <div>
             <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
             <input type="text" id="subInput" data-i18n-ph="phSub">
           </div>
-          <div class="hint" data-i18n="subHint"></div>
-          <div class="hint" data-i18n="priceHint"></div>
           <div class="g2">
             <button class="btn primary" id="applyText" data-i18n="applyText">Apply to selection</button>
             <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
@@ -487,6 +526,34 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <button class="btn sm" id="pasteBtn" data-i18n="pasteBtn">Paste</button>
             <button class="btn sm" id="fillBtn" data-i18n="fillBtn">Fill</button>
           </div>
+          <details class="sub">
+            <summary data-i18n="moreType">Type settings</summary>
+            <div class="subbody">
+          <div class="g2">
+            <div>
+              <label class="lbl" for="fontSize" data-i18n="lblSize">Size (pt)</label>
+              <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5">
+            </div>
+            <div>
+              <label class="lbl" for="fontFam" data-i18n="lblFace">Typeface</label>
+              <select id="fontFam">
+                <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans</option>
+                <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                <option value="ui-monospace, Consolas, 'Courier New', monospace">Mono</option>
+              </select>
+            </div>
+          </div>
+          <div class="g3">
+            <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700" data-i18n="bold">Bold</button>
+            <button class="btn sm" id="upperBtn" aria-pressed="false" data-i18n="upper">UPPER</button>
+            <button class="btn sm" id="fitBtn" aria-pressed="true" data-i18n="shrink">Shrink</button>
+          </div>
+          <div class="hint" data-i18n-html="typeHint"></div>
+            </div>
+          </details>
+          <details class="sub">
+            <summary data-i18n="moreBulk">Bulk fill</summary>
+            <div class="subbody">
           <div>
             <label class="lbl" data-i18n="lblAutoNum">Auto-number</label>
             <div class="g3">
@@ -508,6 +575,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
             <label class="check"><input type="checkbox" id="listRepeat"> <span data-i18n="repeatFill">Repeat to fill</span></label>
           </div>
+            </div>
+          </details>
         </div>
       </details>
 
@@ -558,31 +627,6 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         </div>
       </details>
 
-      <details class="sec">
-        <summary data-i18n="secType">Type</summary>
-        <div class="body">
-          <div class="g2">
-            <div>
-              <label class="lbl" for="fontSize" data-i18n="lblSize">Size (pt)</label>
-              <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5">
-            </div>
-            <div>
-              <label class="lbl" for="fontFam" data-i18n="lblFace">Typeface</label>
-              <select id="fontFam">
-                <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans</option>
-                <option value="Georgia, 'Times New Roman', serif">Serif</option>
-                <option value="ui-monospace, Consolas, 'Courier New', monospace">Mono</option>
-              </select>
-            </div>
-          </div>
-          <div class="g3">
-            <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700" data-i18n="bold">Bold</button>
-            <button class="btn sm" id="upperBtn" aria-pressed="false" data-i18n="upper">UPPER</button>
-            <button class="btn sm" id="fitBtn" aria-pressed="true" data-i18n="shrink">Shrink</button>
-          </div>
-          <div class="hint" data-i18n-html="typeHint"></div>
-        </div>
-      </details>
 
       <details class="sec">
         <summary data-i18n="secSheet">Sheet</summary>
@@ -718,6 +762,27 @@ var STR = {
   dropBrowse: "сонгох",
   dropMain: "Зургаа энд чирж оруулах, эсвэл",
   dropSub: "PNG, JPG, SVG · зөвхөн таны хөтөч дээр үлдэнэ",
+  pagePrev: "Өмнөх хуудас",
+  pageNext: "Дараагийн хуудас",
+  pageAdd: "Хуудас нэмэх",
+  pageDel: "Энэ хуудсыг устгах",
+  pageOf: "{a} / {b}",
+  tPageAdded: "{n} дэх хуудас нэмлээ",
+  tPageDel: "Хуудсыг устгалаа",
+  tLastPage: "Ганц хуудсыг устгах боломжгүй",
+  tAllPages: "{p} хуудас, нийт {n} шошго хэвлэнэ",
+  cPageDel: "Энэ хуудсан дээрх бүх шошгыг устгах уу?",
+  modeAsk: "Юу хийх вэ?",
+  modePlain: "Энгийн",
+  modePrice: "Үнэ",
+  modeSku: "Бараа",
+  modeQr: "QR",
+  lblQr: "QR-д хийх холбоос, текст",
+  phQr: "https://facebook.com/...",
+  qrHint: "QR нь кирилл үсэг дэмждэг — цэс, Facebook, QPay холбоос тавихад тохиромжтой.",
+  moreType: "Үсгийн тохиргоо",
+  moreBulk: "Олноор бөглөх",
+  tQrLong: "Холбоос хэт урт байна — богиносгоно уу",
   lblSub: "Нэмэлт мөр",
   phSub: "Хугацаа: 2026.12.31",
   subHint: "Жижиг үсгээр доор нь гарна — хугацаа, найрлага, хаяг зэрэгт тохиромжтой.",
@@ -941,12 +1006,24 @@ var anchor = 0, cur = 0;
 var zoom = 1, autoZoom = true;
 var curColor = COLORS[0].id;
 var gradMode = false;
+/* The sidebar only shows the fields the current job needs. Everything is still
+   reachable; it is just not all on screen at once. */
+var MODE_FIELDS = {plain:[], price:["priceRow"], sku:["bcRow"], qr:["qrRow"]};
+function applyMode(){
+  var mode = S.opts.mode || "plain", k;
+  for(k in MODE_FIELDS){
+    MODE_FIELDS[k].forEach(function(id){ $(id).hidden = (k !== mode); });
+  }
+  Array.prototype.forEach.call($("modeSeg").children, function(b){
+    b.classList.toggle("on", b.dataset.mode === mode);
+  });
+}
 var curImg = null;
 var paint = false;
 
 function $(id){ return document.getElementById(id); }
 function count(){ return S.g.cols * S.g.rows; }
-function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length)); }
+function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length) && !(c.qr && c.qr.length)); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function r2(n){ return Math.round(n*100)/100; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -974,26 +1051,46 @@ function toast(msg){
 function blankCells(n){ var a=[],i; for(i=0;i<n;i++) a.push({}); return a; }
 function freshState(){
   var g = JSON.parse(JSON.stringify(BUILTIN[0]));
-  return {
-    presetId:g.id, g:g, cells:blankCells(g.cols*g.rows), images:{},
+  var st = {
+    presetId:g.id, g:g, pages:[blankCells(g.cols*g.rows)], page:0, images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}
+    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain"}
   };
+  st.cells = st.pages[0];
+  return st;
+}
+function usePage(i){
+  S.page = Math.max(0, Math.min(S.pages.length-1, i));
+  S.cells = S.pages[S.page];
+}
+function totalLabels(){
+  var t=0, i;
+  for(i=0;i<S.pages.length;i++) t += S.pages[i].filter(function(c){ return !isEmpty(c); }).length;
+  return t;
 }
 function normalise(s){
+  if(!s.pages) s.pages = [s.cells || []];     /* sheets saved before paging */
+  if(typeof s.page !== "number") s.page = 0;
+  s.page = Math.max(0, Math.min(s.pages.length-1, s.page));
+  s.cells = s.pages[s.page];
   s.images = s.images || {};
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0}, s.opts || {});
+  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain"}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
   resize(s);
   return s;
 }
+function payload(){
+  S.pages[S.page] = S.cells;                  /* the alias is the live page */
+  return {presetId:S.presetId, g:S.g, pages:S.pages, page:S.page, images:S.images,
+          style:S.style, custom:S.custom, opts:S.opts};
+}
 var saveWarned = false;
 function save(){
-  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  try { localStorage.setItem(KEY, JSON.stringify(payload())); }
   catch(e){
     if(saveWarned) return;
     saveWarned = true;
@@ -1011,6 +1108,15 @@ function load(){
   } catch(e){ return freshState(); }
 }
 function resize(s, oldCols, oldRows){
+  var pg;
+  for(pg=0; pg<s.pages.length; pg++){
+    s.cells = s.pages[pg];
+    resizeOne(s, oldCols, oldRows);
+    s.pages[pg] = s.cells;
+  }
+  s.cells = s.pages[s.page];
+}
+function resizeOne(s, oldCols, oldRows){
   var need = s.g.cols * s.g.rows;
   if(oldCols && oldRows && (oldCols !== s.g.cols || oldRows !== s.g.rows)){
     var out = blankCells(need), r, c;
@@ -1037,8 +1143,10 @@ function labelH(){ var g=S.g; return (g.ph - g.mt - g.mb - g.gy*(g.rows-1)) / g.
 var pageEl=null;
 function pageStyle(){
   if(!pageEl){ pageEl=document.createElement("style"); document.head.appendChild(pageEl); }
+  var many = S.pages && S.pages.length>1;
   pageEl.textContent = "@page{size:"+S.g.pw+"mm "+S.g.ph+"mm;margin:0}" +
-    "@media print{html,body{width:"+S.g.pw+"mm;height:"+S.g.ph+"mm;overflow:hidden}}";
+    "@media print{html,body{width:"+S.g.pw+"mm;" +
+      (many ? "" : "height:"+S.g.ph+"mm;overflow:hidden;") + "}}";
 }
 
 /* ================= Code 128 =================
@@ -1087,6 +1195,248 @@ function money(v){
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "\u20ae";
 }
 
+/* ================= QR (model 2, byte mode, EC level M, versions 1-10) =======
+   Written out for the same reason as the barcode: one file, no dependencies.
+   Byte mode carries UTF-8, so unlike Code 128 this handles Cyrillic - which is
+   what a Mongolian menu or Facebook link needs. */
+var QR_ALIGN = [[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];
+/* per version: [ec codewords per block, [blocks, data codewords per block], ...] */
+var QR_ECM = [null,
+  [10,[[1,16]]], [16,[[1,28]]], [26,[[1,44]]], [18,[[2,32]]], [24,[[2,43]]],
+  [16,[[4,27]]], [18,[[4,31]]], [22,[[2,38],[2,39]]], [22,[[3,36],[2,37]]],
+  [26,[[4,43],[1,44]]]];
+var QR_FMT_M = ["101010000010010","101000100100101","101111001111100","101101101001011",
+                "100010111111001","100000011001110","100111110010111","100101010100000"];
+var QR_VER = {7:"000111110010010100",8:"001000010110111100",
+              9:"001001101010011001",10:"001010010011010011"};
+
+var GF_EXP=new Array(512), GF_LOG=new Array(256);
+(function(){
+  var x=1, i;
+  for(i=0;i<255;i++){ GF_EXP[i]=x; GF_LOG[x]=i; x<<=1; if(x&0x100) x^=0x11d; }
+  for(i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255];
+})();
+function gfMul(a,b){ return (a===0||b===0) ? 0 : GF_EXP[GF_LOG[a]+GF_LOG[b]]; }
+function rsPoly(n){
+  var poly=[1], i, j;
+  for(i=0;i<n;i++){
+    var next=poly.slice(); next.push(0);
+    for(j=0;j<poly.length;j++) next[j+1] ^= gfMul(poly[j], GF_EXP[i]);
+    poly=next;
+  }
+  return poly;
+}
+function rsEncode(data, ecLen){
+  var gen=rsPoly(ecLen), res=data.concat(new Array(ecLen).fill(0)), i, j;
+  for(i=0;i<data.length;i++){
+    var f=res[i]; if(f===0) continue;
+    for(j=0;j<gen.length;j++) res[i+j] ^= gfMul(gen[j], f);
+  }
+  return res.slice(data.length);
+}
+function utf8(str){
+  var out=[], i, c;
+  for(i=0;i<str.length;i++){
+    c=str.codePointAt(i);
+    if(c>0xffff) i++;
+    if(c<0x80) out.push(c);
+    else if(c<0x800) out.push(0xc0|c>>6, 0x80|c&63);
+    else if(c<0x10000) out.push(0xe0|c>>12, 0x80|(c>>6)&63, 0x80|c&63);
+    else out.push(0xf0|c>>18, 0x80|(c>>12)&63, 0x80|(c>>6)&63, 0x80|c&63);
+  }
+  return out;
+}
+
+function qrEncode(text){
+  var bytes=utf8(text), ver, info, dataCw=0, i, j, b;
+  for(ver=1; ver<=10; ver++){
+    info=QR_ECM[ver];
+    dataCw=0;
+    for(i=0;i<info[1].length;i++) dataCw += info[1][i][0]*info[1][i][1];
+    var countBits = ver<10 ? 8 : 16;
+    if(bytes.length*8 + 4 + countBits <= dataCw*8) break;
+  }
+  if(ver>10) return null;                       /* too long for this build */
+  info=QR_ECM[ver];
+  var countBits = ver<10 ? 8 : 16;
+
+  var bits=[];
+  function push(val,len){ for(var k=len-1;k>=0;k--) bits.push((val>>k)&1); }
+  push(4,4);                                    /* byte mode */
+  push(bytes.length,countBits);
+  for(i=0;i<bytes.length;i++) push(bytes[i],8);
+  var cap=dataCw*8;
+  for(i=0;i<4 && bits.length<cap;i++) bits.push(0);   /* terminator */
+  while(bits.length%8) bits.push(0);
+  var pad=[0xec,0x11], p=0;
+  var cw=[];
+  for(i=0;i<bits.length;i+=8){
+    b=0; for(j=0;j<8;j++) b=(b<<1)|bits[i+j];
+    cw.push(b);
+  }
+  while(cw.length<dataCw){ cw.push(pad[p%2]); p++; }
+
+  /* split into blocks, error-correct each, then interleave */
+  var blocks=[], ecs=[], at=0;
+  for(i=0;i<info[1].length;i++){
+    for(j=0;j<info[1][i][0];j++){
+      var d=cw.slice(at, at+info[1][i][1]); at+=info[1][i][1];
+      blocks.push(d); ecs.push(rsEncode(d, info[0]));
+    }
+  }
+  var maxD=0, maxE=info[0], out=[];
+  for(i=0;i<blocks.length;i++) maxD=Math.max(maxD, blocks[i].length);
+  for(i=0;i<maxD;i++) for(j=0;j<blocks.length;j++) if(i<blocks[j].length) out.push(blocks[j][i]);
+  for(i=0;i<maxE;i++) for(j=0;j<ecs.length;j++) out.push(ecs[j][i]);
+  return {ver:ver, cw:out};
+}
+
+function qrMatrix(text){
+  var enc=qrEncode(text);
+  if(!enc) return null;
+  var ver=enc.ver, size=17+ver*4, i, j, r, c;
+  var m=[], fn=[];                              /* module value, and function-area flag */
+  for(i=0;i<size;i++){ m.push(new Array(size).fill(0)); fn.push(new Array(size).fill(0)); }
+  function put(r,c,v){ m[r][c]=v; fn[r][c]=1; }
+
+  function finder(r0,c0){
+    for(r=-1;r<=7;r++) for(c=-1;c<=7;c++){
+      var rr=r0+r, cc=c0+c;
+      if(rr<0||rr>=size||cc<0||cc>=size) continue;
+      var inSq = (r>=0&&r<=6&&(c===0||c===6)) || (c>=0&&c<=6&&(r===0||r===6)) ||
+                 (r>=2&&r<=4&&c>=2&&c<=4);
+      put(rr,cc, inSq?1:0);
+    }
+  }
+  finder(0,0); finder(0,size-7); finder(size-7,0);
+  for(i=8;i<size-8;i++){ put(6,i,(i%2===0)?1:0); put(i,6,(i%2===0)?1:0); }
+  var al=QR_ALIGN[ver];
+  for(i=0;i<al.length;i++) for(j=0;j<al.length;j++){
+    var ar=al[i], ac=al[j];
+    if((ar===6&&ac===6)||(ar===6&&ac===size-7)||(ar===size-7&&ac===6)) continue;
+    for(r=-2;r<=2;r++) for(c=-2;c<=2;c++)
+      put(ar+r, ac+c, (Math.max(Math.abs(r),Math.abs(c))!==1)?1:0);
+  }
+  put(size-8,8,1);                              /* dark module */
+  for(i=0;i<9;i++){ if(!fn[8][i]) put(8,i,0); if(!fn[i][8]) put(i,8,0); }
+  for(i=0;i<8;i++){ if(!fn[8][size-1-i]) put(8,size-1-i,0); if(!fn[size-1-i][8]) put(size-1-i,8,0); }
+  if(ver>=7) for(i=0;i<18;i++){
+    var vb=+QR_VER[ver].charAt(17-i);
+    put(Math.floor(i/3), size-11+(i%3), vb);
+    put(size-11+(i%3), Math.floor(i/3), vb);
+  }
+  return {m:m, fn:fn, size:size, cw:enc.cw};
+}
+
+function qrMaskBit(mask,r,c){
+  switch(mask){
+    case 0: return (r+c)%2===0;
+    case 1: return r%2===0;
+    case 2: return c%3===0;
+    case 3: return (r+c)%3===0;
+    case 4: return (Math.floor(r/2)+Math.floor(c/3))%2===0;
+    case 5: return ((r*c)%2)+((r*c)%3)===0;
+    case 6: return (((r*c)%2)+((r*c)%3))%2===0;
+    default: return (((r+c)%2)+((r*c)%3))%2===0;
+  }
+}
+function qrPenalty(m,size){
+  var p=0, r, c, i, run, dark=0;
+  for(r=0;r<size;r++){
+    run=1;
+    for(c=1;c<size;c++){
+      if(m[r][c]===m[r][c-1]) run++; else { if(run>=5) p+=3+(run-5); run=1; }
+    }
+    if(run>=5) p+=3+(run-5);
+  }
+  for(c=0;c<size;c++){
+    run=1;
+    for(r=1;r<size;r++){
+      if(m[r][c]===m[r-1][c]) run++; else { if(run>=5) p+=3+(run-5); run=1; }
+    }
+    if(run>=5) p+=3+(run-5);
+  }
+  for(r=0;r<size-1;r++) for(c=0;c<size-1;c++)
+    if(m[r][c]===m[r][c+1] && m[r][c]===m[r+1][c] && m[r][c]===m[r+1][c+1]) p+=3;
+  var pat1=[1,0,1,1,1,0,1,0,0,0,0], pat2=[0,0,0,0,1,0,1,1,1,0,1];
+  function look(get){
+    var k, q, ok1, ok2;
+    for(k=0;k<=size-11;k++){
+      ok1=ok2=true;
+      for(q=0;q<11;q++){ var v=get(k+q); if(v!==pat1[q]) ok1=false; if(v!==pat2[q]) ok2=false; }
+      if(ok1) p+=40; if(ok2) p+=40;
+    }
+  }
+  for(r=0;r<size;r++) look(function(x){ return m[r][x]; });
+  for(c=0;c<size;c++) look(function(x){ return m[x][c]; });
+  for(r=0;r<size;r++) for(c=0;c<size;c++) if(m[r][c]) dark++;
+  p += Math.floor(Math.abs(dark*100/(size*size)-50)/5)*10;
+  return p;
+}
+function qrBuild(text){
+  var base=qrMatrix(text);
+  if(!base) return null;
+  var size=base.size, cw=base.cw, best=null, bestP=Infinity, mask;
+  for(mask=0;mask<8;mask++){
+    var m=base.m.map(function(row){ return row.slice(); });
+    var bit=0, right, vert, j, x, y, upward;
+    /* Zigzag placement. The direction comes from the column index rather than
+       a toggle, because skipping the timing column would desynchronise a
+       toggle and silently corrupt every code. */
+    for(right=size-1; right>=1; right-=2){
+      if(right===6) right=5;
+      for(vert=0; vert<size; vert++){
+        for(j=0;j<2;j++){
+          x=right-j;
+          upward=(((right+1)&2)===0);
+          y = upward ? (size-1-vert) : vert;
+          if(base.fn[y][x]) continue;
+          var v = (bit < cw.length*8) ? ((cw[bit>>3]>>(7-(bit&7)))&1) : 0;
+          bit++;
+          if(qrMaskBit(mask,y,x)) v^=1;
+          m[y][x]=v;
+        }
+      }
+    }
+    /* Format information, both copies, bit 0 = least significant. */
+    var f=QR_FMT_M[mask], i;
+    /* The table strings are stored bit-0-first, which is the order the
+       placement below consumes them; reversing here corrupts every code. */
+    function fbit(k){ return +f.charAt(k); }
+    for(i=0;i<=5;i++) m[8][i]=fbit(i);
+    m[8][7]=fbit(6);
+    m[8][8]=fbit(7);
+    m[7][8]=fbit(8);
+    for(i=9;i<=14;i++) m[14-i][8]=fbit(i);
+    for(i=0;i<=7;i++) m[size-1-i][8]=fbit(i);
+    for(i=8;i<=14;i++) m[8][size-15+i]=fbit(i);
+    m[size-8][8]=1;
+
+    var pen=qrPenalty(m,size);
+    if(pen<bestP){ bestP=pen; best=m; }
+  }
+  return {m:best, size:size};
+}
+function qrSVG(text, sizeMm){
+  var q=qrBuild(String(text));
+  if(!q) return "";
+  var n=q.size, quiet=2, tot=n+quiet*2;
+  var s='<svg class="qr" viewBox="0 0 '+tot+' '+tot+'" style="width:'+sizeMm+'mm;height:'+sizeMm+'mm" '+
+        'shape-rendering="crispEdges" aria-hidden="true">'+
+        '<rect width="'+tot+'" height="'+tot+'" fill="#fff"/>';
+  for(var r=0;r<n;r++){
+    var c=0;
+    while(c<n){
+      if(q.m[r][c]){
+        var w=1; while(c+w<n && q.m[r][c+w]) w++;
+        s+='<rect x="'+(c+quiet)+'" y="'+(r+quiet)+'" width="'+w+'" height="1"/>';
+        c+=w;
+      } else c++;
+    }
+  }
+  return s+'</svg>';
+}
+
 /* ================= render ================= */
 function render(){
   var g=S.g, lw=labelW(), lh=labelH(), n=count(), sheet=$("sheet");
@@ -1119,6 +1469,7 @@ function render(){
     : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
       ((off.x||off.y) ? "<br>"+t("shiftedFmt",{x:r2(off.x),y:r2(off.y)})+(off.clamped?t("limited"):"") : "");
   autofit();
+  pageUI();
   var virgin = !S.cells.some(function(c){ return c && (!isEmpty(c) || c.m); });
   $("blank").classList.toggle("on", virgin);
   syncSelUI();
@@ -1156,6 +1507,7 @@ function cellHTML(i, c){
   }
   var bcs = "";
   if(c.bc && c.t) bcs = barcodeSVG(c.t, Math.max(3, labelH()*0.28));
+  else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.62));
   var base = mBase(c.m);
   var dot = HEX[base]
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
@@ -1213,7 +1565,7 @@ function autofit(){
     if(!st.fit){ t.style.fontSize=st.fs+"pt"; continue; }
 
     var box=t.parentNode;
-    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, box.clientWidth, box.clientHeight, st.ff,
+    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, c.qr||"", box.clientWidth, box.clientHeight, st.ff,
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
 
@@ -1264,6 +1616,7 @@ function selCount(){
     $("priceInput").value = c.p || "";
     $("subInput").value = c.s || "";
     $("bcChk").checked = !!c.bc;
+    $("qrInput").value = c.qr || "";
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
@@ -1283,7 +1636,7 @@ function selArr(){ return Array.from(sel).sort(function(a,b){ return a-b; }); }
 /* ================= pointer selection ================= */
 /* ---------------- history ---------------- */
 var undoStack=[], redoStack=[], UNDO_MAX=50;
-function snap(){ return JSON.stringify({cells:S.cells, g:S.g}); }
+function snap(){ S.pages[S.page]=S.cells; return JSON.stringify({pages:S.pages, page:S.page, g:S.g}); }
 function mark(){
   undoStack.push(snap());
   if(undoStack.length>UNDO_MAX) undoStack.shift();
@@ -1291,7 +1644,8 @@ function mark(){
 }
 function restore(json){
   var o=JSON.parse(json);
-  S.cells=o.cells; S.g=o.g;
+  S.pages=o.pages; S.g=o.g;
+  usePage(o.page);
   sel=new Set(); if(cur>=count()) cur=0;
   fitCache={}; fillGeo(); save(); render(); syncPresetSel();
 }
@@ -1574,9 +1928,13 @@ function applyStyleTo(c){
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
-  var v=$("txtInput").value, pv=$("priceInput").value, sv=$("subInput").value,
-      bc=$("bcChk").checked, n=sel.size;
+  var mode=S.opts.mode||"plain";
+  var v=$("txtInput").value, sv=$("subInput").value, n=sel.size;
+  var pv = mode==="price" ? $("priceInput").value : "";
+  var bc = mode==="sku"   ? $("bcChk").checked    : false;
+  var qv = mode==="qr"    ? $("qrInput").value    : "";
   if(bc && v && code128(v)===null){ toast(t("tBadBarcode")); return; }
+  if(qv && !qrBuild(qv)){ toast(t("tQrLong")); return; }
   var thin=false;
   if(bc && v){
     var enc=code128(v);
@@ -1585,7 +1943,7 @@ $("applyText").addEventListener("click", function(){
   mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=v; c.p=pv; c.s=sv; c.bc=bc?1:0; applyStyleTo(c);
+    c.t=v; c.p=pv; c.s=sv; c.bc=bc?1:0; c.qr=qv; applyStyleTo(c);
   });
   save(); render();
   if(thin) toast(t("tThinBarcode"));
@@ -1674,6 +2032,10 @@ $("swatches").addEventListener("click", function(e){
   else toast(t("tColourRdy",{c:cname(curColor)}));
   spotlight(curColor);
 });
+$("modeSeg").addEventListener("click", function(e){
+  var b=e.target.closest(".segb"); if(!b) return;
+  S.opts.mode=b.dataset.mode; save(); applyMode();
+});
 $("dotStyle").addEventListener("click", function(e){
   var b=e.target.closest(".segb"); if(!b) return;
   gradMode = b.dataset.g === "1";
@@ -1750,6 +2112,7 @@ function applyLang(){
   $("buyLink").href = BRAND.store;
   $("paintBtn").textContent = paint ? t("paintOnLbl") : t("paint");
   buildSwatches(); drawSwatchCounts();
+  applyMode();
   applyTheme();
   syncPresetSel();
   render();
@@ -1932,6 +2295,31 @@ function fitZoom(){
   var z=Math.min((st.clientHeight-80)/(S.g.ph*PXMM), (st.clientWidth-96)/(S.g.pw*PXMM));
   zoom=Math.max(0.15, Math.min(3, z)); autoZoom=true; showZoom();
 }
+function pageUI(){
+  $("pgNum").textContent = t("pageOf",{a:S.page+1, b:S.pages.length});
+  $("pgPrev").disabled = S.page===0;
+  $("pgNext").disabled = S.page===S.pages.length-1;
+  $("pgDel").disabled  = S.pages.length<2;
+  $("pagebar").style.display = "flex";
+}
+$("pgPrev").addEventListener("click", function(){ usePage(S.page-1); sel=new Set(); cur=0; save(); render(); });
+$("pgNext").addEventListener("click", function(){ usePage(S.page+1); sel=new Set(); cur=0; save(); render(); });
+$("pgAdd").addEventListener("click", function(){
+  mark();
+  S.pages[S.page]=S.cells;
+  S.pages.splice(S.page+1, 0, blankCells(count()));
+  usePage(S.page+1); sel=new Set(); cur=0;
+  save(); render(); toast(t("tPageAdded",{n:S.page+1}));
+});
+$("pgDel").addEventListener("click", function(){
+  if(S.pages.length<2){ toast(t("tLastPage")); return; }
+  if(!confirm(t("cPageDel"))) return;
+  mark();
+  S.pages.splice(S.page,1);
+  usePage(Math.min(S.page, S.pages.length-1));
+  sel=new Set(); cur=0; save(); render(); toast(t("tPageDel"));
+});
+
 function showZoom(){ $("zoomVal").textContent=Math.round(zoom*100)+"%"; }
 function setZoom(z){ zoom=Math.max(0.15, Math.min(3, z)); autoZoom=false; showZoom(); render(); }
 $("zoomIn").addEventListener("click", function(){ setZoom(zoom*1.15); });
@@ -1949,20 +2337,46 @@ window.addEventListener("resize", function(){
 });
 
 /* ================= print & files ================= */
+function buildPrintSheets(){
+  var keep=S.page, wrap=document.createElement("div"), i, clone;
+  wrap.id="printsheets";
+  for(i=0;i<S.pages.length;i++){
+    usePage(i);
+    render();
+    clone=$("sheet").cloneNode(true);
+    clone.removeAttribute("id");
+    clone.className="sheet printsheet";
+    clone.style.transform="none";
+    wrap.appendChild(clone);
+  }
+  usePage(keep); render();
+  document.body.appendChild(wrap);
+  return wrap;
+}
 function doPrint(){
   var keep=new Set(sel), keepCur=cur;
   sel=new Set(); cur=-1; syncSelUI(); spotlight(null);
   $("stage").scrollTop=0; $("stage").scrollLeft=0;
   window.scrollTo(0,0);
+  var multi = S.pages.length>1, wrap=null;
+  document.body.classList.toggle("multi", multi);
+  if(multi){
+    wrap=buildPrintSheets();
+    toast(t("tAllPages",{p:S.pages.length, n:totalLabels()}));
+  }
   window.print();
-  setTimeout(function(){ sel=keep; cur=keepCur; syncSelUI(); }, 400);
+  setTimeout(function(){
+    if(wrap) wrap.remove();
+    document.body.classList.remove("multi");
+    sel=keep; cur=keepCur; syncSelUI();
+  }, 400);
 }
 $("printBtn").addEventListener("click", doPrint);
 $("undoBtn").addEventListener("click", undo);
 $("redoBtn").addEventListener("click", redo);
 
 $("exportBtn").addEventListener("click", function(){
-  var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+  var blob=new Blob([JSON.stringify(payload(),null,1)],{type:"application/json"});
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="label-sheet-"+new Date().toISOString().slice(0,10)+".json";
@@ -1977,7 +2391,7 @@ $("importFile").addEventListener("change", function(e){
   rd.onload=function(){
     try{
       var s=JSON.parse(rd.result);
-      if(!s || !s.g || !s.cells) throw new Error("bad file");
+      if(!s || !s.g || (!s.cells && !s.pages)) throw new Error("bad file");
       S=normalise(s); sel=new Set(); cur=0; anchor=0; curImg=null;
       fillGeo(); renderLib(); syncOpts(); fitZoom(); save(); applyLang();
       toast(t("tImported"));
