@@ -287,6 +287,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
 }
 .cell .nm{display:block}
+.cell .sb{display:block;font-size:.72em;font-weight:400;opacity:.82;line-height:1.15}
 .cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
 .cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
 .cell .bc rect{fill:#000}
@@ -307,6 +308,12 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .sheet.spot .cell.lit::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   outline:.3mm solid var(--c);outline-offset:-.3mm;
+}
+.celledit{
+  position:absolute;z-index:var(--z-hdr);margin:0;padding:2px 3px;
+  font:600 12px/1.2 system-ui,sans-serif;text-align:center;resize:none;
+  border:2px solid var(--accent);border-radius:2px;background:#fff;color:#000;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);
 }
 .blankhint{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -465,6 +472,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                 <span data-i18n="optBarcode">Barcode</span></label>
             </div>
           </div>
+          <div>
+            <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
+            <input type="text" id="subInput" data-i18n-ph="phSub">
+          </div>
+          <div class="hint" data-i18n="subHint"></div>
           <div class="hint" data-i18n="priceHint"></div>
           <div class="g2">
             <button class="btn primary" id="applyText" data-i18n="applyText">Apply to selection</button>
@@ -489,7 +501,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           </div>
           <div>
             <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
-            <div class="hint" style="margin:-2px 0 5px" data-i18n="listCols"></div>
+            <div class="hint" style="margin:-2px 0 5px" data-i18n="colsHint"></div>
             <textarea id="listInput" rows="4" placeholder="ABC-001&#10;ABC-002&#10;ABC-003"></textarea>
           </div>
           <div class="g2">
@@ -641,6 +653,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <span class="kbd">Shift</span><span data-i18n="kbShift">Extend the selection</span>
             <span class="kbd">Arrows</span><span data-i18n="kbArrows">Move the cursor, with Shift to extend</span>
             <span class="kbd">Space</span><span data-i18n="kbSpace">Toggle the label under the cursor</span>
+            <span class="kbd">2&times;</span><span data-i18n="dblEdit">Double-click a label to edit it</span>
             <span class="kbd">Ctrl C</span><span data-i18n="kbCopy">Copy the selected labels</span>
             <span class="kbd">Ctrl V</span><span data-i18n="kbPaste">Paste, repeating to fill the selection</span>
             <span class="kbd">Ctrl D</span><span data-i18n="kbFill">Fill the selection from the first label</span>
@@ -705,6 +718,13 @@ var STR = {
   dropBrowse: "сонгох",
   dropMain: "Зургаа энд чирж оруулах, эсвэл",
   dropSub: "PNG, JPG, SVG · зөвхөн таны хөтөч дээр үлдэнэ",
+  lblSub: "Нэмэлт мөр",
+  phSub: "Хугацаа: 2026.12.31",
+  subHint: "Жижиг үсгээр доор нь гарна — хугацаа, найрлага, хаяг зэрэгт тохиромжтой.",
+  lblCopies: "Ширхэг",
+  colsHint: "Багана: нэр → үнэ → нэмэлт мөр. Мөрийн төгсгөлд «x3» гэж бичвэл 3 ширхэг хэвлэнэ.",
+  tOverflow: "{n} шошго багтсангүй — дараагийн хуудсанд хэвлээрэй",
+  dblEdit: "Шошго дээр хоёр дарж шууд засна",
   lblPrice: "Үнэ",
   phPrice: "89000",
   optBarcode: "Баркод",
@@ -926,7 +946,7 @@ var paint = false;
 
 function $(id){ return document.getElementById(id); }
 function count(){ return S.g.cols * S.g.rows; }
-function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length)); }
+function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length)); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function r2(n){ return Math.round(n*100)/100; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -1116,6 +1136,7 @@ function cellHTML(i, c){
   var hasImg = !!(c.img && S.images[c.img]);
   var hasTxt = !!(c.t && c.t.length);
   var hasPrice = !!(c.p && String(c.p).length);
+  var hasSub = !!(c.s && String(c.s).length);
   var lay = arrange(st.lay);
   var img="", txt="", dir="stack", textFirst=false;
   if(hasImg){
@@ -1126,9 +1147,10 @@ function cellHTML(i, c){
     if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
-  if(hasTxt || hasPrice){
+  if(hasTxt || hasPrice || hasSub){
     var inner1 = (c.t ? '<span class="nm">'+esc(c.t)+'</span>' : "") +
-                 (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "");
+                 (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "") +
+                 (hasSub ? '<span class="sb">'+esc(c.s)+'</span>' : "");
     txt = '<div class="txt" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
@@ -1184,14 +1206,14 @@ function availBox(t){
 function autofit(){
   var sheet=$("sheet"), n=count(), i;
   for(i=0;i<n;i++){
-    var c=S.cells[i]; if(!c || (!c.t && !c.p)) continue;
+    var c=S.cells[i]; if(!c || (!c.t && !c.p && !c.s)) continue;
     var st=Object.assign({},DEF_STYLE,c);
     var el=sheet.children[i]; if(!el) continue;
     var t=el.querySelector(".txt"); if(!t) continue;
     if(!st.fit){ t.style.fontSize=st.fs+"pt"; continue; }
 
     var box=t.parentNode;
-    var key=[c.t, c.p||"", c.bc?1:0, box.clientWidth, box.clientHeight, st.ff,
+    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, box.clientWidth, box.clientHeight, st.ff,
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
 
@@ -1240,6 +1262,7 @@ function selCount(){
                    "</em>"+(c.m ? '<span>&middot; '+cname(mBase(c.m))+'</span>' : "");
     $("txtInput").value = c.t || "";
     $("priceInput").value = c.p || "";
+    $("subInput").value = c.s || "";
     $("bcChk").checked = !!c.bc;
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
@@ -1411,6 +1434,39 @@ function tagCell(i){
   var el = $("sheet").children[i];
   if(el) el.outerHTML = cellHTML(i, c);
 }
+$("sheet").addEventListener("dblclick", function(e){
+  var i = idxFrom(e); if(i<0) return;
+  e.preventDefault();
+  var el=$("sheet").children[i], wrap=$("stagewrap");
+  var r=el.getBoundingClientRect(), w=wrap.getBoundingClientRect();
+  var box=document.createElement("textarea");
+  box.className="celledit";
+  box.value=(S.cells[i]||{}).t||"";
+  box.style.left=(r.left-w.left)+"px";
+  box.style.top=(r.top-w.top)+"px";
+  box.style.width=r.width+"px";
+  box.style.height=r.height+"px";
+  wrap.appendChild(box);
+  box.focus(); box.select();
+  var done=false;
+  function commit(save_it){
+    if(done) return; done=true;
+    var v=box.value;
+    box.remove();
+    if(save_it && v!==((S.cells[i]||{}).t||"")){
+      mark();
+      var c=S.cells[i]||(S.cells[i]={});
+      c.t=v; applyStyleTo(c);
+      save(); render();
+    }
+  }
+  box.addEventListener("blur", function(){ commit(true); });
+  box.addEventListener("keydown", function(ev){
+    ev.stopPropagation();
+    if(ev.key==="Escape"){ ev.preventDefault(); commit(false); }
+    if(ev.key==="Enter" && !ev.shiftKey){ ev.preventDefault(); commit(true); }
+  });
+});
 $("colhdr").addEventListener("click", function(e){
   var d=e.target.dataset ? e.target.dataset.col : null; if(d==null) return;
   var c=parseInt(d,10), g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), r;
@@ -1518,7 +1574,8 @@ function applyStyleTo(c){
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
-  var v=$("txtInput").value, pv=$("priceInput").value, bc=$("bcChk").checked, n=sel.size;
+  var v=$("txtInput").value, pv=$("priceInput").value, sv=$("subInput").value,
+      bc=$("bcChk").checked, n=sel.size;
   if(bc && v && code128(v)===null){ toast(t("tBadBarcode")); return; }
   var thin=false;
   if(bc && v){
@@ -1528,7 +1585,7 @@ $("applyText").addEventListener("click", function(){
   mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=v; c.p=pv; c.bc=bc?1:0; applyStyleTo(c);
+    c.t=v; c.p=pv; c.s=sv; c.bc=bc?1:0; applyStyleTo(c);
   });
   save(); render();
   if(thin) toast(t("tThinBarcode"));
@@ -1563,20 +1620,30 @@ $("applyList").addEventListener("click", function(){
   if(!needSel()) return;
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
   if(!lines.length){ toast(t("tListEmpty")); return; }
+  /* name, price, small line, copies - a trailing bare number means repeat */
+  var rows=[];
+  lines.forEach(function(line){
+    var f=line.split(SEP).map(function(x){ return x.trim(); });
+    var copies=1;
+    /* Cyrillic \u0445 looks identical to Latin x and is what a Mongolian
+       keyboard produces, so both count as a multiplier. */
+    var m = f.length>1 ? /^[x\u0445\u00d7*]\s*(\d{1,3})$/i.exec(f[f.length-1]) : null;
+    if(m){ copies=Math.max(1, parseInt(m[1],10)||1); f.pop(); }
+    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).join(" ")};
+    for(var q=0;q<copies;q++) rows.push(row);
+  });
   var rep=$("listRepeat").checked, used=0;
   mark();
   selArr().forEach(function(i,k){
-    if(k>=lines.length && !rep) return;
-    var raw=lines[rep ? (k%lines.length) : k];
-    var parts=raw.split(SEP);
+    if(k>=rows.length && !rep) return;
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=parts[0].trim();
-    if(parts.length>1) c.p=parts.slice(1).join(" ").trim();
+    var row=rows[rep ? (k%rows.length) : k];
+    c.t=row.t; c.p=row.p; c.s=row.s;
     applyStyleTo(c); used++;
   });
   save(); render();
   toast(t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
-        (!rep && lines.length>used ? t("tLeftover",{n:lines.length-used}) : ""));
+        (!rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : ""));
 });
 
 /* ================= colour tags ================= */
