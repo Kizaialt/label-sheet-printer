@@ -1124,13 +1124,14 @@ function totalLabels(){
   for(i=0;i<S.pages.length;i++) t += S.pages[i].filter(function(c){ return !isEmpty(c); }).length;
   return t;
 }
+var migrated = false;
 function normalise(s){
   if(!s.pages) s.pages = [s.cells || []];     /* sheets saved before paging */
   if(typeof s.page !== "number") s.page = 0;
   s.page = Math.max(0, Math.min(s.pages.length-1, s.page));
   s.cells = s.pages[s.page];
   s.images = s.images || {};
-  if(s.opts && !s.opts.guidesFixed){ s.opts.guides = false; s.opts.guidesFixed = 1; }
+  if(s.opts && !s.opts.guidesFixed){ s.opts.guides = false; s.opts.guidesFixed = 1; migrated = true; }
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
   s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}, s.opts || {});
@@ -2525,6 +2526,7 @@ function syncOpts(){
   syncFitUI();
 }
 S = load();
+if(migrated) save();
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
 fitZoom(); applyLang();
 })();
