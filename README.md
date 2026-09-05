@@ -102,8 +102,8 @@ var BRAND = {
 };
 ```
 
-Cut lines print by default, on the assumption the paper is plain rather than die-cut. Turn them
-off in **Sheet** if your stock arrives pre-cut.
+Cut lines are **off** by default — on die-cut stock they just print a box around every sticker.
+Turn them on in **Sheet** if your paper is a plain sheet you cut yourself.
 
 ## Design notes
 

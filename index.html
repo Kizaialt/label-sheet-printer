@@ -1110,7 +1110,7 @@ function freshState(){
   var st = {
     presetId:g.id, g:g, pages:[blankCells(g.cols*g.rows)], page:0, images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}
+    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}
   };
   st.cells = st.pages[0];
   return st;
@@ -1130,9 +1130,10 @@ function normalise(s){
   s.page = Math.max(0, Math.min(s.pages.length-1, s.page));
   s.cells = s.pages[s.page];
   s.images = s.images || {};
+  if(s.opts && !s.opts.guidesFixed){ s.opts.guides = false; s.opts.guidesFixed = 1; }
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:true, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}, s.opts || {});
+  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
