@@ -1161,7 +1161,9 @@ function load(){
     var raw = localStorage.getItem(KEY);
     if(!raw) return freshState();
     var s = JSON.parse(raw);
-    if(!s || !s.g || !s.cells) return freshState();
+    /* save() writes pages, not cells. Requiring cells here threw away every
+       saved sheet on reload once paging landed. */
+    if(!s || !s.g || (!s.cells && !s.pages)) return freshState();
     return normalise(s);
   } catch(e){ return freshState(); }
 }
