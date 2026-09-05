@@ -366,6 +366,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .thumb:hover .x,.thumb .x:focus-visible{opacity:1}
 
+.codebox{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;resize:vertical;word-break:break-all;margin-bottom:6px}
 .modalwrap{
   position:fixed;inset:0;z-index:var(--z-toast);display:flex;
   align-items:center;justify-content:center;background:rgba(0,0,0,.42);
@@ -692,6 +693,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           </div>
           <label class="check"><input type="checkbox" id="guideChk"> <span data-i18n="optCut">Print cut lines</span></label>
           <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
+          <div class="g2">
+            <button class="btn primary" id="shareBtn" data-i18n="shareBtn">Share</button>
+            <button class="btn" id="loadCodeBtn" data-i18n="loadCodeBtn">Open by code</button>
+          </div>
           <div class="g3">
             <button class="btn sm" id="exportBtn" data-i18n="exportBtn">Export</button>
             <button class="btn sm" id="importBtn" data-i18n="importBtn">Import</button>
@@ -739,6 +744,34 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <div class="g2">
       <button class="btn primary" id="dlgGo" data-i18n="dlgGo">Print</button>
       <button class="btn" id="dlgCancel" data-i18n="dlgCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="modalwrap" id="shareDlg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareH">
+    <h2 id="shareH" data-i18n="dlgShareTitle">Share</h2>
+    <p class="hint" data-i18n="shareInfo"></p>
+    <p class="hint" id="shareImgNote" hidden data-i18n="shareHasImages"></p>
+    <div>
+      <label class="lbl" data-i18n="lblShareCode">Code</label>
+      <textarea id="shareCode" class="codebox" rows="4" readonly></textarea>
+      <button class="btn wide" id="copyCodeBtn" data-i18n="copyCode">Copy code</button>
+    </div>
+    <div>
+      <label class="lbl" data-i18n="lblShareLink">Link</label>
+      <input type="text" id="shareLink" readonly>
+      <button class="btn wide" id="copyLinkBtn" data-i18n="copyLink">Copy link</button>
+    </div>
+    <button class="btn" id="shareClose" data-i18n="dlgClose">Close</button>
+  </div>
+</div>
+<div class="modalwrap" id="loadDlg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loadH">
+    <h2 id="loadH" data-i18n="dlgLoadTitle">Open by code</h2>
+    <textarea id="loadCode" class="codebox" rows="5" data-i18n-ph="loadPh"></textarea>
+    <div class="g2">
+      <button class="btn primary" id="loadGo" data-i18n="loadGo">Open</button>
+      <button class="btn" id="loadCancel" data-i18n="dlgCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -804,6 +837,26 @@ var STR = {
   tLastPage: "Ганц хуудсыг устгах боломжгүй",
   tAllPages: "{p} хуудас, нийт {n} шошго хэвлэнэ",
   cPageDel: "Энэ хуудсан дээрх бүх шошгыг устгах уу?",
+  shareBtn: "Хуваалцах",
+  loadCodeBtn: "Кодоор нээх",
+  dlgShareTitle: "Хуваалцах",
+  shareInfo: "Энэ код таны хуудсыг бүхэлд нь — бүх хуудас, бичсэн текст — агуулна. Хуулж Messenger-ээр илгээгээрэй, нөгөө хүн доорх «Кодоор нээх» товчоор нээнэ.",
+  shareHasImages: "Лого зураг орсон тул код урт байна.",
+  lblShareCode: "Код",
+  copyCode: "Кодыг хуулах",
+  lblShareLink: "Холбоос",
+  copyLink: "Холбоосыг хуулах",
+  tCodeCopied: "Кодыг хуулж авлаа",
+  tLinkCopied: "Холбоосыг хуулж авлаа",
+  tCopyFail: "Хуулж чадсангүй — гараар сонгож хуулна уу",
+  dlgClose: "Хаах",
+  dlgLoadTitle: "Кодоор нээх",
+  loadPh: "Энд буулгана уу",
+  loadGo: "Нээх",
+  tCodeBad: "Энэ кодыг уншиж чадсангүй",
+  tCodeOld: "Энэ кодыг нээхэд хөтөч хуучирсан байна — Chrome, Edge шинэчлээрэй",
+  cLoadReplace: "Хуваалцсан хуудсыг нээх үү? Одоогийн ажил солигдоно.",
+  tCodeLoaded: "Хуваалцсан хуудсыг нээлээ",
   dlgTitle: "Хэвлэхийн өмнө шалгаарай",
   dlgA4: "Цаас: <b>A4</b>",
   dlgMargin: "Захын зай: <b>None</b> (Тэг)",
@@ -1140,6 +1193,66 @@ function normalise(s){
   });
   resize(s);
   return s;
+}
+/* ================= share codes =================
+   A share code is the same payload Export writes, gzipped with the browser's
+   built-in CompressionStream (no library - every 2023+ browser has this) and
+   base64url-encoded into one line of text that pastes cleanly into a chat
+   message or a URL. Falls back to plain base64 with no compression on an
+   older browser; the code still works, it is just longer. */
+var CODE_TAG = "PL1";           /* format marker: Peaklab Labels, code v1 */
+function b64url(bytes){
+  var i, bin="";
+  for(i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function b64urlDecode(str){
+  str = str.replace(/-/g,"+").replace(/_/g,"/");
+  while(str.length%4) str += "=";
+  var bin=atob(str), out=new Uint8Array(bin.length), i;
+  for(i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return out;
+}
+async function gzip(bytes){
+  var cs=new CompressionStream("gzip");
+  var w=cs.writable.getWriter(); w.write(bytes); w.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}
+async function gunzip(bytes){
+  var ds=new DecompressionStream("gzip");
+  var w=ds.writable.getWriter(); w.write(bytes); w.close();
+  return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+}
+async function buildShareCode(){
+  var json=JSON.stringify(payload());
+  var bytes=new TextEncoder().encode(json);
+  var flag="0", out=bytes;
+  if(window.CompressionStream){
+    try { out=await gzip(bytes); flag="1"; } catch(e){ out=bytes; flag="0"; }
+  }
+  return CODE_TAG+flag+b64url(out);
+}
+async function decodeShareCode(code){
+  code=(code||"").trim();
+  if(code.slice(0,CODE_TAG.length)!==CODE_TAG) throw new Error("bad code");
+  var flag=code.charAt(CODE_TAG.length);
+  var bytes=b64urlDecode(code.slice(CODE_TAG.length+1));
+  if(flag==="1"){
+    if(!window.DecompressionStream) throw new Error("needs a newer browser");
+    bytes=await gunzip(bytes);
+  }
+  var obj=JSON.parse(new TextDecoder().decode(bytes));
+  if(!obj || !obj.g || (!obj.cells && !obj.pages)) throw new Error("bad code");
+  return obj;
+}
+function shareLink(code){
+  return location.origin + location.pathname + "?d=" + encodeURIComponent(code);
+}
+function applySharedState(obj){
+  mark();
+  S = normalise(obj);
+  sel=new Set(); cur=0; anchor=0; curImg=null;
+  fillGeo(); renderLib(); syncOpts(); fitZoom(); save(); applyLang();
 }
 function payload(){
   S.pages[S.page] = S.cells;                  /* the alias is the live page */
@@ -2482,6 +2595,50 @@ $("dlgGo").addEventListener("click", function(){
   setTimeout(doPrint, 30);
 });
 $("printBtn").addEventListener("click", askThenPrint);
+
+function openShareDlg(){
+  $("shareCode").value = "…";
+  $("shareLink").value = "…";
+  $("shareImgNote").hidden = !Object.keys(S.images||{}).length;
+  $("shareDlg").hidden = false;
+  buildShareCode().then(function(code){
+    $("shareCode").value = code;
+    $("shareLink").value = shareLink(code);
+  }).catch(function(){
+    $("shareDlg").hidden = true;
+    toast(t("tCodeOld"));
+  });
+}
+$("shareBtn").addEventListener("click", openShareDlg);
+$("shareClose").addEventListener("click", function(){ $("shareDlg").hidden = true; });
+$("shareDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
+
+function copyText(text, okKey){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast(t(okKey)); })
+      .catch(function(){ toast(t("tCopyFail")); });
+  } else toast(t("tCopyFail"));
+}
+$("copyCodeBtn").addEventListener("click", function(){
+  $("shareCode").select(); copyText($("shareCode").value, "tCodeCopied");
+});
+$("copyLinkBtn").addEventListener("click", function(){
+  $("shareLink").select(); copyText($("shareLink").value, "tLinkCopied");
+});
+
+function openLoadDlg(){ $("loadCode").value=""; $("loadDlg").hidden=false; $("loadCode").focus(); }
+$("loadCodeBtn").addEventListener("click", openLoadDlg);
+$("loadCancel").addEventListener("click", function(){ $("loadDlg").hidden = true; });
+$("loadDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
+$("loadGo").addEventListener("click", function(){
+  var raw=$("loadCode").value;
+  decodeShareCode(raw).then(function(obj){
+    if(!confirm(t("cLoadReplace"))) return;
+    applySharedState(obj);
+    $("loadDlg").hidden = true;
+    toast(t("tCodeLoaded"));
+  }).catch(function(){ toast(t("tCodeBad")); });
+});
 $("undoBtn").addEventListener("click", undo);
 $("redoBtn").addEventListener("click", redo);
 
@@ -2531,6 +2688,23 @@ S = load();
 if(migrated) save();
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
 fitZoom(); applyLang();
+
+/* Opening a shared link (?d=code) offers to load it, same confirm as any
+   other action that would replace the current sheet. The param is stripped
+   right away so a reload does not ask again. */
+(function(){
+  var params = new URLSearchParams(location.search);
+  var code = params.get("d");
+  if(!code) return;
+  params.delete("d");
+  var qs = params.toString();
+  history.replaceState(null, "", location.pathname + (qs ? "?"+qs : ""));
+  decodeShareCode(code).then(function(obj){
+    if(!confirm(t("cLoadReplace"))) return;
+    applySharedState(obj);
+    toast(t("tCodeLoaded"));
+  }).catch(function(){ toast(t("tCodeBad")); });
+})();
 })();
 </script>
 </body>
