@@ -61,10 +61,12 @@ label *is* a price tag.
 - **QR codes** — model 2, byte mode, EC level M, versions 1–10, also written out. Byte mode carries
   UTF-8, so unlike Code 128 this handles Cyrillic — menus, Facebook links, QPay. Verified by
   round-tripping through a real QR decoder, not by eye.
-- **Share** — compresses the whole sheet into a short code, or a link that opens it directly.
-  Paste the code into a chat, or click the link, and **Open by code** restores it exactly: text,
-  prices, barcodes, QR codes, colour tags, every page. No file to save or attach. Falls back to a
-  longer, uncompressed code on a browser old enough to lack `CompressionStream`.
+- **Share** — a link (and a fallback text code) that reopens the sheet exactly: text, prices,
+  barcodes, QR codes, colour tags, every page. Carries content only, never your theme or print
+  settings, and a cell drops every style value that already matches the sheet default — the
+  main reason the old version was needlessly long. A sheet with a **logo downloads as a file
+  instead**, the way Export always has, since a code can't hold an image without dwarfing
+  everything else in it.
 - **Multiple sheets** — a page bar under the sheet adds and removes pages; printing emits every page.
 - **Copy, paste, cut** — `Ctrl+C` / `Ctrl+V` / `Ctrl+X` on a block of labels, carrying text, logo,
   colour tag and styling. Paste repeats the copied block to fill a larger selection. Copying also

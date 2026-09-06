@@ -751,17 +751,15 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareH">
     <h2 id="shareH" data-i18n="dlgShareTitle">Share</h2>
     <p class="hint" data-i18n="shareInfo"></p>
-    <p class="hint" id="shareImgNote" hidden data-i18n="shareHasImages"></p>
-    <div>
-      <label class="lbl" data-i18n="lblShareCode">Code</label>
-      <textarea id="shareCode" class="codebox" rows="4" readonly></textarea>
-      <button class="btn wide" id="copyCodeBtn" data-i18n="copyCode">Copy code</button>
-    </div>
-    <div>
-      <label class="lbl" data-i18n="lblShareLink">Link</label>
-      <input type="text" id="shareLink" readonly>
-      <button class="btn wide" id="copyLinkBtn" data-i18n="copyLink">Copy link</button>
-    </div>
+    <input type="text" id="shareLink" readonly>
+    <button class="btn primary wide" id="copyLinkBtn" data-i18n="copyLink">Copy link</button>
+    <details class="sub">
+      <summary data-i18n="moreCode">Text code, if the link will not work</summary>
+      <div class="subbody">
+        <textarea id="shareCode" class="codebox" rows="3" readonly></textarea>
+        <button class="btn wide" id="copyCodeBtn" data-i18n="copyCode">Copy code</button>
+      </div>
+    </details>
     <button class="btn" id="shareClose" data-i18n="dlgClose">Close</button>
   </div>
 </div>
@@ -840,11 +838,10 @@ var STR = {
   shareBtn: "Хуваалцах",
   loadCodeBtn: "Кодоор нээх",
   dlgShareTitle: "Хуваалцах",
-  shareInfo: "Энэ код таны хуудсыг бүхэлд нь — бүх хуудас, бичсэн текст — агуулна. Хуулж Messenger-ээр илгээгээрэй, нөгөө хүн доорх «Кодоор нээх» товчоор нээнэ.",
-  shareHasImages: "Лого зураг орсон тул код урт байна.",
-  lblShareCode: "Код",
+  shareInfo: "Холбоосыг хуулж Messenger-ээр илгээгээрэй.",
+  moreCode: "Холбоос ажиллахгүй бол текст код",
+  tSharedAsFile: "Лого орсон тул файлаар татлаа — энэ файлыг илгээгээрэй",
   copyCode: "Кодыг хуулах",
-  lblShareLink: "Холбоос",
   copyLink: "Холбоосыг хуулах",
   tCodeCopied: "Кодыг хуулж авлаа",
   tLinkCopied: "Холбоосыг хуулж авлаа",
@@ -1223,8 +1220,61 @@ async function gunzip(bytes){
   var w=ds.writable.getWriter(); w.write(bytes); w.close();
   return new Uint8Array(await new Response(ds.readable).arrayBuffer());
 }
+/* The code carries content only - text, price, barcode, QR, tags, which
+   size the sheet is on. It never carries your theme, print settings, saved
+   presets, or logo images: none of that is the recipient's business, and a
+   logo alone (base64) would dwarf everything else here. A cell also drops
+   every style key that already equals the sheet-wide default, since most
+   labels on a sheet share one style and repeating it 100 times was the
+   single biggest thing bloating the old code. */
+function sameStyle(a, b){
+  return a.fs===b.fs && a.ff===b.ff && a.b===b.b && a.up===b.up &&
+         a.lay===b.lay && a.is===b.is && a.fit===b.fit;
+}
+function slimCell(c){
+  if(!c) return 0;
+  var out={}, has=false, base=Object.assign({}, DEF_STYLE, S.style||{});
+  if(c.t){ out.t=c.t; has=true; }
+  if(c.p){ out.p=c.p; has=true; }
+  if(c.s){ out.s=c.s; has=true; }
+  if(c.bc){ out.bc=1; has=true; }
+  if(c.qr){ out.qr=c.qr; has=true; }
+  if(c.m){ out.m=c.m; has=true; }
+  if(!has) return 0;
+  if(!sameStyle(Object.assign({},DEF_STYLE,c), base)){
+    ["fs","ff","b","up","lay","is","fit"].forEach(function(k){
+      if(c[k]!==undefined && c[k]!==base[k]) out[k]=c[k];
+    });
+  }
+  return out;
+}
+function sharePayload(){
+  S.pages[S.page]=S.cells;
+  var builtin = BUILTIN.some(function(b){ return b.id===S.presetId; });
+  var out = {v:1, page:S.page, n:S.pages.length};
+  if(builtin) out.presetId=S.presetId; else out.g=S.g;
+  out.pages = S.pages.map(function(pg){
+    var sparse={}, i;
+    for(i=0;i<pg.length;i++){ var sc=slimCell(pg[i]); if(sc) sparse[i]=sc; }
+    return sparse;
+  });
+  return out;
+}
+function expandSharedPayload(obj){
+  var preset = obj.presetId ? BUILTIN.filter(function(b){ return b.id===obj.presetId; })[0] : null;
+  var g = preset ? JSON.parse(JSON.stringify(preset)) : (obj.g || JSON.parse(JSON.stringify(BUILTIN[0])));
+  var n = g.cols*g.rows;
+  var pages = (obj.pages||[]).map(function(sparse){
+    var arr=blankCells(n), k;
+    for(k in sparse) if(sparse.hasOwnProperty(k)) arr[+k]=sparse[k];
+    return arr;
+  });
+  if(!pages.length) pages=[blankCells(n)];
+  return {presetId: obj.presetId || "custom", g:g, pages:pages,
+          page: Math.max(0, Math.min(pages.length-1, obj.page||0))};
+}
 async function buildShareCode(){
-  var json=JSON.stringify(payload());
+  var json=JSON.stringify(sharePayload());
   var bytes=new TextEncoder().encode(json);
   var flag="0", out=bytes;
   if(window.CompressionStream){
@@ -1242,8 +1292,8 @@ async function decodeShareCode(code){
     bytes=await gunzip(bytes);
   }
   var obj=JSON.parse(new TextDecoder().decode(bytes));
-  if(!obj || !obj.g || (!obj.cells && !obj.pages)) throw new Error("bad code");
-  return obj;
+  if(!obj || obj.v!==1 || !obj.pages) throw new Error("bad code");
+  return expandSharedPayload(obj);
 }
 function shareLink(code){
   return location.origin + location.pathname + "?d=" + encodeURIComponent(code);
@@ -2596,14 +2646,32 @@ $("dlgGo").addEventListener("click", function(){
 });
 $("printBtn").addEventListener("click", askThenPrint);
 
+function downloadExport(){
+  var blob=new Blob([JSON.stringify(payload(),null,1)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="label-sheet-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+/* Whether an image is actually placed on a label - not merely sitting in the
+   upload library, which can hold a logo nobody is using any more. */
+function sheetHasImages(){
+  return S.pages.some(function(pg){ return pg.some(function(c){ return c && c.img; }); });
+}
 function openShareDlg(){
-  $("shareCode").value = "…";
+  /* A code never carries a logo - it would dwarf everything else - so a
+     sheet with one downloads as a file instead, the way Export always has. */
+  if(sheetHasImages()){
+    downloadExport();
+    toast(t("tSharedAsFile"));
+    return;
+  }
   $("shareLink").value = "…";
-  $("shareImgNote").hidden = !Object.keys(S.images||{}).length;
   $("shareDlg").hidden = false;
   buildShareCode().then(function(code){
-    $("shareCode").value = code;
     $("shareLink").value = shareLink(code);
+    $("shareCode").value = code;
   }).catch(function(){
     $("shareDlg").hidden = true;
     toast(t("tCodeOld"));
@@ -2643,12 +2711,7 @@ $("undoBtn").addEventListener("click", undo);
 $("redoBtn").addEventListener("click", redo);
 
 $("exportBtn").addEventListener("click", function(){
-  var blob=new Blob([JSON.stringify(payload(),null,1)],{type:"application/json"});
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="label-sheet-"+new Date().toISOString().slice(0,10)+".json";
-  document.body.appendChild(a); a.click();
-  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  downloadExport();
   toast(t("tExported"));
 });
 $("importBtn").addEventListener("click", function(){ $("importFile").click(); });
