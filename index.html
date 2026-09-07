@@ -377,6 +377,13 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   background:var(--panel);border:1px solid var(--line-2);
   box-shadow:0 12px 40px rgba(0,0,0,.35);
 }
+.modal.wide{width:min(94vw,600px)}
+.maptablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-1)}
+#mapPreview{border-collapse:collapse;font-size:12px;white-space:nowrap}
+#mapPreview td{border:1px solid var(--line);padding:4px 6px}
+#mapPreview select{width:100%;min-width:118px;height:26px;font-size:11.5px}
+#mapPreview .samplerow td{color:var(--ink-2);font-family:ui-monospace,Consolas,monospace;font-size:11px}
+#mapWarn{color:var(--danger)}
 .modal h2{margin:0;font-size:var(--fs-lead);font-weight:600}
 .checklist{margin:0;padding-left:18px;font-size:var(--fs-body);color:var(--ink-2);
   display:flex;flex-direction:column;gap:5px}
@@ -591,6 +598,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
             <label class="check"><input type="checkbox" id="listRepeat"> <span data-i18n="repeatFill">Repeat to fill</span></label>
           </div>
+          <button class="btn wide" id="mapColsBtn" data-i18n="mapColsBtn">Map columns</button>
             </div>
           </details>
         </div>
@@ -763,6 +771,19 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <button class="btn" id="shareClose" data-i18n="dlgClose">Close</button>
   </div>
 </div>
+<div class="modalwrap" id="mapDlg" hidden>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mapH">
+    <h2 id="mapH" data-i18n="dlgMapTitle">Map columns</h2>
+    <p class="hint" data-i18n="mapInfo"></p>
+    <label class="check"><input type="checkbox" id="mapHeader"> <span data-i18n="mapHeaderChk">First row is column headers</span></label>
+    <div class="maptablewrap"><table id="mapPreview"></table></div>
+    <p class="hint" id="mapWarn" hidden></p>
+    <div class="g2">
+      <button class="btn primary" id="mapApplyBtn" data-i18n="mapApply">Apply</button>
+      <button class="btn" id="mapCancelBtn" data-i18n="dlgCancel">Cancel</button>
+    </div>
+  </div>
+</div>
 <div class="modalwrap" id="loadDlg" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loadH">
     <h2 id="loadH" data-i18n="dlgLoadTitle">Open by code</h2>
@@ -838,7 +859,7 @@ var STR = {
   shareBtn: "Хуваалцах",
   loadCodeBtn: "Кодоор нээх",
   dlgShareTitle: "Хуваалцах",
-  shareInfo: "Холбоосыг хуулж Messenger-ээр илгээгээрэй.",
+  shareInfo: "Холбоосыг хуулж Messenger-ээр илгээгээрэй, эсвэл хөтчийн favorite/bookmark хийж дараа дахин ашиглаарай.",
   moreCode: "Холбоос ажиллахгүй бол текст код",
   tSharedAsFile: "Лого орсон тул файлаар татлаа — энэ файлыг илгээгээрэй",
   copyCode: "Кодыг хуулах",
@@ -874,6 +895,23 @@ var STR = {
   qrHint: "QR нь кирилл үсэг дэмждэг — цэс, Facebook, QPay холбоос тавихад тохиромжтой.",
   moreType: "Үсгийн тохиргоо",
   moreBulk: "Олноор бөглөх",
+  mapColsBtn: "Багана тохируулах",
+  dlgMapTitle: "Багана тохируулах",
+  mapInfo: "Багана бүрийг юу болгохыг сонгоод Хэрэглэх дарна уу.",
+  mapHeaderChk: "Эхний мөр гарчиг",
+  mapApply: "Хэрэглэх",
+  fldText: "Текст",
+  fldPrice: "Үнэ",
+  fldSmall: "Нэмэлт мөр",
+  fldBarcode: "Баркод",
+  fldQr: "QR",
+  fldCopies: "Ширхэг",
+  fldIgnore: "Алгасах",
+  mapWarnDup: "Текст, Баркод, QR-ээс зөвхөн нэгийг сонгоно уу",
+  tMapEmpty: "Жагсаалт хоосон байна",
+  tMapNoFields: "Ядаж нэг баганыг сонгоно уу",
+  tMapFilled: "{k} мөрөөс {n} {lbl} бөглөлөө",
+  tMapSkipBc: " — {n} мөрөнд баркод үл тохирч, текст хэвээр үлдлээ",
   tQrLong: "Холбоос хэт урт байна — богиносгоно уу",
   lblSub: "Нэмэлт мөр",
   phSub: "Хугацаа: 2026.12.31",
@@ -2239,6 +2277,132 @@ $("applyList").addEventListener("click", function(){
         (!rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : ""));
 });
 
+/* ================= column mapping =================
+   The plain "Fill from list" always reads column 1 as text, column 2 as
+   price. This lets a pasted sheet be mapped column-by-column instead - a
+   raffle list where column 3 is the barcode and column 1 is just an internal
+   ID, for instance. Reuses the same listInput/listRepeat controls as the
+   plain fill so nothing has to be typed twice. */
+var mapRows = [], mapFields = [], mapTouched = [];
+var FIELD_OPTS = ["ignore","t","p","s","bc","qr","copies"];
+function fieldLabel(f){
+  return {ignore:t("fldIgnore"), t:t("fldText"), p:t("fldPrice"), s:t("fldSmall"),
+          bc:t("fldBarcode"), qr:t("fldQr"), copies:t("fldCopies")}[f];
+}
+function guessField(colIdx, rows){
+  if(colIdx===0) return "t";
+  var vals=rows.map(function(r){ return (r[colIdx]||"").trim(); }).filter(function(v){ return v; });
+  if(vals.length && vals.every(function(v){ return /^\d+([.,]\d+)?$/.test(v); })) return "p";
+  return "ignore";
+}
+function openMapDlg(){
+  var lines=$("listInput").value.split(/\r?\n/).filter(function(l){ return l.trim().length; });
+  if(!lines.length){ toast(t("tMapEmpty")); return; }
+  mapRows = lines.map(function(l){ return l.split(SEP).map(function(x){ return x.trim(); }); });
+  var maxCols=0;
+  mapRows.forEach(function(r){ maxCols=Math.max(maxCols, r.length); });
+  maxCols=Math.min(maxCols, 10);
+  mapFields = []; mapTouched = [];
+  for(var i=0;i<maxCols;i++){ mapFields.push(guessField(i, mapRows)); mapTouched.push(false); }
+  $("mapHeader").checked = false;
+  renderMapSelects(maxCols);
+  renderMapSamples();
+  updateMapWarn();
+  $("mapDlg").hidden = false;
+}
+function renderMapSelects(maxCols){
+  /* Explicit thead/tbody, not a bare <tr> - a raw <tr> gets wrapped in an
+     IMPLICIT tbody by the browser, and renderMapSamples()'s own tbody swap
+     would then delete the select row along with the old sample rows, since
+     both would be sitting in the same auto-created element. */
+  var h="<thead><tr>", i;
+  for(i=0;i<maxCols;i++){
+    h += '<td><select class="mapcol" data-col="'+i+'">';
+    FIELD_OPTS.forEach(function(f){
+      h += '<option value="'+f+'"'+(f===mapFields[i]?" selected":"")+'>'+esc(fieldLabel(f))+'</option>';
+    });
+    h += '</select></td>';
+  }
+  h += "</tr></thead>";
+  $("mapPreview").innerHTML = h;
+  Array.prototype.forEach.call($("mapPreview").querySelectorAll(".mapcol"), function(sel){
+    sel.addEventListener("change", function(){
+      mapFields[+this.dataset.col] = this.value;
+      mapTouched[+this.dataset.col] = true;
+      updateMapWarn();
+    });
+  });
+}
+function reguessUntouched(){
+  var head=$("mapHeader").checked, dataRows=mapRows.slice(head?1:0), i;
+  for(i=0;i<mapFields.length;i++) if(!mapTouched[i]) mapFields[i]=guessField(i, dataRows);
+}
+function renderMapSamples(){
+  var head=$("mapHeader").checked, rows=mapRows.slice(head?1:0, (head?1:0)+3);
+  var body = $("mapPreview").querySelector("tbody");
+  if(body) body.remove();
+  var h="<tbody>";
+  rows.forEach(function(r){
+    h += '<tr class="samplerow">';
+    mapFields.forEach(function(f,i){ h += "<td>"+esc(r[i]||"")+"</td>"; });
+    h += "</tr>";
+  });
+  h += "</tbody>";
+  $("mapPreview").insertAdjacentHTML("beforeend", h);
+}
+function updateMapWarn(){
+  var n=mapFields.filter(function(f){ return f==="t"||f==="bc"||f==="qr"; }).length;
+  $("mapWarn").hidden = n<=1;
+  $("mapWarn").textContent = t("mapWarnDup");
+  $("mapApplyBtn").disabled = n>1;
+}
+$("mapColsBtn").addEventListener("click", openMapDlg);
+$("mapHeader").addEventListener("change", function(){
+  reguessUntouched();
+  var cols=document.querySelectorAll("#mapPreview select.mapcol").length;
+  renderMapSelects(cols);
+  renderMapSamples();
+  updateMapWarn();
+});
+$("mapCancelBtn").addEventListener("click", function(){ $("mapDlg").hidden=true; });
+$("mapDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
+$("mapApplyBtn").addEventListener("click", function(){
+  if(!needSel()) return;
+  if(mapFields.every(function(f){ return f==="ignore"; })){ toast(t("tMapNoFields")); return; }
+  var head=$("mapHeader").checked;
+  var dataRows=mapRows.slice(head?1:0);
+  var copiesCol=mapFields.indexOf("copies");
+  var expanded=[];
+  dataRows.forEach(function(r){
+    var n=1;
+    if(copiesCol>=0){ n=Math.max(1, parseInt(r[copiesCol],10)||1); }
+    for(var k=0;k<n;k++) expanded.push(r);
+  });
+  if(!expanded.length){ toast(t("tMapEmpty")); return; }
+  var rep=$("listRepeat").checked, used=0, skippedBc=0;
+  mark();
+  selArr().forEach(function(idx,k){
+    if(k>=expanded.length && !rep) return;
+    var row=expanded[rep ? (k%expanded.length) : k];
+    var cell=S.cells[idx]||(S.cells[idx]={});
+    mapFields.forEach(function(f,colIdx){
+      if(f==="ignore"||f==="copies") return;
+      var val=(row[colIdx]||"").trim();
+      if(!val) return;
+      if(f==="t") cell.t=val;
+      else if(f==="p") cell.p=val;
+      else if(f==="s") cell.s=val;
+      else if(f==="bc"){ cell.t=val; if(code128(val)!==null) cell.bc=1; else skippedBc++; }
+      else if(f==="qr"){ cell.t=val; cell.qr=val; }
+    });
+    applyStyleTo(cell); used++;
+  });
+  save(); render();
+  $("mapDlg").hidden = true;
+  toast(t("tMapFilled",{n:used,lbl:plural(used),k:expanded.length}) +
+        (skippedBc ? t("tMapSkipBc",{n:skippedBc}) : ""));
+});
+
 /* ================= colour tags ================= */
 function buildSwatches(){
   var h="";
@@ -2656,6 +2820,13 @@ function downloadExport(){
 }
 /* Whether an image is actually placed on a label - not merely sitting in the
    upload library, which can hold a logo nobody is using any more. */
+/* Nothing on any page worth losing - used to decide whether opening a shared
+   link needs to ask first, or can just load straight in. */
+function sheetWhollyBlank(){
+  return S.pages.every(function(pg){
+    return pg.every(function(c){ return isEmpty(c) && !(c && c.m); });
+  });
+}
 function sheetHasImages(){
   return S.pages.some(function(pg){ return pg.some(function(c){ return c && c.img; }); });
 }
@@ -2752,18 +2923,19 @@ if(migrated) save();
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
 fitZoom(); applyLang();
 
-/* Opening a shared link (?d=code) offers to load it, same confirm as any
-   other action that would replace the current sheet. The param is stripped
-   right away so a reload does not ask again. */
+/* Opening a shared link (?d=code) loads it. The param stays in the address
+   bar on purpose - stripping it immediately (the old behaviour) meant a
+   bookmark saved right after the page loaded pointed at a blank sheet
+   instead of the shared one, which defeated the entire point of bookmarking
+   a link to reprint later. Reopening the same bookmark keeps reapplying that
+   exact sheet, which is what "reopen my saved job" should mean. It only
+   confirms first when there is something on screen that would be lost. */
 (function(){
   var params = new URLSearchParams(location.search);
   var code = params.get("d");
   if(!code) return;
-  params.delete("d");
-  var qs = params.toString();
-  history.replaceState(null, "", location.pathname + (qs ? "?"+qs : ""));
   decodeShareCode(code).then(function(obj){
-    if(!confirm(t("cLoadReplace"))) return;
+    if(!sheetWhollyBlank() && !confirm(t("cLoadReplace"))) return;
     applySharedState(obj);
     toast(t("tCodeLoaded"));
   }).catch(function(){ toast(t("tCodeBad")); });

@@ -66,7 +66,11 @@ label *is* a price tag.
   settings, and a cell drops every style value that already matches the sheet default — the
   main reason the old version was needlessly long. A sheet with a **logo downloads as a file
   instead**, the way Export always has, since a code can't hold an image without dwarfing
-  everything else in it.
+  everything else in it. **Bookmark the link** to reopen and reprint the same sheet any time —
+  opening it always reapplies that exact content.
+- **Map columns** — for pasted data that doesn't fit the plain name/price/small-line order.
+  Assign each column to Text, Price, Small line, Barcode, QR, Copies or Ignore yourself, with a
+  live preview and a first-row-is-headers option.
 - **Multiple sheets** — a page bar under the sheet adds and removes pages; printing emits every page.
 - **Copy, paste, cut** — `Ctrl+C` / `Ctrl+V` / `Ctrl+X` on a block of labels, carrying text, logo,
   colour tag and styling. Paste repeats the copied block to fill a larger selection. Copying also
