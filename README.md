@@ -68,6 +68,10 @@ label *is* a price tag.
   instead**, the way Export always has, since a code can't hold an image without dwarfing
   everything else in it. **Bookmark the link** to reopen and reprint the same sheet any time —
   opening it always reapplies that exact content.
+- **Print a calibration page** — next to Printer offset. Forces cut-line guides and adds four
+  corner registration crosses for one print, regardless of your saved setting, then reverts
+  automatically. Print it on scrap paper, hold it against a real sticker sheet under light, read
+  off the drift in mm, and enter it into Printer offset — no sticker stock wasted calibrating.
 - **Map columns** — for pasted data that doesn't fit the plain name/price/small-line order.
   Assign each column to Text, Price, Small line, Barcode, QR, Copies or Ignore yourself, with a
   live preview and a first-row-is-headers option.

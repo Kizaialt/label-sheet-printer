@@ -366,6 +366,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .thumb:hover .x,.thumb .x:focus-visible{opacity:1}
 
+.regmarks{position:absolute;inset:0;pointer-events:none}
+.regmark{position:absolute;width:5mm;height:5mm}
+.regmark::before,.regmark::after{content:"";position:absolute;background:#000}
+.regmark::before{left:50%;top:0;width:.25mm;height:100%;margin-left:-.125mm}
+.regmark::after{top:50%;left:0;height:.25mm;width:100%;margin-top:-.125mm}
 .codebox{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;resize:vertical;word-break:break-all;margin-bottom:6px}
 .modalwrap{
   position:fixed;inset:0;z-index:var(--z-toast);display:flex;
@@ -668,6 +673,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <button class="btn" id="offsetReset" data-i18n="resetBtn">Reset</button>
             </div>
             <div class="hint" style="margin-top:5px" data-i18n="offsetHint"></div>
+            <button class="btn wide" id="calBtn" data-i18n="calBtn">Print a calibration page</button>
           </div>
           <details class="sub">
             <summary data-i18n="fineTune">Fine-tune this size</summary>
@@ -966,6 +972,8 @@ var STR = {
   lblImgSize: "Зургийн хэмжээ",
   lblList: "Эсвэл жагсаалтаа буулгах — мөр бүрд нэг шошго",
   lblMargins: "Захын зай — дээд, баруун, доод, зүүн",
+  calBtn: "Тохируулгын хуудас хэвлэх",
+  tCalHint: "Энгийн цаасан дээр хэвлэгдэнэ. Наалттай хуудастайгаа гэрэлд харьцуулж, зөрүүг дээрх Принтерийн зөрүү-д оруулна уу.",
   lblOffset: "Принтерийн зөрүү — принтер цаасыг хазайлгаж татдаг бол бүх торыг шилжүүлнэ",
   lblSize: "Хэмжээ (pt)",
   lblSizeSel: "Шошгоны хэмжээ — цаас үргэлж A4, 210 × 297 mm",
@@ -2777,12 +2785,31 @@ function buildPrintSheets(){
   document.body.appendChild(wrap);
   return wrap;
 }
-function doPrint(){
+/* Four corner crosses, appended as real children of #sheet so they inherit
+   its own zoom transform for free and get removed for free by the next
+   render()'s innerHTML wipe - no separate cleanup path to get wrong. */
+function regmarksHTML(){
+  var d=3;
+  return '<div class="regmarks">'+
+    '<span class="regmark" style="top:'+d+'mm;left:'+d+'mm"></span>'+
+    '<span class="regmark" style="top:'+d+'mm;right:'+d+'mm"></span>'+
+    '<span class="regmark" style="bottom:'+d+'mm;left:'+d+'mm"></span>'+
+    '<span class="regmark" style="bottom:'+d+'mm;right:'+d+'mm"></span>'+
+    '</div>';
+}
+function doPrint(calibrate){
   var keep=new Set(sel), keepCur=cur;
   sel=new Set(); cur=-1; syncSelUI(); spotlight(null);
+  var wasGuides=S.opts.guides;
+  if(calibrate){
+    S.opts.guides=true; render();
+    $("sheet").insertAdjacentHTML("beforeend", regmarksHTML());
+  }
   $("stage").scrollTop=0; $("stage").scrollLeft=0;
   window.scrollTo(0,0);
-  var multi = S.pages.length>1, wrap=null;
+  /* one page is enough to check registration - printing every page of a
+     long run just to calibrate would waste exactly the stock this is for */
+  var multi = S.pages.length>1 && !calibrate, wrap=null;
   document.body.classList.toggle("multi", multi);
   if(multi){
     wrap=buildPrintSheets();
@@ -2793,10 +2820,13 @@ function doPrint(){
     if(wrap) wrap.remove();
     document.body.classList.remove("multi");
     sel=keep; cur=keepCur; syncSelUI();
+    if(calibrate){ S.opts.guides=wasGuides; render(); }
   }, 400);
 }
-function askThenPrint(){
-  if(S.opts.noPrintDlg){ doPrint(); return; }
+var pendingCalibrate=false;
+function askThenPrint(calibrate){
+  pendingCalibrate=!!calibrate;
+  if(S.opts.noPrintDlg){ doPrint(pendingCalibrate); return; }
   $("dlgNever").checked=false;
   $("printDlg").hidden=false;
   $("dlgGo").focus();
@@ -2806,9 +2836,14 @@ $("printDlg").addEventListener("click", function(e){ if(e.target===this) this.hi
 $("dlgGo").addEventListener("click", function(){
   if($("dlgNever").checked){ S.opts.noPrintDlg=1; save(); }
   $("printDlg").hidden=true;
-  setTimeout(doPrint, 30);
+  var calibrate=pendingCalibrate; pendingCalibrate=false;
+  setTimeout(function(){ doPrint(calibrate); }, 30);
 });
-$("printBtn").addEventListener("click", askThenPrint);
+$("printBtn").addEventListener("click", function(){ askThenPrint(false); });
+$("calBtn").addEventListener("click", function(){
+  toast(t("tCalHint"));
+  askThenPrint(true);
+});
 
 function downloadExport(){
   var blob=new Blob([JSON.stringify(payload(),null,1)],{type:"application/json"});
