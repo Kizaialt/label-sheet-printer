@@ -3134,10 +3134,12 @@ function sheetHasImages(){
    "Дахин сонгох" next to the mode picker it hands off into - which is the
    load-bearing decision here: the SAME click handler behaves as a one-time
    setup (pre-picks a size, writes a worked example into A1) on a genuinely
-   blank sheet, and degrades to a plain, content-preserving mode switch
-   (identical to clicking a #modeSeg segment directly) the moment there is
-   anything real to lose. That branch is re-checked live on every click,
-   never cached from page load, so the two paths can never cross. */
+   blank sheet - or one that still holds nothing but an earlier onboarding
+   example, so clicking through several cards keeps reseeding correctly -
+   and degrades to a plain, content-preserving mode switch (identical to
+   clicking a #modeSeg segment directly) the moment there is anything real
+   to lose. That branch is re-checked live on every click, never cached from
+   page load, so the two paths can never cross real user data with a seed. */
 function looksFirstRun(){
   return sheetWhollyBlank() && S.pages.length===1 && !sheetHasImages() &&
          S.custom.length===0 && !S.opts.onboardSkipped;
@@ -3190,8 +3192,26 @@ var EXAMPLE_FOR_MODE = {
   sku:   {t:"SKU-001", bc:1},
   qr:    {t:"Манай хуудас", qr:"https://facebook.com/manai.delguur"}
 };
+/* Clicking a second onboarding card (via "Дахин сонгох") after the first one
+   already wrote an example into A1 must still count as fresh - otherwise the
+   sheet is no longer wholly blank and chooseJob falls into the plain mode-
+   switch branch, which never rewrites A1. That silently strands the OLD
+   example's fields (e.g. Plain's bare text survives into Price with no price
+   ever set), rather than either seeding the new example or leaving A1 alone
+   on purpose. Recognising "A1 is exactly one of our own seeds, nothing else
+   is written" as still-fresh lets every card keep reseeding correctly. */
+function sheetIsOnboardSeedOnly(){
+  if(S.pages.length!==1) return false;
+  var cells = S.cells, seed = JSON.stringify(cells[0]||{}), i;
+  var isSeed = Object.keys(EXAMPLE_FOR_MODE).some(function(m){
+    return JSON.stringify(EXAMPLE_FOR_MODE[m]) === seed;
+  });
+  if(!isSeed) return false;
+  for(i=1;i<cells.length;i++){ if(!isEmpty(cells[i]) || (cells[i] && cells[i].m)) return false; }
+  return true;
+}
 function chooseJob(mode){
-  var freshSheet = sheetWhollyBlank() && S.pages.length===1 && !sheetHasImages();
+  var freshSheet = (sheetWhollyBlank() || sheetIsOnboardSeedOnly()) && S.pages.length===1 && !sheetHasImages();
   S.opts.mode = mode; applyMode();
 
   if(freshSheet){
