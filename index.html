@@ -307,6 +307,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .cell .inner.stack{flex-direction:column}
 .cell .inner.rowlay{flex-direction:row}
+.cell .inner.fillimg{padding:0;gap:0}
 .cell .txt{
   white-space:pre-wrap;word-break:break-word;line-height:1.14;overflow:hidden;
   max-width:100%;max-height:100%;min-width:0;min-height:0;flex:0 1 auto;
@@ -781,12 +782,20 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
               <option value="img-left" data-i18n="layLeft">Image left of the text</option>
               <option value="img-right" data-i18n="layRight">Image right of the text</option>
+              <option value="img-fill" data-i18n="layFill">Fill the whole label</option>
             </select>
           </div>
-          <div>
+          <div id="imgSizeRow">
             <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
             <input type="range" id="imgSize" min="10" max="100" value="55">
           </div>
+          <details class="sub">
+            <summary data-i18n="aiTemplateSummary">AI-generated graphics</summary>
+            <div class="subbody">
+              <div class="hint" data-i18n="aiTemplateHint"></div>
+              <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
+            </div>
+          </details>
         </div>
       </details>
 
@@ -1180,6 +1189,7 @@ var STR = {
   label1: "шошго",
   labelN: "шошго",
   layBottom: "Зураг текстийн доор",
+  layFill: "Зураг бүх шошгыг дүүргэнэ",
   layLeft: "Зураг текстийн зүүнд",
   layRight: "Зураг текстийн баруунд",
   layTop: "Зураг текстийн дээр",
@@ -1242,6 +1252,9 @@ var STR = {
   secColour: "Өнгөт тэмдэг",
   secContent: "Агуулга",
   secLogo: "Лого",
+  aiTemplateSummary: "AI-аар зураг хийх",
+  aiTemplateHint: "Энэ хэмжээгээр зураг захиалбал AI яг таарах хэмжээтэй гаргаж өгнө. Гарсан зургаа дээрх талбараас буулгаад, «Зохион байгуулалт»-аас «Зураг бүх шошгыг дүүргэнэ»-г сонгоорой.",
+  dlTemplateBtn: "Хэмжээний загвар татах",
   secPrintHelp: "Хэвлэх ба гарын товчлол",
   secSheet: "Хуудас",
   secType: "Үсэг",
@@ -1707,11 +1720,19 @@ function code128(text){
   }
   return {width:x, bars:bars};
 }
-function barcodeSVG(text, heightMm){
+/* heightMm is the target - always the driving dimension, since a shorter
+   symbol is more marginal to scan reliably. maxWidthMm is a ceiling: only
+   backs the height off when the bars (drawn at a fixed aspect ratio, no
+   CSS width set) would otherwise render wider than the label, so a long
+   SKU on a small label shrinks to fit instead of getting clipped. */
+function barcodeSVG(text, heightMm, maxWidthMm){
   var b=code128(String(text));
   if(!b) return "";
+  var h=heightMm, wAtH=h*(b.width/40);
+  if(maxWidthMm && wAtH>maxWidthMm) h=maxWidthMm*40/b.width;
+  h=Math.max(3, h);
   var r='<svg class="bc" viewBox="0 0 '+b.width+' 40" preserveAspectRatio="none" ' +
-        'style="height:'+heightMm+'mm" shape-rendering="crispEdges" aria-hidden="true">';
+        'style="height:'+h+'mm" shape-rendering="crispEdges" aria-hidden="true">';
   for(var i=0;i<b.bars.length;i++)
     r+='<rect x="'+b.bars[i][0]+'" y="0" width="'+b.bars[i][1]+'" height="40"/>';
   return r+'</svg>';
@@ -2022,11 +2043,14 @@ function cellHTML(i, c){
   var lay = arrange(st.lay);
   var img="", txt="", dir="stack", textFirst=false;
   if(hasImg){
-    var ist = !hasTxt ? "max-width:"+st.is+"%;max-height:"+st.is+"%;"
+    var fill = lay==="img-fill" && !hasTxt;
+    var ist = fill ? "width:100%;height:100%;object-fit:cover;"
+            : !hasTxt ? "max-width:"+st.is+"%;max-height:"+st.is+"%;"
             : (lay==="img-left"||lay==="img-right") ? "max-width:"+st.is+"%;max-height:100%;"
             : "max-height:"+st.is+"%;max-width:100%;";
     img = '<img src="'+S.images[c.img]+'" style="'+ist+'" alt="">';
-    if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
+    if(fill) dir="fillimg";
+    else if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
   if(hasTxt || hasPrice || hasSub){
@@ -2037,8 +2061,8 @@ function cellHTML(i, c){
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
   var bcs = "";
-  if(c.bc && c.t) bcs = barcodeSVG(c.t, Math.max(3, labelH()*0.55));
-  else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.78));
+  if(c.bc && c.t) bcs = barcodeSVG(c.t, labelH()*0.90, labelW()*0.96);
+  else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.90));
   var base = mBase(c.m);
   var dot = HEX[base]
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
@@ -2158,6 +2182,7 @@ function selCount(){
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
+    syncImgSizeRow();
     press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
     S.style = {fs:st.fs, ff:st.ff||0, b:st.b, up:st.up, lay:st.lay, is:st.is, fit:st.fit};
   } else {
@@ -2908,9 +2933,43 @@ function liveStyle(){
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); applyStyleTo(c); });
   save(); render();
 }
+function syncImgSizeRow(){ $("imgSizeRow").hidden = $("layoutSel").value==="img-fill"; }
 ["fontSize","fontFam","layoutSel"].forEach(function(id){ $(id).addEventListener("change", liveStyle); });
+$("layoutSel").addEventListener("change", syncImgSizeRow);
 $("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
 $("imgSize").addEventListener("change", liveStyle);
+/* A size template to hand an AI image generator, so its output already
+   matches this preset's exact aspect ratio instead of needing to be
+   cropped or stretched to fit after the fact - a plain white canvas at
+   the label's exact pixel size, print resolution (300dpi), with a solid
+   line at the true die-cut edge and a dashed line 1.5mm in as a safe
+   area for anything that would look bad clipped by a slightly
+   misaligned cut. */
+function downloadSizeTemplate(){
+  var dpi=300, wmm=labelW(), hmm=labelH();
+  var pxW=Math.max(1,Math.round(wmm/25.4*dpi)), pxH=Math.max(1,Math.round(hmm/25.4*dpi));
+  var cv=document.createElement("canvas");
+  cv.width=pxW; cv.height=pxH;
+  var ctx=cv.getContext("2d");
+  ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,pxW,pxH);
+  var edge=Math.max(1,Math.round(dpi/150));
+  ctx.strokeStyle="#c7c2b8"; ctx.lineWidth=edge;
+  ctx.strokeRect(edge/2, edge/2, pxW-edge, pxH-edge);
+  var safePx=1.5/25.4*dpi;
+  if(safePx*2 < Math.min(pxW,pxH)){
+    ctx.lineWidth=Math.max(1, edge*0.7);
+    ctx.setLineDash([edge*3, edge*2]);
+    ctx.strokeRect(safePx, safePx, pxW-safePx*2, pxH-safePx*2);
+  }
+  cv.toBlob(function(blob){
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="peaklab-template-"+r2(wmm)+"x"+r2(hmm)+"mm-"+pxW+"x"+pxH+"px.png";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }, "image/png");
+}
+$("dlTemplateBtn").addEventListener("click", downloadSizeTemplate);
 ["boldBtn","upperBtn","fitBtn"].forEach(function(id){
   $(id).addEventListener("click", function(){
     press(this, !this.classList.contains("on"));
@@ -3349,6 +3408,7 @@ function syncOpts(){
   var st=Object.assign({}, DEF_STYLE, S.style||{});
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
   $("layoutSel").value=arrange(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
+  syncImgSizeRow();
   press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
   syncFitUI();
 }
