@@ -2140,12 +2140,18 @@ function autofit(){
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
 
-    var av=availBox(t);
-    var hi=Math.max(6, av.h*0.75), lo=3, best=3, k, mid;
+    /* Fitting to the exact measured box, with only a 1px slop allowance,
+       used to clip a character on some other screen every time - a
+       different device's sub-pixel rounding of the very same box and
+       font can measure a hair wider than this one did, and "+1" was
+       letting the fit land right on that edge instead of clear of it.
+       Targeting 97% of the measured space leaves real margin instead. */
+    var av=availBox(t), safeH=av.h*0.97, safeW=av.w*0.97;
+    var hi=Math.max(6, safeH*0.75), lo=3, best=3, k, mid;
     for(k=0;k<10;k++){
       mid=(lo+hi)/2;
       t.style.fontSize=mid+"pt";
-      if(t.scrollHeight <= av.h+1 && t.scrollWidth <= av.w+1){ best=mid; lo=mid; }
+      if(t.scrollHeight <= safeH && t.scrollWidth <= safeW){ best=mid; lo=mid; }
       else hi=mid;
     }
     best=Math.floor(best*10)/10;
