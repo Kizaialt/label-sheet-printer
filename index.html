@@ -523,6 +523,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #toast .pip{display:none}
+#toast .toastUndo{
+  pointer-events:auto;flex:none;font:inherit;font-weight:600;color:inherit;
+  text-decoration:underline;text-underline-offset:2px;padding:0 0 0 2px;margin:0;
+}
+#toast .toastUndo:hover{opacity:.8}
 
 /* ================= responsive ================= */
 @media (max-width:1180px){ .sidebar{width:312px} }
@@ -1010,7 +1015,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     </div>
   </div>
 </div>
-<div id="toast"><span class="pip"></span><span id="toastMsg"></span></div>
+<div id="toast"><span class="pip"></span><span id="toastMsg"></span><button id="toastUndo" class="toastUndo" hidden data-i18n="toastUndoBtn">Undo</button></div>
 <script>
 (function(){
 "use strict";
@@ -1192,7 +1197,6 @@ var STR = {
   lblOffY: "↓ Доош (mm)",
   groupSize: "Шошгоны хэмжээ",
   groupFile: "Файл ба хуваалцах",
-  cOverwriteMixed: "{n} шошгон дээр өөр өөр зүйл бичсэн байна — бүгдийг үүгээр дарж бичих үү?",
   obTitle:      "Юу хийх вэ?",
   obSub:        "Дараа нь өөрчилж болно.",
   obPlainTitle: "Энгийн шошго",
@@ -1304,6 +1308,7 @@ var STR = {
   toDarkTitle: "Бараан загвар руу шилжих",
   toLight: "Цайвар",
   toLightTitle: "Цайвар загвар руу шилжих",
+  toastUndoBtn: "Буцаах",
   typeHint: "<b>Автомат</b> нь үсгийн хэмжээг шошгонд багтахаар өөрөө тохируулна. Өөрчлөлт сонгосон шошгонд шууд орно.",
   untag: "Тэмдэг арилгах",
   upper: "ТОМООР",
@@ -1429,10 +1434,30 @@ function arrange(l){ return (l==="text"||l==="image"||!l) ? "img-top" : l; }
 var toastT=null;
 function toast(msg){
   $("toastMsg").textContent = msg;
+  $("toastUndo").hidden = true;
   $("toast").classList.add("show");
   clearTimeout(toastT);
   toastT = setTimeout(function(){ $("toast").classList.remove("show"); }, 2100);
 }
+/* Same as toast(), but for a write that just overwrote more than one
+   distinct existing value - offers Undo right where the change happened
+   instead of asking first. A blocking confirm() here used to interrupt
+   ordinary intentional relabeling as often as it caught a real accident;
+   this way a mistake is one click to fix and an intentional batch edit
+   is never interrupted. */
+function toastUndo(msg){
+  $("toastMsg").textContent = msg;
+  $("toastUndo").hidden = false;
+  $("toast").classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ $("toast").classList.remove("show"); $("toastUndo").hidden = true; }, 5000);
+}
+$("toastUndo").addEventListener("click", function(){
+  clearTimeout(toastT);
+  $("toast").classList.remove("show");
+  this.hidden = true;
+  undo();
+});
 
 /* ================= state ================= */
 function blankCells(n){ var a=[],i; for(i=0;i<n;i++) a.push({}); return a; }
@@ -2426,10 +2451,14 @@ function needSel(){
 }
 /* The exact bug a usability test found: select-all, then one more click on
    the same write button silently replaced several already-different labels
-   with no warning. This targets that specific shape - it only fires when the
-   selection currently holds more than one DISTINCT existing value, so the
-   ordinary "fix a typo across the batch I just made" workflow (every
-   selected cell already holds the SAME text) never sees a confirm. */
+   with no warning. A blocking confirm() here first, but that interrupted
+   ordinary intentional relabeling just as often as it caught a real
+   accident - so the write always goes through now, and this only decides
+   whether the success toast offers Undo (toastUndo() instead of toast()).
+   Fires only when the selection currently holds more than one DISTINCT
+   existing value, so the ordinary "fix a typo across the batch I just
+   made" workflow (every selected cell already holds the SAME text) is
+   never treated as a risky overwrite. */
 function distinctExistingCount(indices){
   var seen={}, n=0, i, v;
   for(i=0;i<indices.length;i++){
@@ -2438,10 +2467,8 @@ function distinctExistingCount(indices){
   }
   return n;
 }
-function confirmBulkOverwrite(indices){
-  if(distinctExistingCount(indices) <= 1) return true;
-  var filled=indices.filter(function(i){ return !isEmpty(S.cells[i]); }).length;
-  return confirm(t("cOverwriteMixed",{n:filled}));
+function isMixedOverwrite(indices){
+  return distinctExistingCount(indices) > 1;
 }
 
 /* ================= content ================= */
@@ -2477,7 +2504,7 @@ function applyStyleTo(c){
 
 $("applyText").addEventListener("click", function(){
   if(!needSel()) return;
-  if(!confirmBulkOverwrite(selArr())) return;
+  var mixed=isMixedOverwrite(selArr());
   hideIntroNudge();
   var ex=modeExtras();
   var v=$("txtInput").value, sv=$("subInput").value, n=sel.size;
@@ -2494,8 +2521,8 @@ $("applyText").addEventListener("click", function(){
     c.t=v; c.s=sv; writeExtras(c, ex, true); applyStyleTo(c);
   });
   save(); render();
-  if(thin) toast(t("tThinBarcode"));
-  else toast(v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
+  var msg = thin ? t("tThinBarcode") : (v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
+  if(mixed) toastUndo(msg); else toast(msg);
 });
 function clearCells(){
   if(!needSel()) return;
@@ -2511,7 +2538,7 @@ $("fillBtn").addEventListener("click", fillFromFirst);
 
 $("applySeq").addEventListener("click", function(){
   if(!needSel()) return;
-  if(!confirmBulkOverwrite(selArr())) return;
+  var mixed=isMixedOverwrite(selArr());
   var p=$("seqPrefix").value, sfx=$("seqSuffix").value, n=sel.size;
   var start=parseInt($("seqStart").value,10)||0, pad=parseInt($("seqPad").value,10)||0;
   var ex=modeExtras();
@@ -2521,12 +2548,14 @@ $("applySeq").addEventListener("click", function(){
     var c=S.cells[i]||(S.cells[i]={});
     c.t=p+num+sfx; writeExtras(c, ex, true); applyStyleTo(c);
   });
-  save(); render(); toast(t("tNumbered",{n:n,lbl:plural(n)}));
+  save(); render();
+  var msg=t("tNumbered",{n:n,lbl:plural(n)});
+  if(mixed) toastUndo(msg); else toast(msg);
 });
 
 $("applyList").addEventListener("click", function(){
   if(!needSel()) return;
-  if(!confirmBulkOverwrite(selArr())) return;
+  var mixed=isMixedOverwrite(selArr());
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
   if(!lines.length){ toast(t("tListEmpty")); return; }
   /* name, price, small line, copies - a trailing bare number means repeat */
@@ -2544,8 +2573,9 @@ $("applyList").addEventListener("click", function(){
     applyStyleTo(c); used++;
   });
   save(); render();
-  toast(t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
-        (!rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : ""));
+  var msg=t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
+        (!rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : "");
+  if(mixed) toastUndo(msg); else toast(msg);
 });
 
 /* ================= column mapping =================
@@ -2640,7 +2670,7 @@ $("mapDlg").addEventListener("click", function(e){ if(e.target===this) this.hidd
 $("mapApplyBtn").addEventListener("click", function(){
   if(!needSel()) return;
   if(mapFields.every(function(f){ return f==="ignore"; })){ toast(t("tMapNoFields")); return; }
-  if(!confirmBulkOverwrite(selArr())) return;
+  var mixed=isMixedOverwrite(selArr());
   var head=$("mapHeader").checked;
   var dataRows=mapRows.slice(head?1:0);
   var copiesCol=mapFields.indexOf("copies");
@@ -2671,8 +2701,9 @@ $("mapApplyBtn").addEventListener("click", function(){
   });
   save(); render();
   $("mapDlg").hidden = true;
-  toast(t("tMapFilled",{n:used,lbl:plural(used),k:expanded.length}) +
-        (skippedBc ? t("tMapSkipBc",{n:skippedBc}) : ""));
+  var msg=t("tMapFilled",{n:used,lbl:plural(used),k:expanded.length}) +
+        (skippedBc ? t("tMapSkipBc",{n:skippedBc}) : "");
+  if(mixed) toastUndo(msg); else toast(msg);
 });
 
 /* ================= colour tags ================= */
