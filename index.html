@@ -763,7 +763,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
       </details>
 
       <details class="sec">
-        <summary data-i18n="secLogo">Logo</summary>
+        <summary data-i18n="secImage">Image</summary>
         <div class="body">
           <label class="drop" id="drop">
             <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
@@ -771,6 +771,16 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
           </label>
           <div class="imglib" id="imgLib"></div>
+          <button class="btn accent wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
+          <div class="hint" data-i18n="aiTemplateHint"></div>
+          <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary data-i18n="secLogo">Logo</summary>
+        <div class="body">
+          <div class="hint" data-i18n="logoHint"></div>
           <div class="g2">
             <button class="btn" id="applyImg" data-i18n="placeImg">Place on selection</button>
             <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
@@ -782,20 +792,12 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
               <option value="img-left" data-i18n="layLeft">Image left of the text</option>
               <option value="img-right" data-i18n="layRight">Image right of the text</option>
-              <option value="img-fill" data-i18n="layFill">Fill the whole label</option>
             </select>
           </div>
-          <div id="imgSizeRow">
+          <div>
             <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
             <input type="range" id="imgSize" min="10" max="100" value="55">
           </div>
-          <details class="sub">
-            <summary data-i18n="aiTemplateSummary">AI-generated graphics</summary>
-            <div class="subbody">
-              <div class="hint" data-i18n="aiTemplateHint"></div>
-              <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
-            </div>
-          </details>
         </div>
       </details>
 
@@ -1189,7 +1191,6 @@ var STR = {
   label1: "шошго",
   labelN: "шошго",
   layBottom: "Зураг текстийн доор",
-  layFill: "Зураг бүх шошгыг дүүргэнэ",
   layLeft: "Зураг текстийн зүүнд",
   layRight: "Зураг текстийн баруунд",
   layTop: "Зураг текстийн дээр",
@@ -1251,9 +1252,11 @@ var STR = {
   savePreset: "Хэмжээг хадгалах",
   secColour: "Өнгөт тэмдэг",
   secContent: "Агуулга",
+  secImage: "Зураг",
   secLogo: "Лого",
-  aiTemplateSummary: "AI-аар зураг хийх",
-  aiTemplateHint: "Энэ хэмжээгээр зураг захиалбал AI яг таарах хэмжээтэй гаргаж өгнө. Гарсан зургаа дээрх талбараас буулгаад, «Зохион байгуулалт»-аас «Зураг бүх шошгыг дүүргэнэ»-г сонгоорой.",
+  logoHint: "Зургийг текстийн хажууд жижгээр харуулна. Бүтэн зурган шошго хүсвэл дээрх «Зураг» хэсгийг ашиглаарай.",
+  placeImgFull: "Шошгыг бүтнээр дүүргэх",
+  aiTemplateHint: "AI зурган хэрэгсэлд доорх загварыг өгвөл яг таарах хэмжээтэй зураг гаргаж өгнө. Гарсан зургаа энд буулгаад, «Шошгыг бүтнээр дүүргэх» дараарай.",
   dlTemplateBtn: "Хэмжээний загвар татах",
   secPrintHelp: "Хэвлэх ба гарын товчлол",
   secSheet: "Хуудас",
@@ -1443,6 +1446,13 @@ function mBase(m){ return m ? String(m).split(".")[0] : ""; }
 function mGrad(m){ return /\.g$/.test(String(m||"")); }
 /* "text" and "image" were layout modes in an earlier build; they are derived now */
 function arrange(l){ return (l==="text"||l==="image"||!l) ? "img-top" : l; }
+/* Like arrange(), but for the Logo section's dropdown specifically: "img-fill"
+   is a real, current value (set by the Image section's own button) but has
+   no matching <option> there any more, since that section only pairs an
+   image with text now - shown as a sensible default instead of leaving the
+   select blank. cellHTML() must keep using plain arrange() so a fill-mode
+   cell still actually renders filled. */
+function arrangeForLogoUI(l){ var a=arrange(l); return a==="img-fill" ? "img-top" : a; }
 
 var toastT=null;
 function toast(msg){
@@ -2180,9 +2190,8 @@ function selCount(){
       if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
     }
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
-    $("layoutSel").value = arrange(st.lay); $("imgSize").value = st.is;
+    $("layoutSel").value = arrangeForLogoUI(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
-    syncImgSizeRow();
     press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
     S.style = {fs:st.fs, ff:st.ff||0, b:st.b, up:st.up, lay:st.lay, is:st.is, fit:st.fit};
   } else {
@@ -2920,6 +2929,27 @@ $("applyImg").addEventListener("click", function(){
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); c.img=curImg; applyStyleTo(c); });
   save(); render(); toast(t("tImgPlaced",{n:n,lbl:plural(n)}));
 });
+/* The Image section's own action - replaces a cell's content outright
+   rather than adding alongside whatever else was there, since that is the
+   one thing that makes "fill the whole label" reliable: cellHTML() only
+   renders a placed image edge to edge when the cell has no text, so
+   leftover text from an earlier edit would otherwise silently keep the
+   old inset layout instead of filling. */
+$("applyImgFull").addEventListener("click", function(){
+  if(!needSel()) return;
+  if(!curImg){ toast(t("tAddImg")); return; }
+  var mixed=isMixedOverwrite(selArr());
+  var n=sel.size;
+  mark();
+  selArr().forEach(function(i){
+    var m=(S.cells[i]||{}).m;
+    S.cells[i] = m ? {m:m} : {};
+    S.cells[i].img=curImg; S.cells[i].lay="img-fill";
+  });
+  save(); render();
+  var msg=t("tImgPlaced",{n:n,lbl:plural(n)});
+  if(mixed) toastUndo(msg); else toast(msg);
+});
 $("removeImg").addEventListener("click", function(){
   if(!needSel()) return;
   mark();
@@ -2933,18 +2963,15 @@ function liveStyle(){
   selArr().forEach(function(i){ var c=S.cells[i]||(S.cells[i]={}); applyStyleTo(c); });
   save(); render();
 }
-function syncImgSizeRow(){ $("imgSizeRow").hidden = $("layoutSel").value==="img-fill"; }
 ["fontSize","fontFam","layoutSel"].forEach(function(id){ $(id).addEventListener("change", liveStyle); });
-$("layoutSel").addEventListener("change", syncImgSizeRow);
 $("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
 $("imgSize").addEventListener("change", liveStyle);
 /* A size template to hand an AI image generator, so its output already
    matches this preset's exact aspect ratio instead of needing to be
-   cropped or stretched to fit after the fact - a plain white canvas at
-   the label's exact pixel size, print resolution (300dpi), with a solid
-   line at the true die-cut edge and a dashed line 1.5mm in as a safe
-   area for anything that would look bad clipped by a slightly
-   misaligned cut. */
+   cropped or stretched to fit after the fact - a plain blank canvas at
+   the label's exact pixel size, print resolution (300dpi). No border or
+   guide lines: those show up as artifacts in whatever the AI generates,
+   which defeats the point. */
 function downloadSizeTemplate(){
   var dpi=300, wmm=labelW(), hmm=labelH();
   var pxW=Math.max(1,Math.round(wmm/25.4*dpi)), pxH=Math.max(1,Math.round(hmm/25.4*dpi));
@@ -2952,15 +2979,6 @@ function downloadSizeTemplate(){
   cv.width=pxW; cv.height=pxH;
   var ctx=cv.getContext("2d");
   ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,pxW,pxH);
-  var edge=Math.max(1,Math.round(dpi/150));
-  ctx.strokeStyle="#c7c2b8"; ctx.lineWidth=edge;
-  ctx.strokeRect(edge/2, edge/2, pxW-edge, pxH-edge);
-  var safePx=1.5/25.4*dpi;
-  if(safePx*2 < Math.min(pxW,pxH)){
-    ctx.lineWidth=Math.max(1, edge*0.7);
-    ctx.setLineDash([edge*3, edge*2]);
-    ctx.strokeRect(safePx, safePx, pxW-safePx*2, pxH-safePx*2);
-  }
   cv.toBlob(function(blob){
     var a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
@@ -3407,8 +3425,7 @@ function syncOpts(){
   $("idxChk").checked=!!S.opts.idx;
   var st=Object.assign({}, DEF_STYLE, S.style||{});
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
-  $("layoutSel").value=arrange(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
-  syncImgSizeRow();
+  $("layoutSel").value=arrangeForLogoUI(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
   press($("boldBtn"), st.b); press($("upperBtn"), st.up); press($("fitBtn"), st.fit);
   syncFitUI();
 }
