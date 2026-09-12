@@ -765,6 +765,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
       <details class="sec">
         <summary data-i18n="secImage">Image</summary>
         <div class="body">
+          <div class="hint" data-i18n="aiPromptHint"></div>
+          <textarea id="aiPromptText" rows="5" readonly></textarea>
+          <button class="btn wide" id="copyPromptBtn" data-i18n="copyPromptBtn">Copy the prompt</button>
+          <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
           <label class="drop" id="drop">
             <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
             <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
@@ -772,8 +776,6 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           </label>
           <div class="imglib" id="imgLib"></div>
           <button class="btn accent wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
-          <div class="hint" data-i18n="aiTemplateHint"></div>
-          <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
         </div>
       </details>
 
@@ -1099,6 +1101,7 @@ var STR = {
   copyLink: "Холбоосыг хуулах",
   tCodeCopied: "Кодыг хуулж авлаа",
   tLinkCopied: "Холбоосыг хуулж авлаа",
+  tPromptCopied: "Бичвэрийг хуулж авлаа",
   tCopyFail: "Хуулж чадсангүй — гараар сонгож хуулаарай",
   dlgClose: "Хаах",
   dlgLoadTitle: "Кодоор нээх",
@@ -1256,7 +1259,9 @@ var STR = {
   secLogo: "Лого",
   logoHint: "Зургийг текстийн хажууд жижгээр харуулна. Бүтэн зурган шошго хүсвэл дээрх «Зураг» хэсгийг ашиглаарай.",
   placeImgFull: "Шошгыг бүтнээр дүүргэх",
-  aiTemplateHint: "AI зурган хэрэгсэлд доорх загварыг өгвөл яг таарах хэмжээтэй зураг гаргаж өгнө. Гарсан зургаа энд буулгаад, «Шошгыг бүтнээр дүүргэх» дараарай.",
+  aiPromptHint: "Доорх бичвэрийг ChatGPT зэрэг AI зурган хэрэгсэлд өгөөд, ард нь юу хүсч байгаагаа нэмж бичээрэй. Гарсан зургаа доош буулгаад «Шошгыг бүтнээр дүүргэх» дараарай.",
+  aiPromptTmpl: "Яг {w}×{h} пиксел хэмжээтэй (харьцаа {rw}:{rh}) зураг хийж өгнө үү. Хэмжээг бүү өөрчил, ирмэг хүртэл бүтнээр дүүргэж, цагаан зай бүү үлдээ.\n\nЮу зурах вэ: ",
+  copyPromptBtn: "Бичвэрийг хуулах",
   dlTemplateBtn: "Хэмжээний загвар татах",
   secPrintHelp: "Хэвлэх ба гарын товчлол",
   secSheet: "Хуудас",
@@ -2028,6 +2033,7 @@ function render(){
     ? "<b style='color:var(--danger)'>"+esc(t("badGeom"))+"</b>"
     : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
       ((off.x||off.y) ? "<br>"+t("shiftedFmt",{x:r2(off.x),y:r2(off.y)})+(off.clamped?t("limited"):"") : "");
+  $("aiPromptText").value = aiPrompt();
   autofit();
   pageUI();
   var virgin = !S.cells.some(function(c){ return c && (!isEmpty(c) || c.m); });
@@ -2966,6 +2972,22 @@ function liveStyle(){
 ["fontSize","fontFam","layoutSel"].forEach(function(id){ $(id).addEventListener("change", liveStyle); });
 $("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
 $("imgSize").addEventListener("change", liveStyle);
+function gcd(a,b){ return b ? gcd(b, a%b) : a; }
+/* A ready-to-paste request for a generative AI image tool, kept in sync
+   with the current preset (render() refreshes it, same as calcInfo) since
+   it's read-only - nothing the shop owner types ever lives in it, so there
+   is no edit to clobber. The exact px size AND the reduced aspect ratio
+   are both given, since some tools take a literal size and others only
+   take a ratio. */
+function aiPrompt(){
+  var dpi=300, wmm=labelW(), hmm=labelH();
+  var pxW=Math.max(1,Math.round(wmm/25.4*dpi)), pxH=Math.max(1,Math.round(hmm/25.4*dpi));
+  var g=gcd(pxW,pxH)||1;
+  return t("aiPromptTmpl",{w:pxW,h:pxH,rw:pxW/g,rh:pxH/g});
+}
+$("copyPromptBtn").addEventListener("click", function(){
+  copyText($("aiPromptText").value, "tPromptCopied");
+});
 /* A size template to hand an AI image generator, so its output already
    matches this preset's exact aspect ratio instead of needing to be
    cropped or stretched to fit after the fact - a plain blank canvas at
