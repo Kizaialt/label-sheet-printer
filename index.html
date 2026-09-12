@@ -2012,8 +2012,8 @@ function cellHTML(i, c){
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
   var bcs = "";
-  if(c.bc && c.t) bcs = barcodeSVG(c.t, Math.max(3, labelH()*0.28));
-  else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.62));
+  if(c.bc && c.t) bcs = barcodeSVG(c.t, Math.max(3, labelH()*0.55));
+  else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.78));
   var base = mBase(c.m);
   var dot = HEX[base]
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
