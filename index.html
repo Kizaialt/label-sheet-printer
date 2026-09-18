@@ -533,7 +533,29 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 /* ================= responsive ================= */
 @media (max-width:1180px){ .sidebar{width:312px} }
 @media (max-width:1100px){ #dimChip{display:none} }
-@media (max-width:760px){ .zoomgrp{display:none} #presetSel{width:100% !important;min-width:0} }
+/* Below 760px the paper-size select and the "which paper is this" readout
+   were the two things fighting hardest for space in a cramped flex row
+   against buttons that refuse to shrink (Undo/Redo, buy-paper link, theme
+   toggle, Print) - the select was losing that fight down to an unlabelled
+   ~35px caret, and dimChip was hidden outright. That's the one indicator
+   telling someone which physical paper they're about to print on, so on
+   a phone it gets its own full-width row instead of competing for space. */
+@media (max-width:760px){
+  .zoomgrp{display:none}
+  .topbar{flex-wrap:wrap; height:auto; min-height:48px; padding-top:6px; padding-bottom:6px}
+  #presetSel{width:100% !important;min-width:0;order:5;flex:1 1 100%;height:34px}
+  #dimChip{display:block !important;order:6;flex:1 1 100%;white-space:normal;font-size:12px}
+}
+/* The keyboard-shortcut table (Ctrl+C, Shift, arrow keys...) is dead
+   weight on a touch device with no keyboard - hidden below the same
+   breakpoint as everything else that assumes a mouse/keyboard, with the
+   section retitled since "shortcuts" no longer describes what's left. */
+.kbTitleShort{display:none}
+@media (max-width:760px){
+  #kbGrid{display:none !important}
+  .kbTitleFull{display:none}
+  .kbTitleShort{display:inline}
+}
 @media (max-width:900px){
   .main{flex-direction:column}
   .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:48vh}
@@ -672,9 +694,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <div class="hint" style="margin-top:5px" data-i18n="priceHint"></div>
           </div>
           <div id="bcRow">
-            <label class="check"><input type="checkbox" id="bcChk">
-              <span data-i18n="optBarcode">Barcode</span></label>
-            <div class="hint" style="margin-top:4px" data-i18n="barcodeHint"></div>
+            <div class="hint" data-i18n="barcodeHint"></div>
           </div>
           <div id="qrRow">
             <label class="lbl" for="qrInput" data-i18n="lblQr">QR content</label>
@@ -733,7 +753,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <div>
             <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
             <div class="hint" style="margin:-2px 0 5px" data-i18n="colsHint"></div>
-            <textarea id="listInput" rows="4" placeholder="ABC-001&#10;ABC-002&#10;ABC-003"></textarea>
+            <textarea id="listInput" rows="4" placeholder="Цамц ; 15000&#10;Өмд ; 45000&#10;Малгай ; 12000 ; x3"></textarea>
           </div>
           <div class="g2">
             <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
@@ -742,23 +762,6 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <button class="btn wide" id="mapColsBtn" data-i18n="mapColsBtn">Map columns</button>
             </div>
           </details>
-        </div>
-      </details>
-
-      <details class="sec" open>
-        <summary data-i18n="secColour">Colour tags</summary>
-        <div class="body">
-          <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
-            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
-            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
-          </div>
-          <div class="swatches" id="swatches"></div>
-          <div class="g2">
-            <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
-            <button class="btn" id="markClear" data-i18n="untag">Untag</button>
-          </div>
-          <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
-          <div class="hint" data-i18n-html="colourHint"></div>
         </div>
       </details>
 
@@ -800,6 +803,23 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
             <input type="range" id="imgSize" min="10" max="100" value="55">
           </div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary data-i18n="secColour">Colour tags</summary>
+        <div class="body">
+          <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
+            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
+            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
+          </div>
+          <div class="swatches" id="swatches"></div>
+          <div class="g2">
+            <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
+            <button class="btn" id="markClear" data-i18n="untag">Untag</button>
+          </div>
+          <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
+          <div class="hint" data-i18n-html="colourHint"></div>
         </div>
       </details>
 
@@ -875,10 +895,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
       </details>
 
       <details class="sec">
-        <summary data-i18n="secPrintHelp">Printing &amp; shortcuts</summary>
+        <summary><span class="kbTitleFull" data-i18n="secPrintHelp">Printing &amp; shortcuts</span><span class="kbTitleShort" data-i18n="secPrintHelpMobile">Print help</span></summary>
         <div class="body">
           <div class="hint" data-i18n-html="printHint"></div>
-          <div class="hint" style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center">
+          <div class="hint" id="kbGrid" style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center">
             <span class="kbd">Click</span><span data-i18n="kbClick">Select one label</span>
             <span class="kbd">Drag</span><span data-i18n="kbDrag">Select a block</span>
             <span class="kbd">Ctrl</span><span data-i18n="kbCtrl">Add or remove from the selection</span>
@@ -1064,7 +1084,7 @@ var STR = {
   chipTagged: "Тэмдэгтэй",
   chipFilter: "Шүүх",
   clearBtn: "Арилгах",
-  colourHint: "Өнгөн дээр хулгана аваачихад тэр өнгөөр тэмдэглэсэн шошго тодорно. Шошгоо сонгоод өнгө дарвал тэмдэглэнэ. Тэмдэг дэлгэц дээр цэг болж харагдана. Доорх сонголтыг асаагаагүй бол <b>хэвлэгдэхгүй</b>. Лого болон шошгоны текст үргэлж хэвлэгдэнэ.",
+  colourHint: "Шошгоо сонгоод өнгө дарвал тэмдэглэнэ. Тэмдэг зөвхөн дэлгэц дээр харагдана — «Хэвлэх» дарахад гарах цонхны «Цэгийг бас хэвлэх»-ийг асаавал л цаасан дээр гарна. Лого болон шошгоны текст үргэлж хэвлэгдэнэ.",
   cols: "Багана",
   copyBtn: "Хуулах",
   corange: "Улбар шар",
@@ -1122,7 +1142,6 @@ var STR = {
   dlgCancel: "Болих",
   dlgNever: "Дахиж бүү харуул",
   ptAuto: "«Автомат» асаалттай үед үсгийн хэмжээг өөрөө тохируулна",
-  cSizeLoss: "Энэ хэмжээнд {n} шошго багтахгүй тул устана. Үргэлжлүүлэх үү?",
   modeAsk: "Юу хийх вэ?",
   modePlain: "Энгийн",
   modePrice: "Үнэ",
@@ -1155,19 +1174,19 @@ var STR = {
   phSub: "Хугацаа: 2026.12.31",
   subHint: "Жижиг үсгээр доор нь гарна — хугацаа, найрлага, хаяг зэрэгт тохиромжтой.",
   lblCopies: "Ширхэг",
-  colsHint: "Багана: нэр → үнэ → нэмэлт мөр. Мөрийн төгсгөлд «x3» гэж бичвэл 3 ширхэг хэвлэнэ.",
+  colsHint: "Нэр ба үнийг цэг таслал (;)-аар тусгаарла: нэр ; үнэ ; нэмэлт мөр. Мөрийн төгсгөлд «x3» гэж бичвэл 3 ширхэг хэвлэнэ.",
   tOverflow: "{n} шошго багтсангүй — дараагийн хуудсанд хэвлээрэй",
   dblEdit: "Шошго дээр хоёр дараад шууд засаарай",
   lblPrice: "Үнэ",
   phPrice: "89000",
-  optBarcode: "Баркод",
   barcodeHint: "Шошгоны текстийг Code 128 баркод болгож хэвлэнэ. Зөвхөн латин үсэг, тоо, тэмдэгт ажиллана.",
   priceHint: "Үнэ бичвэл шошгон дээр том, тодоор гарч, мянгатын таслал ба ₮ өөрөө нэмэгдэнэ.",
   tThinBarcode: "Баркод хэт нарийн байна — сканнер уншихгүй байж магадгүй. Илүү том шошго сонговол найдвартай.",
+  tTextTooSmall: "Зарим шошгон дээрх текст багтахгүй байна — текстээ богиносгох эсвэл том шошго сонгоорой.",
   tBadBarcode: "Баркодод кирилл үсэг орохгүй — латинаар бичээрэй",
   listCols: "Хоёр багана буулгавал: 1-р багана нэр, 2-р багана үнэ",
   emptyTitle: "Хуудас хоосон байна",
-  emptyBody: "Шошгоо чирж сонгоод, баруун талын «Агуулга» хэсэгт текстээ бичээрэй",
+  emptyBody: "Шошгоо сонгоод «Агуулга» хэсэгт текстээ бичээрэй",
   emptySheet: "Хоослох",
   exportBtn: "Экспорт",
   fillBtn: "Бөглөх",
@@ -1226,6 +1245,8 @@ var STR = {
   obReopen:     "Дахин сонгох",
   obReopenTitle:"Эхний зааврыг дахин харах",
   tModeSet:     "«{lbl}» болголоо",
+  tPresetAuto:  "{name} цаас руу сольлоо. Өөр цаастай бол дээрх сонголтоос сольж болно.",
+  tPresetLost:  "{n} шошго энэ хэмжээнд багтаагүй тул устлаа.",
   introNudge:   "Жишээг өөрийн бараагаар сольж, «Сонгосонд бичих» дараарай.",
   printNudge:   "Бэлэн болмогц баруун дээд буланд байгаа «Хэвлэх» дараарай.",
   lblSize: "Үсгийн хэмжээ (pt)",
@@ -1255,15 +1276,20 @@ var STR = {
   savePreset: "Хэмжээг хадгалах",
   secColour: "Өнгөт тэмдэг",
   secContent: "Агуулга",
+  dimChipLabel: "Цаас:",
   secImage: "Зураг",
   secLogo: "Лого",
   logoHint: "Зургийг текстийн хажууд жижгээр харуулна. Бүтэн зурган шошго хүсвэл дээрх «Зураг» хэсгийг ашиглаарай.",
   placeImgFull: "Шошгыг бүтнээр дүүргэх",
-  aiPromptHint: "Доорх бичвэрийг ChatGPT зэрэг AI зурган хэрэгсэлд өгөөд, ард нь юу хүсч байгаагаа нэмж бичээрэй. Гарсан зургаа доош буулгаад «Шошгыг бүтнээр дүүргэх» дараарай.",
-  aiPromptTmpl: "Яг {w}×{h} пиксел хэмжээтэй (харьцаа {rw}:{rh}) зураг хийж өгнө үү. Хэмжээг бүү өөрчил, ирмэг хүртэл бүтнээр дүүргэж, цагаан зай бүү үлдээ.\n\nЮу зурах вэ: ",
+  aiPromptHint: "Доорх бичвэрийг ChatGPT зэрэг AI зурган хэрэгсэлд өгөөд, ард нь юу хүсч байгаагаа нэмж бичээрэй. Гарсан зургаа утсандаа хадгалаад, доорх нүдэнд оруулж «Шошгыг бүтнээр дүүргэх» дараарай.",
+  aiPromptTmpl: "{orient} хэлбэртэй, ирмэг хүртэл дүүрэн, цагаан зайгүй зураг хийж өгнө үү. Тод өнгөтэй, энгийн дэвсгэртэй байг.\n\nЮу зурах вэ: ",
+  aiOrientLandscape: "хэвтээ",
+  aiOrientPortrait: "босоо",
+  aiOrientSquare: "дөрвөлжин",
   copyPromptBtn: "Бичвэрийг хуулах",
   dlTemplateBtn: "Хэмжээний загвар татах",
   secPrintHelp: "Хэвлэх ба гарын товчлол",
+  secPrintHelpMobile: "Хэвлэх заавар",
   secSheet: "Хуудас",
   secType: "Үсэг",
   selNone: "Юу ч сонгоогүй — шошго дээр дарж, эсвэл чирж сонгоорой",
@@ -1347,10 +1373,24 @@ function t(key, vars){
     str = str.split("{"+k+"}").join(vars[k]);
   return str;
 }
+/* A comma is the one separator a phone keyboard makes easy, and it isn't
+   in SEP because a hand-typed price can itself contain a thousands comma
+   ("15,000") - splitting on every comma would break that. This only
+   engages when the line doesn't match SEP at all, and only takes the
+   LAST comma if what follows is nothing but digits/commas/spaces (a
+   price-shaped tail), so "Цамц, эрэгтэй, 15000" still reads as one name
+   plus one price rather than three fields. */
+var COMMA_FALLBACK=/^(.+),\s*([\d][\d,.\s]*)$/;
 function parseRows(lines){
   var rows=[];
   lines.forEach(function(line){
-    var f=line.split(SEP).map(function(x){ return x.trim(); });
+    var f;
+    if(SEP.test(line)){
+      f=line.split(SEP).map(function(x){ return x.trim(); });
+    } else {
+      var cm=COMMA_FALLBACK.exec(line.trim());
+      f = cm ? [cm[1].trim(), cm[2].trim()] : [line.trim()];
+    }
     var copies=1;
     /* Cyrillic \u0445 looks identical to Latin x and is what a Mongolian
        keyboard produces, so both count as a multiplier. */
@@ -2028,7 +2068,7 @@ function render(){
 
   headers(lw, lh, off);
   var bad = (lw<=0 || lh<=0);
-  $("dimChip").innerHTML = g.cols+"&times;"+g.rows+" &middot; "+r2(lw)+"&times;"+r2(lh)+" mm";
+  $("dimChip").innerHTML = t("dimChipLabel")+" "+r2(lw)+"&times;"+r2(lh)+" mm &middot; "+g.cols+"&times;"+g.rows;
   $("calcInfo").innerHTML = bad
     ? "<b style='color:var(--danger)'>"+esc(t("badGeom"))+"</b>"
     : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
@@ -2113,32 +2153,59 @@ var fitCache = {}, fitCacheGeom = "";
    when the text plainly fits, which made every size look like an overflow.
    Sizes here are layout pixels, so never mix in getBoundingClientRect - the
    sheet carries a transform and that would fold the zoom into the maths. */
+/* offsetWidth/offsetHeight are undefined on SVGElement (it doesn't inherit
+   from HTMLElement) - the barcode/QR <svg> siblings were silently measuring
+   as NaN here, which made every fit-check in autofit()'s loop below false
+   and stranded the caption at its 3pt floor on every single barcode/QR
+   label, always. Both svgSVG helpers set an explicit inline mm height
+   (QR sets width too, in pixels-equivalent via mm; barcode leaves width to
+   its intrinsic viewBox ratio since preserveAspectRatio isn't none-locked
+   on that axis), so read the real size from there instead. */
+function svgBoxPx(el){
+  var vb=el.viewBox && el.viewBox.baseVal;
+  var hPx=(parseFloat(el.style.height)||0)*PXMM;
+  var wMm=parseFloat(el.style.width);
+  var wPx = wMm ? wMm*PXMM : (vb && vb.height ? hPx*(vb.width/vb.height) : hPx);
+  return {w:wPx, h:hPx};
+}
 function availBox(t){
   var inner=t.parentNode, cs=getComputedStyle(inner);
   var w=inner.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   var h=inner.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
-  var gap=parseFloat(cs.gap)||0, kids=inner.children, i, el;
+  var gap=parseFloat(cs.gap)||0, kids=inner.children, i, el, isHtml, ew, eh;
   for(i=0;i<kids.length;i++){
     el=kids[i];
     if(el===t) continue;
-    if(cs.flexDirection==="row") w -= el.offsetWidth + gap;
-    else h -= el.offsetHeight + gap;
+    isHtml = el instanceof HTMLElement;
+    if(isHtml){ ew=el.offsetWidth; eh=el.offsetHeight; }
+    else { var sz=svgBoxPx(el); ew=sz.w; eh=sz.h; }
+    if(cs.flexDirection==="row") w -= ew + gap;
+    else h -= eh + gap;
   }
   return {w:Math.max(4,w), h:Math.max(4,h)};
 }
+var FIT_FLOOR=5;
 function autofit(){
-  var sheet=$("sheet"), n=count(), i;
+  /* Local element is named txtEl, not t - autofit() runs long after t()
+     (the translation lookup) is declared, and a plain "var t" here would
+     shadow that global for the whole function body, silently breaking the
+     hitFloor toast below (t("...") would try to call a DOM element). */
+  var sheet=$("sheet"), n=count(), i, hitFloor=false;
   for(i=0;i<n;i++){
     var c=S.cells[i]; if(!c || (!c.t && !c.p && !c.s)) continue;
     var st=Object.assign({},DEF_STYLE,c);
     var el=sheet.children[i]; if(!el) continue;
-    var t=el.querySelector(".txt"); if(!t) continue;
-    if(!st.fit){ t.style.fontSize=st.fs+"pt"; continue; }
+    var txtEl=el.querySelector(".txt"); if(!txtEl) continue;
+    if(!st.fit){ txtEl.style.fontSize=st.fs+"pt"; continue; }
 
-    var box=t.parentNode;
+    var box=txtEl.parentNode;
     var key=[c.t, c.p||"", c.s||"", c.bc?1:0, c.qr||"", box.clientWidth, box.clientHeight, st.ff,
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
-    if(fitCache[key] !== undefined){ t.style.fontSize=fitCache[key]+"pt"; continue; }
+    if(fitCache[key] !== undefined){
+      txtEl.style.fontSize=fitCache[key]+"pt";
+      if(fitCache[key]<=FIT_FLOOR) hitFloor=true;
+      continue;
+    }
 
     /* Fitting to the exact measured box, with only a 1px slop allowance,
        used to clip a character on some other screen every time - a
@@ -2146,18 +2213,26 @@ function autofit(){
        font can measure a hair wider than this one did, and "+1" was
        letting the fit land right on that edge instead of clear of it.
        Targeting 97% of the measured space leaves real margin instead. */
-    var av=availBox(t), safeH=av.h*0.97, safeW=av.w*0.97;
-    var hi=Math.max(6, safeH*0.75), lo=3, best=3, k, mid;
+    var av=availBox(txtEl), safeH=av.h*0.97, safeW=av.w*0.97;
+    var hi=Math.max(6, safeH*0.75), lo=FIT_FLOOR, best=FIT_FLOOR, k, mid;
     for(k=0;k<10;k++){
       mid=(lo+hi)/2;
-      t.style.fontSize=mid+"pt";
-      if(t.scrollHeight <= safeH && t.scrollWidth <= safeW){ best=mid; lo=mid; }
+      txtEl.style.fontSize=mid+"pt";
+      if(txtEl.scrollHeight <= safeH && txtEl.scrollWidth <= safeW){ best=mid; lo=mid; }
       else hi=mid;
     }
     best=Math.floor(best*10)/10;
+    /* best landing right on the floor means the fit loop never found a
+       single size that actually fit - either the text is genuinely too
+       long for this label, or the measurement itself is broken (this is
+       exactly the symptom a NaN from availBox() produced: every fit-check
+       failed, so best never moved off its start value). Worth a one-time
+       nudge either way, since a caption this small is unreadable. */
+    if(best<=FIT_FLOOR) hitFloor=true;
     fitCache[key]=best;
-    t.style.fontSize=best+"pt";
+    txtEl.style.fontSize=best+"pt";
   }
+  if(hitFloor) toast(t("tTextTooSmall"));
 }
 
 /* repaint selection without rebuilding the grid */
@@ -2196,7 +2271,6 @@ function selCount(){
       $("txtInput").value = c.t || "";
       $("priceInput").value = c.p || "";
       $("subInput").value = c.s || "";
-      $("bcChk").checked = !!c.bc;
       $("qrInput").value = c.qr || "";
       var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
       if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
@@ -2534,7 +2608,7 @@ function modeExtras(){
   return {
     mode: mode,
     p:  mode==="price" ? $("priceInput").value : null,
-    bc: mode==="sku"   ? ($("bcChk").checked?1:0) : null,
+    bc: mode==="sku"   ? 1 : null,
     qr: mode==="qr"    ? $("qrInput").value : null
   };
 }
@@ -2564,6 +2638,14 @@ $("applyText").addEventListener("click", function(){
   mark();
   selArr().forEach(function(i){
     var c=S.cells[i]||(S.cells[i]={});
+    /* This box writes exactly one job's fields at a time - a cell coming
+       from a different mode (e.g. a leftover price from before switching
+       to Barcode) must lose that field here, not just leave it untouched,
+       or the label ends up carrying both the new job's content and the
+       old one's underneath it. */
+    if(ex.p===null)  c.p="";
+    if(ex.bc===null) c.bc=0;
+    if(ex.qr===null) c.qr="";
     c.t=v; c.s=sv; writeExtras(c, ex, true); applyStyleTo(c);
   });
   save(); render();
@@ -2978,18 +3060,22 @@ function liveStyle(){
 ["fontSize","fontFam","layoutSel"].forEach(function(id){ $(id).addEventListener("change", liveStyle); });
 $("imgSize").addEventListener("input", function(){ $("imgSizeVal").textContent=this.value+"%"; });
 $("imgSize").addEventListener("change", liveStyle);
-function gcd(a,b){ return b ? gcd(b, a%b) : a; }
 /* A ready-to-paste request for a generative AI image tool, kept in sync
    with the current preset (render() refreshes it, same as calcInfo) since
    it's read-only - nothing the shop owner types ever lives in it, so there
-   is no edit to clobber. The exact px size AND the reduced aspect ratio
-   are both given, since some tools take a literal size and others only
-   take a ratio. */
+   is no edit to clobber. Asks for an ORIENTATION, not exact pixels or a
+   reduced ratio: consumer tools (ChatGPT/DALL-E etc.) only offer a
+   handful of fixed output sizes and can't produce an arbitrary custom
+   size on request, so a demand like "exactly 573x300px" just sets the
+   user up to get a wrong-size image back and think they did it wrong.
+   The mismatch doesn't actually matter - img-fill already applies
+   object-fit:cover, which crops any reasonable aspect ratio to fit. */
 function aiPrompt(){
-  var dpi=300, wmm=labelW(), hmm=labelH();
-  var pxW=Math.max(1,Math.round(wmm/25.4*dpi)), pxH=Math.max(1,Math.round(hmm/25.4*dpi));
-  var g=gcd(pxW,pxH)||1;
-  return t("aiPromptTmpl",{w:pxW,h:pxH,rw:pxW/g,rh:pxH/g});
+  var wmm=labelW(), hmm=labelH();
+  var orient = wmm > hmm*1.15 ? t("aiOrientLandscape")
+             : hmm > wmm*1.15 ? t("aiOrientPortrait")
+             : t("aiOrientSquare");
+  return t("aiPromptTmpl",{orient:orient});
 }
 $("copyPromptBtn").addEventListener("click", function(){
   copyText($("aiPromptText").value, "tPromptCopied");
@@ -3087,17 +3173,24 @@ function syncPresetSel(){
   $("presetSel").innerHTML=h; $("presetSel").value=S.presetId;
   $("delPreset").disabled = !(S.custom||[]).some(function(p){ return p.id===S.presetId; });
 }
+/* Switching paper size used to block on a confirm() first when it would
+   drop labels off the new, smaller grid - exactly the correction someone
+   makes right after noticing (per an onboarding-driven auto-pick, or
+   their own earlier mistake) that they picked the wrong paper, so it
+   fired constantly on the most likely single edit in the app. Same fix
+   as the overwrite guard: apply immediately, offer Undo instead of
+   asking first. */
 function pickPreset(id){
   var p=allPresets().filter(function(x){ return x.id===id; })[0];
   if(!p) return;
   var oc=S.g.cols, or=S.g.rows;
   var lost=countLost(p.cols, p.rows);
-  if(lost && !confirm(t("cSizeLoss",{n:lost}))){ syncPresetSel(); return; }
   mark();
   GEO.forEach(function(k){ S.g[k]=p[k]; });
   S.presetId=p.id;
   resize(S, oc, or); sel=new Set(); cur=0; anchor=0;
   fillGeo(); fitZoom(); save(); render(); syncPresetSel();
+  if(lost) toastUndo(t("tPresetLost",{n:lost}));
 }
 $("presetSel").addEventListener("change", function(){ pickPreset(this.value); });
 $("savePreset").addEventListener("click", function(){
@@ -3352,7 +3445,11 @@ function chooseJob(mode){
 
   if(freshSheet){
     var presetId = PRESET_FOR_MODE[mode];
-    if(presetId !== S.presetId) pickPreset(presetId);
+    if(presetId !== S.presetId){
+      pickPreset(presetId);
+      var pp=allPresets().filter(function(x){ return x.id===presetId; })[0];
+      if(pp) toast(t("tPresetAuto",{name: pp.full ? t("sizeFull") : (r2(pp.w)+"×"+r2(pp.h)+" mm")}));
+    }
     mark();
     S.cells[0] = Object.assign({}, EXAMPLE_FOR_MODE[mode]);
     sel = new Set([0]); cur = 0; anchor = 0;
