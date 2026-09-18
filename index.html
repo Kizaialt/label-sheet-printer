@@ -541,10 +541,18 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
    telling someone which physical paper they're about to print on, so on
    a phone it gets its own full-width row instead of competing for space. */
 @media (max-width:760px){
-  .zoomgrp{display:none}
+  .sep.zoomgrp{display:none}
   .topbar{flex-wrap:wrap; height:auto; min-height:48px; padding-top:6px; padding-bottom:6px}
   #presetSel{width:100% !important;min-width:0;order:5;flex:1 1 100%;height:34px}
   #dimChip{display:block !important;order:6;flex:1 1 100%;white-space:normal;font-size:12px}
+  /* The zoom controls were hidden outright below this width, which meant
+     a phone had no way to see a label bigger than the ~32px it renders
+     at by default - including the exact caption-too-small case the fit
+     floor above now warns about. They already exist and already work;
+     letting them wrap onto their own row costs nothing a hidden group
+     didn't already cost, and gives back the only way to actually check
+     a sheet before printing it. */
+  .row.zoomgrp{display:flex !important; order:7; flex:1 1 100%; justify-content:center; margin-top:4px}
 }
 /* The keyboard-shortcut table (Ctrl+C, Shift, arrow keys...) is dead
    weight on a touch device with no keyboard - hidden below the same
