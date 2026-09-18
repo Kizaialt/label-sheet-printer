@@ -2275,14 +2275,19 @@ function selCount(){
     var c=S.cells[arr[0]]||{}, st=Object.assign({},DEF_STYLE,c);
     el.innerHTML = "<b>"+ref(arr[0])+"</b><em>"+(c.t ? esc(c.t.split("\n")[0]) : (c.img ? t("wImage") : t("wBlank")))+
                    "</em>"+(c.m ? '<span>&middot; '+cname(mBase(c.m))+'</span>' : "");
-    if(!isEmpty(c)){
-      $("txtInput").value = c.t || "";
-      $("priceInput").value = c.p || "";
-      $("subInput").value = c.s || "";
-      $("qrInput").value = c.qr || "";
-      var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
-      if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
-    }
+    /* This used to only run "if(!isEmpty(c))", which meant selecting an
+       EMPTY cell left every field showing whatever the PREVIOUS selection
+       had typed - not blank. Applying to that "blank-looking" cell right
+       after would silently carry over a stale price/qr/etc from a
+       completely different label. jm below already stays null for a
+       genuinely empty cell, so removing the guard here doesn't reopen
+       the auto-mode-switch risk, it just makes the fields honest. */
+    $("txtInput").value = c.t || "";
+    $("priceInput").value = c.p || "";
+    $("subInput").value = c.s || "";
+    $("qrInput").value = c.qr || "";
+    var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
+    if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrangeForLogoUI(st.lay); $("imgSize").value = st.is;
     $("imgSizeVal").textContent = st.is+"%";
@@ -2386,9 +2391,14 @@ function pasteText(txt){
   var out=new Set(), k=0, i;
   for(i=0;i<rows.length && start+i<n;i++){
     var idx=start+i, cell=S.cells[idx]||(S.cells[idx]={});
-    cell.t=rows[i].t; cell.s=rows[i].s;
-    if(rows[i].p) cell.p=rows[i].p;
-    writeExtras(cell, ex, true);
+    /* Each pasted row owns its own price outright - writeExtras() would
+       otherwise reapply whatever's sitting in the single #priceInput
+       field (stale from some earlier, unrelated single-cell edit) and
+       silently clobber the price this exact row just parsed, right after
+       setting it. bc/qr still come from the current mode as normal;
+       only price is row-owned data here. */
+    cell.t=rows[i].t; cell.s=rows[i].s; cell.p=rows[i].p||"";
+    writeExtras(cell, {p:null, bc:ex.bc, qr:ex.qr}, true);
     applyStyleTo(cell);
     out.add(idx); k++;
   }
@@ -2703,9 +2713,11 @@ $("applyList").addEventListener("click", function(){
     if(k>=rows.length && !rep) return;
     var c=S.cells[i]||(S.cells[i]={});
     var row=rows[rep ? (k%rows.length) : k];
-    c.t=row.t; c.s=row.s;
-    if(row.p) c.p=row.p;
-    writeExtras(c, ex, true);
+    /* Same reasoning as pasteText(): this row's own price must win over
+       whatever's sitting in #priceInput, or a list-fill silently reuses
+       one unrelated stale price for every row instead of each row's own. */
+    c.t=row.t; c.s=row.s; c.p=row.p||"";
+    writeExtras(c, {p:null, bc:ex.bc, qr:ex.qr}, true);
     applyStyleTo(c); used++;
   });
   save(); render();
