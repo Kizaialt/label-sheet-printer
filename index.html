@@ -607,6 +607,13 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   .stage{max-height:52vh;padding:16px}
   .topbar{padding:0 var(--s-3);gap:var(--s-2)}
   .brand{display:none}
+  /* At this width the sidebar stacks below the stage and its sticky
+     Apply/Clear footer lands at the true bottom of the viewport - the
+     same place a fixed, bottom:22px toast was landing. Measured them
+     directly overlapping (toast bottom edge past the footer's top edge)
+     on a 375x812 viewport. Clearing both the footer and the fill-banner
+     that can appear above it needs real room, not a small nudge. */
+  #toast{bottom:180px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
@@ -943,6 +950,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <summary><span class="kbTitleFull" data-i18n="secPrintHelp">Printing &amp; shortcuts</span><span class="kbTitleShort" data-i18n="secPrintHelpMobile">Print help</span></summary>
         <div class="body">
           <div class="hint" data-i18n-html="printHint"></div>
+          <button type="button" class="btn wide" id="restorePrintDlgBtn" hidden data-i18n="restorePrintDlg">Show the pre-print reminder again</button>
           <div class="hint" id="kbGrid" style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center">
             <span class="kbd">Click</span><span data-i18n="kbClick">Select one label</span>
             <span class="kbd">Drag</span><span data-i18n="kbDrag">Select a block</span>
@@ -1191,11 +1199,13 @@ var STR = {
   dlgScale: "Масштаб: <b>100%</b> — «fit to page» биш",
   dlgWhy: "Эдгээрийн аль нэг буруу бол шошго цаасан дээрх тасалсан хэлбэртэй таарахгүй.",
   dlgFillWarnText: "Энэ хуудсанд {total} шошго байна. Зөвхөн {filled}-д нь бичсэн байна.",
-  dlgWhere: "Дараагийн цонхны зүүн доод буланд «Дэлгэрэнгүй» эсвэл «More settings» гэснийг дарахад Захын зай (Margins) болон Масштаб (Scale) харагдана.",
+  dlgWhere: "Дараагийн цонхноос «Дэлгэрэнгүй» эсвэл «More settings» гэснийг хайж олоорой — тэндээс Захын зай (Margins), Масштаб (Scale) харагдана. Утсан дээр өөр байрлалтай эсвэл огт байхгүй байж болно, тэгвэл анхны тохиргоогоор нь үргэлжлүүлээрэй.",
   dlgTip: "Эргэлзвэл: эхлээд энгийн цаасан дээр нэг хэвлээд, наалтын хуудастайгаа давхарлаж гэрэлд хараарай.",
   dlgGo: "Хэвлэх",
   dlgCancel: "Болих",
   dlgNever: "Дахиж бүү харуул",
+  restorePrintDlg: "Хэвлэхийн өмнөх сануулгыг дахин харуулах",
+  tPrintDlgRestored: "Хэвлэхийн өмнөх сануулгыг дахин харуулна.",
   ptAuto: "«Автомат» асаалттай үед үсгийн хэмжээг өөрөө тохируулна",
   modeAsk: "Юу хийх вэ?",
   modePlain: "Энгийн",
@@ -1528,6 +1538,15 @@ function applyMode(){
   Array.prototype.forEach.call($("modeSeg").children, function(b){
     b.classList.toggle("on", b.dataset.mode === mode);
   });
+  /* The text box's placeholder used to be a hardcoded "ABC-1234" no
+     matter which job was active - a technical-looking serial number is
+     a strange example for someone typing a product name in Plain or
+     Price mode. Reuses the same EXAMPLE_FOR_MODE data the onboarding
+     cards already seed with, so it's a real product name where that
+     makes sense and a real SKU shape only where SKUs are the point. */
+  if(typeof EXAMPLE_FOR_MODE !== "undefined" && EXAMPLE_FOR_MODE[mode]){
+    $("txtInput").placeholder = EXAMPLE_FOR_MODE[mode].t;
+  }
 }
 var curImg = null;
 var paint = false;
@@ -3444,10 +3463,21 @@ $("dlgFillWarnBtn").addEventListener("click", function(){
 $("dlgCancel").addEventListener("click", function(){ $("printDlg").hidden=true; });
 $("printDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
 $("dlgGo").addEventListener("click", function(){
-  if($("dlgNever").checked){ S.opts.noPrintDlg=1; save(); }
+  if($("dlgNever").checked){ S.opts.noPrintDlg=1; save(); syncRestorePrintDlgBtn(); }
   $("printDlg").hidden=true;
   var calibrate=pendingCalibrate; pendingCalibrate=false;
   setTimeout(function(){ doPrint(calibrate); }, 30);
+});
+/* "Don't show this again" had no way back - one mistap (it sits right
+   above the button she's aiming for, in a checklist she may not have
+   read closely) permanently removes the only printer-settings guidance
+   in the app. This button only appears once that's actually the current
+   state, so it's invisible/irrelevant the rest of the time. */
+function syncRestorePrintDlgBtn(){ $("restorePrintDlgBtn").hidden = !S.opts.noPrintDlg; }
+$("restorePrintDlgBtn").addEventListener("click", function(){
+  S.opts.noPrintDlg = 0; save();
+  syncRestorePrintDlgBtn();
+  toast(t("tPrintDlgRestored"));
 });
 $("printBtn").addEventListener("click", function(){ askThenPrint(false); });
 $("calBtn").addEventListener("click", function(){
@@ -3678,6 +3708,7 @@ function syncOpts(){
   $("printMarkers").checked=!!S.opts.printMarkers;
   $("guideChk").checked=!!S.opts.guides;
   $("idxChk").checked=!!S.opts.idx;
+  syncRestorePrintDlgBtn();
   var st=Object.assign({}, DEF_STYLE, S.style||{});
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
   $("layoutSel").value=arrangeForLogoUI(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
