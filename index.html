@@ -37,7 +37,11 @@
   --r-1:4px; --r-2:6px; --r-pill:999px;
   --s-1:4px; --s-2:6px; --s-3:8px; --s-4:12px; --s-5:16px; --s-6:22px;
 
-  --fs-micro:10.5px; --fs-body:13.5px; --fs-lead:17px;
+  /* Bumped from 10.5/13.5px - a grandma-usability audit measured almost
+     every label, hint, checkbox caption and input in the app at one of
+     these two sizes, well under any common minimum-legible-text guidance
+     for someone who may need reading glasses. */
+  --fs-micro:14px; --fs-body:16px; --fs-lead:17px;
 
   --t:120ms; --ease:cubic-bezier(.22,1,.36,1);
   --sh-paper:0 1px 2px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.10);
@@ -95,7 +99,7 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 /* ================= controls ================= */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  height:30px;padding:0 11px;border-radius:var(--r-1);
+  height:44px;padding:0 11px;border-radius:var(--r-1);
   background:var(--panel);color:var(--ink);border:1px solid var(--line-2);
   white-space:nowrap;
   transition:background var(--t) var(--ease),border-color var(--t) var(--ease),color var(--t) var(--ease);
@@ -105,7 +109,11 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .btn[disabled]{opacity:.4;pointer-events:none}
 .btn.ghost{border-color:transparent;background:transparent;color:var(--ink-2)}
 .btn.ghost:hover{background:var(--panel-2);color:var(--ink)}
-.btn.sm{height:26px;padding:0 9px}
+/* .sm stays smaller than the 44px baseline for secondary/toolbar actions
+   (undo/redo glyphs, page nav) where cramming every one to 44px would
+   overflow the topbar - but still meaningfully bigger than the 26px this
+   was before. */
+.btn.sm{height:36px;padding:0 9px}
 .btn.wide{width:100%}
 .btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);font-weight:550}
 .btn.primary:hover{opacity:.86}
@@ -117,9 +125,18 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .btn.is-empty:hover,.btn.is-empty:active{opacity:.45}
 .btn.on{background:var(--selected);border-color:var(--ink-3);color:var(--ink)}
 .btn.warn:hover{color:var(--danger);border-color:var(--danger)}
+/* Apply and Clear sat 6px apart, same visual weight, in a sticky footer
+   near the bottom edge - easy to hit the wrong one, especially for less
+   precise taps, and the destructive one gave no visual warning at all
+   (its only distinction was a :hover state, which a touchscreen never
+   triggers). Real, always-visible separation and colour now, not a
+   hover effect nobody touching a phone will ever see. */
+.applybar .g2{gap:16px}
+#clearCells{color:var(--danger);border-color:var(--danger)}
+#clearCells:hover{background:var(--danger);color:#fff}
 
 input[type=text],input[type=number],input[type=search],select,textarea{
-  width:100%;height:30px;padding:0 8px;border-radius:var(--r-1);
+  width:100%;height:44px;padding:0 8px;border-radius:var(--r-1);
   background:var(--sunken);border:1px solid var(--line-2);
   transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease);
 }
@@ -135,7 +152,7 @@ select{
   background-size:4px 4px,4px 4px;background-repeat:no-repeat;
 }
 input[type=range]{height:20px;padding:0;background:transparent;border:none;accent-color:var(--ink)}
-input[type=checkbox]{accent-color:var(--ink);width:14px;height:14px;flex:none}
+input[type=checkbox]{accent-color:var(--ink);width:22px;height:22px;flex:none}
 
 /* ================= sidebar ================= */
 .sidebar{
@@ -155,7 +172,7 @@ input[type=checkbox]{accent-color:var(--ink);width:14px;height:14px;flex:none}
 .count em{color:var(--ink-2);font-style:normal}
 .chips{display:flex;flex-wrap:wrap;gap:var(--s-1)}
 .chip{
-  height:23px;padding:0 8px;border-radius:var(--r-1);font-size:var(--fs-micro);
+  height:36px;padding:0 8px;border-radius:var(--r-1);font-size:var(--fs-micro);
   background:transparent;border:1px solid var(--line);color:var(--ink-2);
   display:inline-flex;align-items:center;
   transition:background var(--t) var(--ease),color var(--t) var(--ease),border-color var(--t) var(--ease);
@@ -222,7 +239,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   display:inline-block;padding:1px 5px;border-radius:3px;font-size:var(--fs-micro);
   background:var(--panel-2);border:1px solid var(--line-2);color:var(--ink-2);
 }
-.check{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-micro);color:var(--ink-2);cursor:pointer;padding:2px 0}
+.check{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-micro);color:var(--ink-2);cursor:pointer;padding:8px 0;min-height:44px}
 .check:hover{color:var(--ink)}
 .well{
   background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-2);
@@ -236,7 +253,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-2);border-radius:var(--r-1);overflow:hidden}
 .segb{
-  height:27px;font-size:var(--fs-micro);color:var(--ink-3);
+  height:44px;font-size:var(--fs-body);color:var(--ink-3);
   display:flex;align-items:center;justify-content:center;gap:6px;
   transition:background var(--t) var(--ease),color var(--t) var(--ease);
 }
@@ -403,7 +420,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   align-items:center;justify-content:center;background:rgba(0,0,0,.42);
 }
 .modal{
-  width:min(92vw,360px);display:flex;flex-direction:column;gap:var(--s-3);
+  width:min(92vw,360px);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:var(--s-3);
   padding:var(--s-6);border-radius:var(--r-2);
   background:var(--panel);border:1px solid var(--line-2);
   box-shadow:0 12px 40px rgba(0,0,0,.35);
@@ -445,8 +462,28 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 #txtInput.introHighlight{animation:introPulse 1.1s var(--ease) 2}
 
+/* The "you've only filled 1 of 40" banner - a persistent, un-timed callout
+   right above the button that made this true, not a toast that vanishes
+   in 2 seconds. Sized for the same "could my grandmother tap this"
+   standard as the rest of this session's fixes: 44px-tall button, 15px
+   text, regardless of the base type scale elsewhere in the sidebar. */
+.fillBanner{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:10px 12px;margin-bottom:8px;border-radius:var(--r-1);
+  background:var(--accent-soft);border:1px solid var(--accent);
+  font-size:15px;line-height:1.4;color:var(--ink);
+}
+.fillBanner[hidden]{display:none}
+.fillBanner span{flex:1 1 200px}
+.fillBanner .btn{min-height:44px;font-size:15px;flex:none;font-weight:600}
+.fillAllClose{
+  background:none;border:none;color:var(--ink-3);font-size:22px;line-height:1;
+  cursor:pointer;padding:2px 6px;flex:none;
+}
+.fillAllClose:hover{color:var(--ink)}
+
 .printNudge{
-  position:absolute;top:52px;right:var(--s-4);z-index:var(--z-bar);
+  position:fixed;z-index:var(--z-bar);
   max-width:220px;padding:8px 10px;border-radius:var(--r-2);
   background:var(--ink);color:var(--panel);font-size:var(--fs-micro);line-height:1.5;
   box-shadow:0 6px 20px rgba(0,0,0,.25);
@@ -924,6 +961,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         </div>
       </details>
       <div class="applybar">
+        <div class="fillBanner" id="fillAllBanner" hidden>
+          <span id="fillAllBannerText"></span>
+          <button class="btn accent" id="fillAllBannerBtn" data-i18n="fillAllBannerBtn">Make them all the same</button>
+          <button type="button" class="fillAllClose" id="fillAllBannerClose" data-i18n-aria="dlgClose" aria-label="Close">&times;</button>
+        </div>
         <div class="g2">
           <button class="btn accent" id="applyText" data-i18n="applyText">Apply to selection</button>
           <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
@@ -935,6 +977,10 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 <div class="modalwrap" id="printDlg" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlgH">
     <h2 id="dlgH" data-i18n="dlgTitle">Before you print</h2>
+    <div class="fillBanner" id="dlgFillWarn" hidden>
+      <span id="dlgFillWarnText"></span>
+      <button type="button" class="btn accent" id="dlgFillWarnBtn" data-i18n="fillAllBannerBtn">Make them all the same</button>
+    </div>
     <ul class="checklist">
       <li data-i18n-html="dlgA4"></li>
       <li data-i18n-html="dlgMargin"></li>
@@ -1144,6 +1190,7 @@ var STR = {
   dlgMargin: "Захын зай: <b>None</b> (Тэг)",
   dlgScale: "Масштаб: <b>100%</b> — «fit to page» биш",
   dlgWhy: "Эдгээрийн аль нэг буруу бол шошго цаасан дээрх тасалсан хэлбэртэй таарахгүй.",
+  dlgFillWarnText: "Энэ хуудсанд {total} шошго байна. Зөвхөн {filled}-д нь бичсэн байна.",
   dlgWhere: "Дараагийн цонхны зүүн доод буланд «Дэлгэрэнгүй» эсвэл «More settings» гэснийг дарахад Захын зай (Margins) болон Масштаб (Scale) харагдана.",
   dlgTip: "Эргэлзвэл: эхлээд энгийн цаасан дээр нэг хэвлээд, наалтын хуудастайгаа давхарлаж гэрэлд хараарай.",
   dlgGo: "Хэвлэх",
@@ -1198,6 +1245,8 @@ var STR = {
   emptySheet: "Хоослох",
   exportBtn: "Экспорт",
   fillBtn: "Бөглөх",
+  fillAllBannerText: "Энэ хуудсанд {total} шошго байна. Зөвхөн 1-д нь бичсэн байна.",
+  fillAllBannerBtn: "Бүгдийг ижил болгох",
   fillList: "Жагсаалтаар бөглөх",
   fillNum: "Дугаарлах",
   filledW: "бөглөсөн",
@@ -1320,6 +1369,7 @@ var STR = {
   tExported: "Хуудсыг экспортлолоо",
   tFilled: "{k} мөрөөр {n} {lbl} бөглөлөө",
   tFilledOne: "Эхний шошгоор {n} {lbl} бөглөлөө",
+  tFillNeedsMore: "Хамгийн багадаа 2 шошго сонгоорой.",
   tFull: "Хадгалах зай дүүрсэн тул энэ хуудас автоматаар хадгалагдахаа больлоо. Экспорт хийж хуулбараа аваарай.",
   tImgAdded: "Зураг нэмлээ — шошгоо сонгоод «Сонгосонд тавих» дараарай",
   tImgDel: "Зургийг устгалаа",
@@ -1526,7 +1576,10 @@ function toastUndo(msg){
   $("toastUndo").hidden = false;
   $("toast").classList.add("show");
   clearTimeout(toastT);
-  toastT = setTimeout(function(){ $("toast").classList.remove("show"); $("toastUndo").hidden = true; }, 5000);
+  /* 5s wasn't long enough to notice a small toast, read it, and find the
+     Undo link inside it - especially at normal reading speed, not a
+     power user's glance. 15s gives real time to react. */
+  toastT = setTimeout(function(){ $("toast").classList.remove("show"); $("toastUndo").hidden = true; }, 15000);
 }
 $("toastUndo").addEventListener("click", function(){
   clearTimeout(toastT);
@@ -2088,9 +2141,35 @@ function render(){
   $("blank").classList.toggle("on", virgin);
   $("filterSub").hidden = virgin;
   if(virgin) $("filterSub").open = false;
+  syncFillBanner();
   syncSelUI();
   drawSwatchCounts();
 }
+/* The exact failure the whole product exists to prevent: choosing a job
+   card seeds ONE example label, and if she prints right there she burns
+   a sheet of the paper this tool is meant to sell producing a single
+   sticker. Shows a persistent (not timed-out) banner the moment exactly
+   one label is filled on a multi-label sheet, offering the one-tap fix -
+   dismissible per-session (not saved forever) since a deliberate
+   one-of-each workflow shouldn't be nagged at repeatedly either. */
+var fillBannerDismissed = false;
+function filledCount(){ return S.cells.filter(function(c){ return !isEmpty(c); }).length; }
+function syncFillBanner(){
+  var total=count(), filled=filledCount();
+  var show = filled===1 && total>1 && !fillBannerDismissed;
+  $("fillAllBanner").hidden = !show;
+  if(show) $("fillAllBannerText").textContent = t("fillAllBannerText",{total:total});
+}
+function fillAllSame(){
+  if(!count()) return;
+  selectAll(); syncSelUI();
+  $("applyText").click();
+}
+$("fillAllBannerBtn").addEventListener("click", fillAllSame);
+$("fillAllBannerClose").addEventListener("click", function(){
+  fillBannerDismissed = true;
+  $("fillAllBanner").hidden = true;
+});
 
 function cellHTML(i, c){
   var st = Object.assign({}, DEF_STYLE, c);
@@ -2410,6 +2489,11 @@ function pasteText(txt){
 function fillFromFirst(){
   if(!needSel()) return;
   var arr=selArr(), src=S.cells[arr[0]]||{};
+  /* With one cell selected this used to be a silent no-op that still
+     reported success ("filled 1 label") - an affordance that claims it
+     worked when it did nothing at all. Only a real copy now counts as
+     a real toast. */
+  if(arr.length<=1){ toast(t("tFillNeedsMore")); return; }
   mark();
   arr.forEach(function(i){ if(i!==arr[0]) S.cells[i]=JSON.parse(JSON.stringify(src)); });
   save(); render(); toast(t("tFilledOne",{n:arr.length,lbl:plural(arr.length)}));
@@ -2597,16 +2681,16 @@ function needSel(){
    existing value, so the ordinary "fix a typo across the batch I just
    made" workflow (every selected cell already holds the SAME text) is
    never treated as a risky overwrite. */
-function distinctExistingCount(indices){
-  var seen={}, n=0, i, v;
-  for(i=0;i<indices.length;i++){
-    v=(S.cells[indices[i]]||{}).t;
-    if(v && !seen[v]){ seen[v]=1; n++; }
-  }
-  return n;
-}
+/* Used to only flag a write as risky when the selection held more than
+   one DISTINCT existing value - so re-applying one uniform batch of
+   identical labels, or "fix a typo and reapply to all 40," never showed
+   Undo. But an independent usability pass found the gap that leaves:
+   overwriting 40 already-identical, already-correct labels with a
+   mistyped price also got no Undo, because they were "only" one distinct
+   value before the write. Any pre-existing content at all being replaced
+   is worth an Undo offer now - it costs nothing when she didn't need it. */
 function isMixedOverwrite(indices){
-  return distinctExistingCount(indices) > 1;
+  return indices.some(function(i){ return !isEmpty(S.cells[i]||{}); });
 }
 
 /* ================= content ================= */
@@ -2669,13 +2753,17 @@ $("applyText").addEventListener("click", function(){
   save(); render();
   var msg = thin ? t("tThinBarcode") : (v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
   if(mixed) toastUndo(msg); else toast(msg);
+  if(v.trim()) showPrintNudge();
 });
 function clearCells(){
   if(!needSel()) return;
   var n=sel.size;
+  var hadContent = isMixedOverwrite(selArr());
   mark();
   selArr().forEach(function(i){ var m=(S.cells[i]||{}).m; S.cells[i] = m ? {m:m} : {}; });
-  save(); render(); toast(t("tCleared",{n:n,lbl:plural(n)}));
+  save(); render();
+  var msg=t("tCleared",{n:n,lbl:plural(n)});
+  if(hadContent) toastUndo(msg); else toast(msg);
 }
 $("clearCells").addEventListener("click", clearCells);
 $("copyBtn").addEventListener("click", function(){ copySel(false); });
@@ -3337,11 +3425,22 @@ function doPrint(calibrate){
 var pendingCalibrate=false;
 function askThenPrint(calibrate){
   pendingCalibrate=!!calibrate;
-  if(S.opts.noPrintDlg){ doPrint(pendingCalibrate); return; }
+  var total=count(), filled=filledCount(), incomplete = filled>0 && filled<total;
+  $("dlgFillWarn").hidden = !incomplete;
+  if(incomplete) $("dlgFillWarnText").textContent = t("dlgFillWarnText",{filled:filled,total:total});
+  /* "Don't show this again" is honoured for the routine printer-settings
+     checklist, but not when the sheet itself is the problem - that's a
+     fresh, higher-priority thing to catch each time it's true, not the
+     thing she opted out of. */
+  if(S.opts.noPrintDlg && !incomplete){ doPrint(pendingCalibrate); return; }
   $("dlgNever").checked=false;
   $("printDlg").hidden=false;
   $("dlgGo").focus();
 }
+$("dlgFillWarnBtn").addEventListener("click", function(){
+  $("printDlg").hidden=true;
+  fillAllSame();
+});
 $("dlgCancel").addEventListener("click", function(){ $("printDlg").hidden=true; });
 $("printDlg").addEventListener("click", function(e){ if(e.target===this) this.hidden=true; });
 $("dlgGo").addEventListener("click", function(){
@@ -3420,12 +3519,24 @@ function hideIntroNudge(){
   $("introNudge").hidden = true;
   S.opts.introNudgeSeen = 1; save();
 }
-$("txtInput").addEventListener("input", hideIntroNudge);
+/* No "input" listener here on purpose any more - it used to hide the ONE
+   instruction naming the next button on her very first keystroke, while
+   the phone keyboard covers the bottom half of the screen. applyText's
+   own click handler already calls hideIntroNudge() at the moment she's
+   actually done with it, which is the correct trigger. */
 
 function showPrintNudge(){
   if(S.opts.printNudgeSeen) return;
-  $("printNudge").hidden = false;
-  setTimeout(hidePrintNudge, 6000);
+  /* Fixed instead of absolute, with top/right computed from #printBtn's
+     real on-screen position rather than a guessed pixel offset from the
+     topbar - the mobile topbar wraps onto 2-3 rows now (paper size, mm
+     readout, zoom), so a static "top:52px" landed on top of the paper
+     selector instead of near the button it's pointing at. */
+  var r=$("printBtn").getBoundingClientRect(), nudge=$("printNudge");
+  nudge.style.top=(r.bottom+8)+"px";
+  nudge.style.right=(window.innerWidth-r.right)+"px";
+  nudge.hidden = false;
+  setTimeout(hidePrintNudge, 8000);
 }
 function hidePrintNudge(){
   if($("printNudge").hidden) return;
@@ -3476,7 +3587,6 @@ function chooseJob(mode){
     save(); render();
     closeOnboarding();
     showIntroNudge();
-    showPrintNudge();
   } else {
     save();
     toast(t("tModeSet",{lbl: $("modeSeg").querySelector(".on").textContent}));
