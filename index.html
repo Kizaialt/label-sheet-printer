@@ -1497,16 +1497,13 @@ var LEGACY = {
 
 var A4 = {pw:210, ph:297};
 /* w/h are the printed label size; the visible name is built per language */
+/* Trimmed down to only the physical stock actually in use (2026-09-23) -
+   the rest were guessed standard sizes nobody was printing on. Anything
+   else needed goes through the app's own "save as preset" (savePreset),
+   not a hardcoded entry here. */
 var BUILTIN = [
-  {id:"s-32x15",  w:32,  h:15,  cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
-  {id:"s-38x21",  w:38,  h:21,  cols:5,rows:13,mt:10.7,mr:4.75,mb:10.7,ml:4.75,gx:2.5,gy:0,rad:1.5},
-  {id:"s-48x25",  w:48,  h:25,  cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
-  {id:"s-63x38",  w:63,  h:38,  cols:3,rows:7, mt:15.15,mr:7.25,mb:15.15,ml:7.25,gx:2.5,gy:0,rad:2},
-  {id:"s-70x37",  w:70,  h:37,  cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-99x67",  w:99,  h:68,  cols:2,rows:4, mt:13.1,mr:4.65,mb:13.1,ml:4.65,gx:2.5,gy:0,rad:2},
-  {id:"s-105x42", w:105, h:42,  cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-105x148",w:105, h:149, cols:2,rows:2, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
-  {id:"s-full",   full:true,    cols:1,rows:1, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:0}
+  {id:"s-32x15",  w:32,  h:15, cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
+  {id:"s-100x55", w:100, h:55, cols:2,rows:5, mt:7,mr:4,mb:7,ml:4,gx:2,gy:2,rad:1.5}
 ];
 BUILTIN.forEach(function(b){ b.pw=A4.pw; b.ph=A4.ph; });
 function presetName(p){
@@ -3575,7 +3572,7 @@ function hidePrintNudge(){
 }
 $("printBtn").addEventListener("click", hidePrintNudge);
 
-var PRESET_FOR_MODE = {plain:"s-32x15", price:"s-48x25", sku:"s-48x25", qr:"s-48x25"};
+var PRESET_FOR_MODE = {plain:"s-32x15", price:"s-100x55", sku:"s-100x55", qr:"s-100x55"};
 var EXAMPLE_FOR_MODE = {
   plain: {t:"Цамц"},
   price: {t:"Цамц", p:"15000"},
