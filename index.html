@@ -1464,7 +1464,17 @@ function parseRows(lines){
        keyboard produces, so both count as a multiplier. */
     var m = f.length>1 ? /^[x\u0445\u00d7*]\s*(\d{1,3})$/i.exec(f[f.length-1]) : null;
     if(m){ copies=Math.max(1, parseInt(m[1],10)||1); f.pop(); }
-    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).join(" ")};
+    /* Pasting a wider range than actually has data in it - normal when
+       copying a whole row out of a spreadsheet or a tab-aligned text
+       file - left trailing empty columns in f. Joining those with " "
+       produced a sub-line that was just one or more literal space
+       characters: invisible in the pasted text itself, but a real,
+       non-empty string once stored (isEmpty()/hasSub both count a
+       lone space as "has content"), so it rendered as an unwanted
+       blank line under the price on the actual printed sticker.
+       Dropping empty fields before joining removes the phantom spaces
+       without affecting a genuine multi-word third column. */
+    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).filter(function(x){ return x; }).join(" ")};
     for(var q=0;q<copies;q++) rows.push(row);
   });
   return rows;
