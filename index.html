@@ -2440,6 +2440,23 @@ function redo(){
    goes to the system clipboard as plain text, so a sheet can be pasted into a
    spreadsheet, and a spreadsheet can be pasted back in. */
 var clip=null, clipText="";
+/* navigator.clipboard.writeText() is async and its failures are invisible -
+   on Windows a clipboard manager/AV hook, a focus hiccup, or (on the local
+   file:// preview) the lack of a secure context can make it silently not
+   land before the user hits paste. When that happens the OS clipboard still
+   holds whatever was there before, the paste handler's txt===clipText check
+   fails, and a plain in-app copy+paste gets misread as pasted-in external
+   text - dropping every field but the name. document.execCommand("copy")
+   fires the copy event synchronously in the same user gesture and works
+   without any permission/secure-context requirement, so it can't race. */
+function writeSystemClipboard(text){
+  function handler(e){ e.clipboardData.setData("text/plain", text); e.preventDefault(); }
+  document.addEventListener("copy", handler);
+  var ok=false;
+  try { ok = document.execCommand("copy"); } catch(e){}
+  document.removeEventListener("copy", handler);
+  if(!ok){ try { if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch(e){} }
+}
 function blockOf(arr){
   var cols=S.g.cols, rs=[], cs=[], i;
   for(i=0;i<arr.length;i++){ rs.push(Math.floor(arr[i]/cols)); cs.push(arr[i]%cols); }
@@ -2461,7 +2478,7 @@ function copySel(cutIt){
   }
   clip={w:b.w,h:b.h,cells:out};
   clipText=lines.join("\n");
-  try { if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(clipText); } catch(e){}
+  writeSystemClipboard(clipText);
   var n=arr.length;
   if(cutIt){
     mark();
