@@ -603,8 +603,15 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 @media (max-width:900px){
   .main{flex-direction:column}
-  .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:48vh}
-  .stage{max-height:52vh;padding:16px}
+  /* The stage (sheet preview) and sidebar (actual controls) are stacked,
+     each independently scrollable. At the old 52/48 split the preview -
+     which you only look at, never type into - claimed over half the
+     screen, pushing the one field every visit needs (the label text
+     input) below the fold from first paint. Rebalanced toward the panel
+     you actually act in; the preview still shows a real chunk of the
+     sheet and the zoom/"fit to window" controls cover the rest. */
+  .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:64vh}
+  .stage{max-height:36vh;padding:16px}
   .topbar{padding:0 var(--s-3);gap:var(--s-2)}
   .brand{display:none}
   /* At this width the sidebar stacks below the stage and its sticky
@@ -788,7 +795,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             </div>
           </details>
           <details class="sub">
-            <summary data-i18n="moreBulk">Bulk fill</summary>
+            <summary data-i18n="secAutoNum">Auto-number</summary>
             <div class="subbody">
           <div>
             <label class="lbl" data-i18n="lblAutoNum">Auto-number</label>
@@ -802,6 +809,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <input type="text" id="seqSuffix" data-i18n-ph="phSuffix" data-i18n-aria="phSuffix">
             <button class="btn" id="applySeq" data-i18n="fillNum">Fill numbered</button>
           </div>
+            </div>
+          </details>
+          <details class="sub">
+            <summary data-i18n="secListFill">Fill from a list</summary>
+            <div class="subbody">
           <div>
             <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
             <div class="hint" style="margin:-2px 0 5px" data-i18n="colsHint"></div>
@@ -816,65 +828,6 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           </details>
         </div>
       </details>
-
-      <details class="sec">
-        <summary data-i18n="secImage">Image</summary>
-        <div class="body">
-          <div class="hint" data-i18n="aiPromptHint"></div>
-          <textarea id="aiPromptText" rows="5" readonly></textarea>
-          <button class="btn wide" id="copyPromptBtn" data-i18n="copyPromptBtn">Copy the prompt</button>
-          <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
-          <label class="drop" id="drop">
-            <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
-            <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
-            <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
-          </label>
-          <div class="imglib" id="imgLib"></div>
-          <button class="btn accent wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary data-i18n="secLogo">Logo</summary>
-        <div class="body">
-          <div class="hint" data-i18n="logoHint"></div>
-          <div class="g2">
-            <button class="btn" id="applyImg" data-i18n="placeImg">Place on selection</button>
-            <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
-          </div>
-          <div>
-            <label class="lbl" for="layoutSel" data-i18n="lblArrange">When a label has both</label>
-            <select id="layoutSel">
-              <option value="img-top" data-i18n="layTop">Image above the text</option>
-              <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
-              <option value="img-left" data-i18n="layLeft">Image left of the text</option>
-              <option value="img-right" data-i18n="layRight">Image right of the text</option>
-            </select>
-          </div>
-          <div>
-            <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
-            <input type="range" id="imgSize" min="10" max="100" value="55">
-          </div>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary data-i18n="secColour">Colour tags</summary>
-        <div class="body">
-          <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
-            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
-            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
-          </div>
-          <div class="swatches" id="swatches"></div>
-          <div class="g2">
-            <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
-            <button class="btn" id="markClear" data-i18n="untag">Untag</button>
-          </div>
-          <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
-          <div class="hint" data-i18n-html="colourHint"></div>
-        </div>
-      </details>
-
 
       <details class="sec">
         <summary data-i18n="secSheet">Sheet</summary>
@@ -897,6 +850,68 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <div class="hint" style="margin-top:5px" data-i18n="offsetHint"></div>
           </div>
           <button class="btn wide" id="calBtn" data-i18n="calBtn">Print a calibration page</button>
+          <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary data-i18n="secMore">More tools</summary>
+        <div class="body">
+          <details class="sub">
+            <summary data-i18n="secImage">Image</summary>
+            <div class="subbody">
+              <div class="hint" data-i18n="aiPromptHint"></div>
+              <textarea id="aiPromptText" rows="5" readonly></textarea>
+              <button class="btn wide" id="copyPromptBtn" data-i18n="copyPromptBtn">Copy the prompt</button>
+              <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
+              <label class="drop" id="drop">
+                <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
+                <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
+                <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
+              </label>
+              <div class="imglib" id="imgLib"></div>
+              <button class="btn accent wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
+            </div>
+          </details>
+          <details class="sub">
+            <summary data-i18n="secLogo">Logo</summary>
+            <div class="subbody">
+              <div class="hint" data-i18n="logoHint"></div>
+              <div class="g2">
+                <button class="btn" id="applyImg" data-i18n="placeImg">Place on selection</button>
+                <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
+              </div>
+              <div>
+                <label class="lbl" for="layoutSel" data-i18n="lblArrange">When a label has both</label>
+                <select id="layoutSel">
+                  <option value="img-top" data-i18n="layTop">Image above the text</option>
+                  <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
+                  <option value="img-left" data-i18n="layLeft">Image left of the text</option>
+                  <option value="img-right" data-i18n="layRight">Image right of the text</option>
+                </select>
+              </div>
+              <div>
+                <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
+                <input type="range" id="imgSize" min="10" max="100" value="55">
+              </div>
+            </div>
+          </details>
+          <details class="sub">
+            <summary data-i18n="secColour">Colour tags</summary>
+            <div class="subbody">
+              <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
+                <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
+                <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
+              </div>
+              <div class="swatches" id="swatches"></div>
+              <div class="g2">
+                <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
+                <button class="btn" id="markClear" data-i18n="untag">Untag</button>
+              </div>
+              <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
+              <div class="hint" data-i18n-html="colourHint"></div>
+            </div>
+          </details>
           <details class="sub">
             <summary data-i18n="fineTune">Fine-tune this size</summary>
             <div class="subbody">
@@ -921,13 +936,12 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                   <input type="number" id="rad" step="0.1" aria-label="Corner radius">
                 </div>
               </div>
+              <div class="g2">
+                <button class="btn" id="savePreset" data-i18n="savePreset">Save as preset</button>
+                <button class="btn warn" id="delPreset" data-i18n="delPreset">Delete preset</button>
+              </div>
             </div>
           </details>
-          <div class="g2">
-            <button class="btn" id="savePreset" data-i18n="savePreset">Save as preset</button>
-            <button class="btn warn" id="delPreset" data-i18n="delPreset">Delete preset</button>
-          </div>
-          <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
           <details class="sub">
             <summary data-i18n="groupFile">File &amp; sharing</summary>
             <div class="subbody">
@@ -1346,6 +1360,9 @@ var STR = {
   dimChipLabel: "Цаас:",
   secImage: "Зураг",
   secLogo: "Лого",
+  secMore: "Нэмэлт хэрэгсэл",
+  secAutoNum: "Автомат дугаарлах",
+  secListFill: "Жагсаалтаас бөглөх",
   logoHint: "Зургийг текстийн хажууд жижгээр харуулна. Бүтэн зурган шошго хүсвэл дээрх «Зураг» хэсгийг ашиглаарай.",
   placeImgFull: "Шошгыг бүтнээр дүүргэх",
   aiPromptHint: "Доорх бичвэрийг ChatGPT зэрэг AI зурган хэрэгсэлд өгөөд, ард нь юу хүсч байгаагаа нэмж бичээрэй. Гарсан зургаа утсандаа хадгалаад, доорх нүдэнд оруулж «Шошгыг бүтнээр дүүргэх» дараарай.",
