@@ -3,38 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Peaklab Labels</title>
+<title>Naald.mn — A4 наалтын шошго бэлтгэх</title>
+<meta name="description" content="A4 наалтын цаасан дээр үнийн шошго, баркод, QR, логотой наалт бэлтгээд өөрийн принтерээр хэвлэнэ. Үнэгүй.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%236B2BD9'/%3E%3Cg transform='translate(22 22) scale(0.56)'%3E%3Cpath d='M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z' fill='%23FFFFFF'%3E%3C/path%3E%3Cpath d='M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z' fill='%23A98AEE'%3E%3C/path%3E%3Cpath d='M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z' fill='%23CDBAF7'%3E%3C/path%3E%3C/g%3E%3C/svg%3E">
+<!-- Brand fonts for the interface only. Both ship the cyrillic-ext subset,
+     which is where Ө and Ү live; label text keeps its own system fonts so
+     printing and autofit are unaffected, and everything falls back cleanly
+     if the font host is unreachable. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   Colour belongs to the labels, not the chrome.
-   The chrome is achromatic so the ten tag colours are the only
-   saturated things on screen; the paper is the brightest.
+   Naald.mn brand: purple band and primary actions, Unbounded
+   headings over Golos Text. The sheet area stays calm - the
+   paper is the brightest thing on screen and the ten tag
+   colours still read as data, not decoration.
    ============================================================ */
 :root{
   color-scheme:light;
 
-  --canvas:#d4d4cf;          /* the desk the sheet lies on */
+  --canvas:#dcd8e3;          /* the desk the sheet lies on */
   --paper:#ffffff;
-  --panel:#faf9f8;
-  --panel-2:#f2f1ee;
+  --panel:#fbfafd;
+  --panel-2:#f3f1f7;
   --sunken:#ffffff;
-  --selected:#e7e5e0;
-  --line:#e0ded9;
-  --line-2:#cfccc5;
+  --selected:#ebe6f5;
+  --line:#e6e1ee;
+  --line-2:#cfc8dc;
+  --field-line:#8e879b;      /* form controls: >=3:1 against the panel */
 
-  --ink:#1c1b19;
-  --ink-2:#45433f;
-  --ink-3:#6f6d67;
+  --ink:#17131f;
+  --ink-2:#4a4458;
+  --ink-3:#6b6478;
 
-  --accent:#2f6099;          /* selection and focus only */
-  --accent-soft:rgba(47,96,153,.10);
+  --brand:#6b2bd9;           /* Naald.mn purple: brand band, primary actions */
+  --brand-strong:#5a1fc4;
+  --brand-soft:#efe7fd;
+  --brand-tint:#d9c8fa;      /* secondary text on the brand band */
+  --on-brand:#ffffff;
+  --accent:#6b2bd9;          /* selection and focus */
+  --accent-soft:rgba(107,43,217,.10);
+  --sel:#6b2bd9;             /* selection drawn on the paper - always white, so never themed */
   --danger:#a3341f;
+
+  --font-ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-brand:"Unbounded","Golos Text",system-ui,sans-serif;
 
   --rule-blank:#d8dade;      /* hairlines drawn on the paper */
   --rule-filled:#a9adb4;
   --idx:#6b7280;
 
-  --r-1:4px; --r-2:6px; --r-pill:999px;
+  --r-1:6px; --r-2:10px; --r-pill:999px;
   --s-1:4px; --s-2:6px; --s-3:8px; --s-4:12px; --s-5:16px; --s-6:22px;
 
   /* Bumped from 10.5/13.5px - a grandma-usability audit measured almost
@@ -50,21 +70,25 @@
 }
 [data-theme="dark"]{
   color-scheme:dark;
-  --canvas:#16181c;
+  --canvas:#141218;
   --paper:#ffffff;
-  --panel:#1b1e23;
-  --panel-2:#212429;
-  --sunken:#14161a;
-  --selected:#2c3138;
-  --line:#2b2f36;
-  --line-2:#3a3f48;
+  --panel:#1b1920;
+  --panel-2:#23202a;
+  --sunken:#131117;
+  --selected:#2e2a38;
+  --line:#2e2a36;
+  --line-2:#443f4f;
+  --field-line:#6f6880;
 
-  --ink:#e8e8e6;
-  --ink-2:#b9b8b4;
-  --ink-3:#8e8d89;
+  --ink:#edeaf2;
+  --ink-2:#bdb7c8;
+  --ink-3:#958ea2;
 
-  --accent:#6fa3e0;
-  --accent-soft:rgba(111,163,224,.16);
+  /* --brand stays the same purple: white on it is 6.9:1 in either theme */
+  --brand-strong:#7d43e6;
+  --brand-soft:rgba(169,138,238,.16);
+  --accent:#a98aee;
+  --accent-soft:rgba(169,138,238,.18);
   --danger:#e08272;
   --sh-paper:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.45);
 }
@@ -74,7 +98,7 @@ html,body{height:100%}
 body{
   margin:0;overflow:hidden;
   background:var(--panel);color:var(--ink);
-  font:var(--fs-body)/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font:var(--fs-body)/1.45 var(--font-ui);
   font-feature-settings:"tnum" 0;
 }
 button,input,select,textarea{font:inherit;color:inherit}
@@ -88,11 +112,28 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .main{display:flex;flex:1;min-height:0}
 .topbar{
   display:flex;align-items:center;gap:var(--s-3);
-  height:48px;flex:none;padding:0 var(--s-4);
-  background:var(--panel);border-bottom:1px solid var(--line);
+  height:56px;flex:none;padding:0 var(--s-4);
+  background:var(--brand);color:var(--on-brand);
   position:relative;z-index:var(--z-bar);
 }
-.brand{font-size:var(--fs-body);font-weight:600;letter-spacing:-.005em;white-space:nowrap;color:var(--ink)}
+/* The purple band is the cover's purple panel: everything on it is white. */
+.topbar .sep{background:rgba(255,255,255,.28)}
+.topbar .btn.ghost{color:var(--on-brand)}
+.topbar .btn.ghost:hover{background:rgba(255,255,255,.14);color:var(--on-brand)}
+.topbar .btn.ghost:active{background:rgba(255,255,255,.22)}
+.topbar .hint{color:var(--brand-tint)}
+.topbar select{background-color:#fff;color:#17131f;border-color:transparent}
+.topbar select:hover{border-color:transparent;box-shadow:0 0 0 2px rgba(255,255,255,.45)}
+.topbar :focus-visible{outline-color:#fff}
+#printBtn{background:#fff;color:var(--brand);border-color:#fff;font-weight:700}
+#printBtn:hover{background:var(--brand-soft);color:var(--brand-strong);opacity:1}
+.brand{
+  display:flex;align-items:center;gap:9px;flex:none;
+  font-family:var(--font-brand);font-size:19px;font-weight:700;letter-spacing:-.01em;
+  white-space:nowrap;color:var(--on-brand);text-decoration:none;
+}
+.brand svg{width:30px;height:30px;flex:none;display:block}
+.brand .dot{color:var(--brand-tint)}
 .sep{width:1px;height:20px;background:var(--line);flex:none}
 .spacer{flex:1;min-width:0}
 
@@ -115,12 +156,9 @@ button{cursor:pointer;border:none;background:none;color:inherit}
    was before. */
 .btn.sm{height:36px;padding:0 9px}
 .btn.wide{width:100%}
-.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);font-weight:550}
-.btn.primary:hover{opacity:.86}
-.btn.primary:active{opacity:1}
-.btn.accent{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:550}
-.btn.accent:hover{opacity:.86}
-.btn.accent:active{opacity:1}
+.btn.primary,.btn.accent{background:var(--brand);color:var(--on-brand);border-color:var(--brand);font-weight:600}
+.btn.primary:hover,.btn.accent:hover{background:var(--brand-strong);border-color:var(--brand-strong)}
+.btn.primary:active,.btn.accent:active{background:var(--brand)}
 .btn.is-empty{opacity:.45}
 .btn.is-empty:hover,.btn.is-empty:active{opacity:.45}
 .btn.on{background:var(--selected);border-color:var(--ink-3);color:var(--ink)}
@@ -137,12 +175,12 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 
 input[type=text],input[type=number],input[type=search],select,textarea{
   width:100%;height:44px;padding:0 8px;border-radius:var(--r-1);
-  background:var(--sunken);border:1px solid var(--line-2);
+  background:var(--sunken);border:1px solid var(--field-line);
   transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease);
 }
 input[type=number]{font-variant-numeric:tabular-nums}
 textarea{height:auto;padding:7px 8px;resize:vertical;line-height:1.45}
-input:hover,select:hover,textarea:hover{border-color:var(--ink-3)}
+input:hover,select:hover,textarea:hover{border-color:var(--ink-2)}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 select{
   appearance:none;padding-right:24px;
@@ -151,8 +189,8 @@ select{
   background-position:calc(100% - 13px) 13px,calc(100% - 9px) 13px;
   background-size:4px 4px,4px 4px;background-repeat:no-repeat;
 }
-input[type=range]{height:20px;padding:0;background:transparent;border:none;accent-color:var(--ink)}
-input[type=checkbox]{accent-color:var(--ink);width:22px;height:22px;flex:none}
+input[type=range]{height:20px;padding:0;background:transparent;border:none;accent-color:var(--brand)}
+input[type=checkbox]{accent-color:var(--brand);width:22px;height:22px;flex:none}
 
 /* ================= sidebar ================= */
 .sidebar{
@@ -201,8 +239,8 @@ details.filterSub .subbody{
 details.sec{border-bottom:1px solid var(--line)}
 details.sec>summary{
   display:flex;align-items:center;justify-content:space-between;
-  padding:var(--s-4) 0;cursor:pointer;list-style:none;
-  font-weight:550;font-size:var(--fs-body);
+  padding:var(--s-4) 0;cursor:pointer;list-style:none;min-height:52px;
+  font-family:var(--font-brand);font-weight:600;font-size:15px;letter-spacing:-.005em;
   transition:color var(--t) var(--ease);
 }
 details.sec>summary:hover{color:var(--ink-2)}
@@ -216,7 +254,8 @@ details.sec>summary::after{
 details.sec[open]>summary::after{transform:rotate(225deg) translate(-1px,-1px)}
 details.sec .body{display:flex;flex-direction:column;gap:var(--s-3);padding-bottom:var(--s-5)}
 
-.lbl{display:block;font-size:var(--fs-micro);color:var(--ink-3);margin-bottom:4px}
+/* Field labels read as labels, not as help text: a step darker than .hint. */
+.lbl{display:block;font-size:var(--fs-micro);font-weight:500;color:var(--ink-2);margin-bottom:4px}
 details.sub{border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel-2)}
 details.sub>summary{
   padding:8px 10px;cursor:pointer;list-style:none;font-size:var(--fs-micro);color:var(--ink-2);
@@ -260,7 +299,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .seg.seg4{grid-template-columns:repeat(4,1fr)}
 .segb+.segb{border-left:1px solid var(--line-2)}
 .segb:hover{background:var(--panel-2);color:var(--ink)}
-.segb.on{background:var(--selected);color:var(--ink);font-weight:550}
+/* The old selected fill was 1.2:1 against its neighbours - the job you'd
+   picked was barely distinguishable. A purple ring and tint make it obvious;
+   the focus ring is pulled inside so .seg's overflow:hidden can't clip it. */
+.segb.on{background:var(--brand-soft);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 2px var(--brand)}
+.segb:focus-visible{outline-offset:-4px}
 .segb i{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
 
 .swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--s-1)}
@@ -272,7 +315,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .sw:hover{background:var(--panel-2);border-color:var(--line)}
 .sw .bead{width:17px;height:17px;box-shadow:0 0 0 1px rgba(0,0,0,.22)}
-.sw.act{border-color:var(--accent);background:var(--accent-soft)}
+/* Ink, not the accent: a purple ring around a swatch reads as the purple tag. */
+.sw.act{border-color:var(--ink);background:var(--panel-2)}
 .sw .n{
   position:absolute;top:2px;right:4px;font-size:var(--fs-micro);line-height:1;
   font-variant-numeric:tabular-nums;color:var(--ink-3);
@@ -312,11 +356,14 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .cell.hasContent{outline:.15mm solid var(--rule-filled)}
 .cell:hover{background:rgba(0,0,0,.045)}
-.cell.sel{background:var(--accent-soft);outline:.3mm solid var(--accent);outline-offset:-.3mm;z-index:2}
+/* The sheet is drawn in mm and then scaled by the zoom, so a .3mm ring was
+   0.17px on a phone at 15% zoom - invisible. Sizing the ring in screen px
+   divided by the zoom (render() sets --zoom) keeps it a steady 2px. */
+.cell.sel{background:var(--accent-soft);outline:calc(2px / var(--zoom, 1)) solid var(--sel);outline-offset:calc(-2px / var(--zoom, 1));z-index:2}
 .cell.cur{z-index:3}
 .cell.cur::after{
   content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
-  outline:.3mm solid var(--accent);outline-offset:-.45mm;
+  outline:calc(2px / var(--zoom, 1)) solid var(--sel);outline-offset:calc(-5px / var(--zoom, 1));
 }
 .cell .inner{
   width:100%;height:100%;display:flex;align-items:center;justify-content:center;
@@ -357,7 +404,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .celledit{
   position:absolute;z-index:var(--z-hdr);margin:0;padding:2px 3px;
   font:600 12px/1.2 system-ui,sans-serif;text-align:center;resize:none;
-  border:2px solid var(--accent);border-radius:2px;background:#fff;color:#000;
+  border:2px solid var(--sel);border-radius:2px;background:#fff;color:#000;
   box-shadow:0 2px 10px rgba(0,0,0,.25);
 }
 .pagebar{
@@ -369,18 +416,22 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .pagebar .pgsep{width:1px;height:18px;background:var(--line);margin:0 3px}
 .stagewrap{padding-bottom:44px}
 @media print{ .pagebar{display:none !important} }
+/* Width used to be 78% of the sheet - fine on desktop, but on a phone the
+   sheet is ~120px wide, which squeezed this into a one-word-per-line column
+   taller than the whole preview. Sized from the viewport instead. */
 .blankhint{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   display:none;flex-direction:column;align-items:center;gap:6px;text-align:center;
-  padding:18px 22px;max-width:min(78%,340px);pointer-events:none;z-index:var(--z-band);
-  background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-2);
-  box-shadow:0 2px 10px rgba(0,0,0,.12);
+  padding:18px 22px;width:max-content;max-width:min(340px, calc(100vw - 48px));
+  pointer-events:none;z-index:var(--z-band);
+  background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--brand);
+  border-radius:var(--r-2);box-shadow:0 6px 20px rgba(23,19,31,.16);
 }
 .blankhint.on{display:flex}
-.blankhint b{font-size:var(--fs-body);font-weight:600;color:var(--ink)}
+.blankhint b{font-family:var(--font-brand);font-size:var(--fs-body);font-weight:600;color:var(--ink)}
 .blankhint span{font-size:var(--fs-micro);color:var(--ink-2);line-height:1.5}
 @media print{ .blankhint{display:none !important} }
-.band{position:absolute;pointer-events:none;z-index:var(--z-band);border:1px solid var(--accent);background:var(--accent-soft)}
+.band{position:absolute;pointer-events:none;z-index:var(--z-band);border:1px solid var(--sel);background:var(--accent-soft)}
 
 /* ================= dropzone, images, toast ================= */
 .drop{
@@ -421,7 +472,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .modal{
   width:min(92vw,360px);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:var(--s-3);
-  padding:var(--s-6);border-radius:var(--r-2);
+  padding:var(--s-6);border-radius:14px;
   background:var(--panel);border:1px solid var(--line-2);
   box-shadow:0 12px 40px rgba(0,0,0,.35);
 }
@@ -432,7 +483,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 #mapPreview select{width:100%;min-width:118px;height:26px;font-size:11.5px}
 #mapPreview .samplerow td{color:var(--ink-2);font-family:ui-monospace,Consolas,monospace;font-size:11px}
 #mapWarn{color:var(--danger)}
-.modal h2{margin:0;font-size:var(--fs-lead);font-weight:600}
+.modal h2{margin:0;font-family:var(--font-brand);font-size:18px;font-weight:600;letter-spacing:-.005em}
 .checklist{margin:0;padding-left:18px;font-size:var(--fs-body);color:var(--ink-2);
   display:flex;flex-direction:column;gap:5px}
 .checklist b{color:var(--ink)}
@@ -450,7 +501,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .introNudge{
   display:flex;align-items:flex-start;gap:6px;
   padding:8px 10px;border-radius:var(--r-1);
-  background:var(--accent-soft);border:1px solid var(--accent);
+  background:var(--brand-soft);border:1px solid var(--brand);
   font-size:var(--fs-micro);color:var(--ink-2);line-height:1.5;
   animation:introFade .3s var(--ease);
 }
@@ -469,8 +520,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
    text, regardless of the base type scale elsewhere in the sidebar. */
 .fillBanner{
   display:flex;flex-wrap:wrap;align-items:center;gap:8px;
-  padding:10px 12px;margin-bottom:8px;border-radius:var(--r-1);
-  background:var(--accent-soft);border:1px solid var(--accent);
+  padding:10px 12px;margin-bottom:8px;border-radius:var(--r-2);
+  background:var(--brand-soft);border:1px solid var(--brand);
   font-size:15px;line-height:1.4;color:var(--ink);
 }
 .fillBanner[hidden]{display:none}
@@ -500,21 +551,32 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .obWrap[hidden]{display:none}
 .obModal{
   position:relative;width:min(92vw,560px);max-height:88vh;overflow:auto;
-  padding:32px 32px 26px;border-radius:14px;
+  padding:0 0 26px;border-radius:18px;
   background:var(--panel);border:1px solid var(--line-2);
   box-shadow:0 20px 60px rgba(0,0,0,.35);
   display:flex;flex-direction:column;align-items:center;text-align:center;
 }
+/* The cover's purple panel with its outlined die-cut grid, in miniature. */
+.obHero{
+  position:relative;align-self:stretch;overflow:hidden;
+  padding:30px 32px 26px;background:var(--brand);color:var(--on-brand);text-align:left;
+}
+.obMotif{
+  position:absolute;right:-8px;top:-4px;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to left,#000 35%,transparent);
+          mask-image:linear-gradient(to left,#000 35%,transparent);
+}
 .obClose{
-  position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:var(--r-1);
-  background:transparent;border:none;color:var(--ink-3);font-size:20px;line-height:1;
+  position:absolute;top:8px;right:8px;z-index:1;width:44px;height:44px;border-radius:var(--r-1);
+  background:transparent;border:none;color:rgba(255,255,255,.88);font-size:24px;line-height:1;
   cursor:pointer;
 }
-.obClose:hover{background:var(--panel-2);color:var(--ink)}
-.obTitle{font-size:21px;font-weight:650;color:var(--ink);letter-spacing:-.01em;margin:0}
-.obSub{font-size:var(--fs-micro);color:var(--ink-3);margin:4px 0 0}
+.obClose:hover{background:rgba(255,255,255,.16);color:#fff}
+.obClose:focus-visible{outline-color:#fff}
+.obTitle{position:relative;font-family:var(--font-brand);font-size:26px;font-weight:700;color:var(--on-brand);letter-spacing:-.01em;margin:0}
+.obSub{position:relative;font-size:var(--fs-body);color:var(--brand-tint);margin:6px 0 0}
 .obGrid{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;width:calc(100% - 64px);
   margin-top:22px;
 }
 .obCard{
@@ -523,7 +585,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   background:var(--panel);cursor:pointer;text-align:center;
   transition:border-color var(--t) var(--ease),background var(--t) var(--ease);
 }
-.obCard:hover{border-color:var(--ink-3);background:var(--panel-2)}
+.obCard:hover{border-color:var(--brand);background:var(--brand-soft)}
 .obCard b{font-size:var(--fs-body);font-weight:600;color:var(--ink)}
 .obCard span:not(.obPreview){font-size:var(--fs-micro);color:var(--ink-3)}
 .obPreview{
@@ -539,15 +601,17 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .obp-qr i{font-style:normal;font-size:7px;margin-top:2px}
 .obSkipRow{margin-top:20px}
 .obSkipBtn{
-  background:transparent;border:none;padding:4px;cursor:pointer;
+  background:transparent;border:none;padding:0 12px;min-height:44px;cursor:pointer;
   font-size:var(--fs-micro);color:var(--ink-3);text-decoration:underline;
   text-underline-offset:2px;
 }
 .obSkipBtn:hover{color:var(--ink-2)}
 @media print{ .obWrap{display:none !important} }
 @media (max-width:480px){
-  .obModal{padding:24px 18px 20px}
-  .obGrid{grid-template-columns:1fr 1fr;gap:8px}
+  .obModal{padding:0 0 20px}
+  .obHero{padding:24px 18px 20px}
+  .obTitle{font-size:22px}
+  .obGrid{grid-template-columns:1fr 1fr;gap:8px;width:calc(100% - 36px)}
   .obCard{padding:12px 8px}
   .obPreview{width:76px;height:44px}
 }
@@ -563,7 +627,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 #toast .pip{display:none}
 #toast .toastUndo{
   pointer-events:auto;flex:none;font:inherit;font-weight:600;color:inherit;
-  text-decoration:underline;text-underline-offset:2px;padding:0 0 0 2px;margin:0;
+  min-height:36px;padding:0 14px;margin:0;
+  border:1px solid currentColor;border-radius:var(--r-pill);
 }
 #toast .toastUndo:hover{opacity:.8}
 
@@ -613,7 +678,9 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:64vh}
   .stage{max-height:36vh;padding:16px}
   .topbar{padding:0 var(--s-3);gap:var(--s-2)}
-  .brand{display:none}
+  /* No room for the wordmark on a phone, but the mark stays: it's the one
+     thing tying this page to the logo printed on the paper pack. */
+  .brand .wm{display:none}
   /* At this width the sidebar stacks below the stage and its sticky
      Apply/Clear footer lands at the true bottom of the viewport - the
      same place a fixed, bottom:22px toast was landing. Measured them
@@ -657,9 +724,9 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand" id="brandName"></div>
+    <a class="brand" id="brandName" href="./" aria-label="Naald.mn"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z" fill="#FFFFFF"></path><path d="M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z" fill="#A98AEE"></path><path d="M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z" fill="#CDBAF7"></path></svg><span class="wm">Naald<span class="dot">.mn</span></span></a>
     <div class="sep"></div>
-    <select id="presetSel" style="width:252px;height:30px"></select>
+    <select id="presetSel" style="width:252px;height:36px"></select>
     <div class="sep"></div>
     <button class="btn sm ghost" id="undoBtn" data-i18n-title="kbUndo" aria-label="Undo">&#8630;</button>
     <button class="btn sm ghost" id="redoBtn" data-i18n-title="kbRedo" aria-label="Redo">&#8631;</button>
@@ -1027,8 +1094,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   <div class="obModal" role="dialog" aria-modal="true" aria-labelledby="obH">
     <button type="button" class="obClose" id="onboardClose"
             data-i18n-title="obClose" aria-label="Хаах">&times;</button>
-    <h2 class="obTitle" id="obH" data-i18n="obTitle">What are you making?</h2>
-    <p class="obSub" data-i18n="obSub">You can change this later.</p>
+    <div class="obHero">
+      <svg class="obMotif" width="300" height="150" aria-hidden="true"><defs><pattern id="obCells" width="46" height="25" patternUnits="userSpaceOnUse"><rect x="1.5" y="1.5" width="40" height="19" rx="3" fill="none" stroke="#ffffff" stroke-opacity=".34" stroke-width="1.5"></rect></pattern></defs><rect width="100%" height="100%" fill="url(#obCells)"></rect></svg>
+      <h2 class="obTitle" id="obH" data-i18n="obTitle">What are you making?</h2>
+      <p class="obSub" data-i18n="obSub">You can change this later.</p>
+    </div>
     <div class="obGrid" id="obGrid">
       <button type="button" class="obCard" data-mode="plain">
         <span class="obPreview obp-plain">Цамц</span>
@@ -1132,7 +1202,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 /* ===== brand =====
    Change these two lines to rebrand or repoint the shop link. */
 var BRAND = {
-  name:  "Peaklab Labels",
+  name:  "Naald.mn",
   store: "https://peaklab-qvbe.onrender.com/"
 };
 
@@ -1145,7 +1215,7 @@ var STR = {
   badGeom: "Захын зай, завсар нь хуудаснаас том байна.",
   bold: "Тод",
   buyPaper: "Цаас авах",
-  buyPaperTitle: "Peaklab дэлгүүрийн A4 наалтын цаас",
+  buyPaperTitle: "A4 наалтын цаас худалдаж авах",
   cEmptyAll: "Энэ хуудсан дээрх бөглөсөн, тэмдэгтэй {n} шошгыг хоослох уу?",
   calcFmt: "Нэг шошго <b>{w} &times; {h} mm</b> &middot; A4 хуудсанд <b>{n}</b> ширхэг",
   camber: "Шар",
@@ -2157,6 +2227,7 @@ function render(){
   sheet.style.columnGap=g.gx+"mm";
   sheet.style.rowGap=g.gy+"mm";
   sheet.style.transform="scale("+zoom+")";
+  sheet.style.setProperty("--zoom", zoom);
   pageStyle();
 
   $("sheetouter").style.width=(g.pw*PXMM*zoom)+"px";
@@ -3106,7 +3177,7 @@ function applyLang(){
   Array.prototype.forEach.call(q("[data-i18n-title]"), function(el){ el.title = t(el.dataset.i18nTitle); });
   Array.prototype.forEach.call(q("[data-i18n-aria]"), function(el){ el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
 
-  $("brandName").textContent = BRAND.name;
+  $("brandName").setAttribute("aria-label", BRAND.name);
   $("buyLink").href = BRAND.store;
   $("paintBtn").textContent = paint ? t("paintOnLbl") : t("paint");
   buildSwatches(); drawSwatchCounts();
@@ -3264,7 +3335,7 @@ function downloadSizeTemplate(){
   cv.toBlob(function(blob){
     var a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
-    a.download="peaklab-template-"+r2(wmm)+"x"+r2(hmm)+"mm-"+pxW+"x"+pxH+"px.png";
+    a.download="naald-template-"+r2(wmm)+"x"+r2(hmm)+"mm-"+pxW+"x"+pxH+"px.png";
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }, "image/png");
