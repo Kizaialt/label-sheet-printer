@@ -346,6 +346,23 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .colhdr div.act,.rowhdr div.act{color:var(--accent);font-weight:600}
 
 .sheetouter{position:relative}
+/* Tall mode turns the preview paper a quarter turn so tall labels read
+   upright on screen; printing never turns (print CSS forces transform:none).
+   650ms / cubic-bezier(.65,0,.35,1) must match TURN_MS / TURN_EASE in JS:
+   the labels' own counter-turn has to track the paper frame for frame. */
+.stagewrap.turning .sheet{transition:transform 650ms cubic-bezier(.65,0,.35,1)}
+/* Width/height on purpose: the outer box is what the centred stage lays out
+   around, so this keeps the paper centred through the turn. Cheap - the
+   sheet inside is absolutely positioned, so no label relayouts - and it only
+   runs for the one toggle. */
+.stagewrap.turning .sheetouter{transition:width 650ms cubic-bezier(.65,0,.35,1),height 650ms cubic-bezier(.65,0,.35,1)}
+.colhdr,.rowhdr{transition:opacity .25s var(--ease)}
+.stagewrap.turning .colhdr,.stagewrap.turning .rowhdr{opacity:0;transition:none}
+/* On the turned paper a cell's top-left corner is on screen bottom-left and
+   its bottom-right is top-right: move the index number and colour tag there
+   and stand the number back up. */
+.sheet.turned .cell .idx{bottom:auto;top:.5mm;left:.6mm;transform:rotate(90deg)}
+.sheet.turned .cell .dot{top:auto;bottom:.5mm}
 .sheet{
   position:absolute;top:0;left:0;transform-origin:0 0;
   background:#fff;color:#000;display:grid;
@@ -1532,7 +1549,7 @@ var STR = {
   rotLbl: "Босоо",
   rotTitle: "Шошгыг 90° эргүүлж босоо болгох. Цаасны хэмжээ өөрчлөгдөхгүй.",
   rotNote: "босоо, 90° эргүүлсэн",
-  tRotOn: "Шошгыг босоо болголоо. Хуудсан дээр хажуугаараа хэвлэгдэнэ, хуулаад босгож наагаарай.",
+  tRotOn: "Шошгыг босоо болголоо. Цаасыг эргүүлж харууллаа: хэвлэхэд шошго хажуугаараа гарна, хуулаад босгож наагаарай.",
   tRotOff: "Шошгыг хэвтээ болголоо",
   untag: "Тэмдэг арилгах",
   upper: "ТОМООР",
@@ -2255,12 +2272,19 @@ function render(){
   sheet.style.gridTemplateRows="repeat("+g.rows+", 1fr)";
   sheet.style.columnGap=g.gx+"mm";
   sheet.style.rowGap=g.gy+"mm";
-  sheet.style.transform="scale("+zoom+")";
+  /* Always the same function list - centre, turn, zoom, un-centre - so the
+     Tall toggle's transition interpolates each part and the paper spins
+     about its own middle instead of swinging round a corner. Turned, the
+     sheet reads as landscape: the outer box swaps width and height. */
+  var turned=rotOn(), Wp=g.pw*PXMM, Hp=g.ph*PXMM;
+  var ow=(turned ? Hp : Wp)*zoom, oh=(turned ? Wp : Hp)*zoom;
+  sheet.style.transform="translate("+ow/2+"px,"+oh/2+"px) rotate("+(turned ? -90 : 0)+"deg) scale("+zoom+") translate("+(-Wp/2)+"px,"+(-Hp/2)+"px)";
+  sheet.classList.toggle("turned", turned);
   sheet.style.setProperty("--zoom", zoom);
   pageStyle();
 
-  $("sheetouter").style.width=(g.pw*PXMM*zoom)+"px";
-  $("sheetouter").style.height=(g.ph*PXMM*zoom)+"px";
+  $("sheetouter").style.width=ow+"px";
+  $("sheetouter").style.height=oh+"px";
 
   if(cur>=n) cur=n-1;
   var gk=[g.cols,g.rows,g.pw,g.ph,g.ml,g.mt,g.gx,g.gy,g.rot?1:0].join("x");
@@ -2374,6 +2398,19 @@ function cellHTML(i, c){
 
 function headers(lw, lh, off){
   var g=S.g, K=PXMM*zoom, h="", i, x0=g.ml+off.x, y0=g.mt+off.y;
+  if(rotOn()){
+    /* Turned paper (a quarter turn anticlockwise): rows run left to right
+       along the top strip, columns run up the left strip with A at the
+       bottom. The data-row/data-col attributes keep clicks and highlighting
+       right whichever strip they sit in. */
+    for(i=0;i<g.rows;i++)
+      h += '<div data-row="'+i+'" style="left:'+((y0+i*(lh+g.gy))*K)+'px;width:'+(lh*K)+'px">'+(i+1)+'</div>';
+    $("colhdr").innerHTML=h; h="";
+    for(i=0;i<g.cols;i++)
+      h += '<div data-col="'+i+'" style="top:'+((g.pw-x0-i*(lw+g.gx)-lw)*K)+'px;height:'+(lw*K)+'px">'+colName(i)+'</div>';
+    $("rowhdr").innerHTML=h;
+    return;
+  }
   for(i=0;i<g.cols;i++)
     h += '<div data-col="'+i+'" style="left:'+((x0+i*(lw+g.gx))*K)+'px;width:'+(lw*K)+'px">'+colName(i)+'</div>';
   $("colhdr").innerHTML=h; h="";
@@ -2500,8 +2537,12 @@ function syncSelUI(){
   }
   var rowHit={}, colHit={};
   sel.forEach(function(i){ rowHit[Math.floor(i/g.cols)]=1; colHit[i%g.cols]=1; });
-  Array.prototype.forEach.call($("colhdr").children, function(d,i){ d.classList.toggle("act", !!colHit[i]); });
-  Array.prototype.forEach.call($("rowhdr").children, function(d,i){ d.classList.toggle("act", !!rowHit[i]); });
+  /* Turned paper swaps which strip holds rows and which holds columns. */
+  [$("colhdr"), $("rowhdr")].forEach(function(strip){
+    Array.prototype.forEach.call(strip.children, function(d){
+      d.classList.toggle("act", d.dataset.col != null ? !!colHit[d.dataset.col] : !!rowHit[d.dataset.row]);
+    });
+  });
   selCount();
 }
 
@@ -2559,12 +2600,14 @@ function mark(){
   redoStack.length=0;
 }
 function restore(json){
-  var o=JSON.parse(json);
+  var o=JSON.parse(json), flip=!!(o.g && o.g.rot)!==rotOn();
   S.pages=o.pages; S.g=o.g;
   if(o.presetId) S.presetId=o.presetId;
   usePage(o.page);
   sel=new Set(); if(cur>=count()) cur=0;
-  fitCache={}; fillGeo(); save(); render(); syncPresetSel();
+  fitCache={}; fillGeo();
+  if(flip) turnSheet(); else { save(); render(); }   /* undoing Tall turns the paper back too */
+  syncPresetSel();
 }
 function undo(){
   if(!undoStack.length){ toast(t("tNoUndo")); return; }
@@ -2765,18 +2808,22 @@ $("sheet").addEventListener("dblclick", function(e){
     if(ev.key==="Enter" && !ev.shiftKey){ ev.preventDefault(); commit(true); }
   });
 });
-$("colhdr").addEventListener("click", function(e){
-  var d=e.target.dataset ? e.target.dataset.col : null; if(d==null) return;
-  var c=parseInt(d,10), g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), r;
-  for(r=0;r<g.rows;r++) out.add(r*g.cols+c);
-  sel=out; cur=c; anchor=c; syncSelUI();
-});
-$("rowhdr").addEventListener("click", function(e){
-  var d=e.target.dataset ? e.target.dataset.row : null; if(d==null) return;
-  var r=parseInt(d,10), g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), c;
-  for(c=0;c<g.cols;c++) out.add(r*g.cols+c);
-  sel=out; cur=r*g.cols; anchor=cur; syncSelUI();
-});
+/* Either strip can hold either kind of header (the turned paper swaps
+   them), so both read whichever attribute the clicked header carries. */
+function headerClick(e){
+  var ds=e.target.dataset||{}, g=S.g, out=(e.ctrlKey||e.metaKey)?new Set(sel):new Set(), k;
+  if(ds.col!=null){
+    var c=parseInt(ds.col,10);
+    for(k=0;k<g.rows;k++) out.add(k*g.cols+c);
+    sel=out; cur=c; anchor=c; syncSelUI();
+  } else if(ds.row!=null){
+    var r=parseInt(ds.row,10);
+    for(k=0;k<g.cols;k++) out.add(r*g.cols+k);
+    sel=out; cur=r*g.cols; anchor=cur; syncSelUI();
+  }
+}
+$("colhdr").addEventListener("click", headerClick);
+$("rowhdr").addEventListener("click", headerClick);
 
 /* ================= keyboard ================= */
 function moveCur(d, extend){
@@ -2807,11 +2854,13 @@ document.addEventListener("keydown", function(e){
   if(k==="Escape"){ sel=new Set(); syncSelUI(); return; }
   if(k==="Delete"||k==="Backspace"){ e.preventDefault(); clearCells(); return; }
 
-  var d=0;
-  if(k==="ArrowRight") d=1;
-  else if(k==="ArrowLeft") d=-1;
-  else if(k==="ArrowDown") d=g.cols;
-  else if(k==="ArrowUp") d=-g.cols;
+  /* Arrows move the way they point on screen: on the turned paper the
+     next row is to the right and the next column is up. */
+  var d=0, tn=rotOn();
+  if(k==="ArrowRight") d=tn ? g.cols : 1;
+  else if(k==="ArrowLeft") d=tn ? -g.cols : -1;
+  else if(k==="ArrowDown") d=tn ? -1 : g.cols;
+  else if(k==="ArrowUp") d=tn ? 1 : -g.cols;
   else if(k==="Home") d=-(cur%g.cols);
   else if(k==="End") d=(g.cols-1)-(cur%g.cols);
   if(d!==0 || k==="Home" || k==="End"){ e.preventDefault(); moveCur(d, e.shiftKey); return; }
@@ -3491,9 +3540,33 @@ $("rotBtn").addEventListener("click", function(){
   mark();
   S.g.rot = rotOn() ? 0 : 1;
   press(this, rotOn());
-  save(); render();
+  turnSheet();
   toast(t(rotOn() ? "tRotOn" : "tRotOff"));
 });
+/* Call after S.g.rot has flipped. The paper turns a quarter turn (CSS
+   transition on the sheet's transform, see .stagewrap.turning) while every
+   label's content turns the other way by the same angle on the same curve,
+   so the text stays upright on screen as the paper turns under it, and the
+   new layout fades in over the first third. Reduced motion: no animation. */
+var TURN_MS=650, TURN_EASE="cubic-bezier(.65,0,.35,1)", turnT=null;
+function turnSheet(){
+  var wrap=$("stagewrap"), still=window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(autoZoom) fitZoom();
+  if(still){ save(); render(); return; }
+  wrap.classList.add("turning");
+  save(); render();
+  var tall=rotOn(), base=tall ? "translate(-50%,-50%) " : "", from=tall ? 0 : 90, to=tall ? 90 : 0;
+  Array.prototype.forEach.call($("sheet").querySelectorAll(".cell .inner"), function(el){
+    if(!el.animate) return;
+    el.animate([
+      {transform:base+"rotate("+from+"deg)", opacity:0},
+      {transform:base+"rotate("+(from+(to-from)*0.35)+"deg)", opacity:1, offset:0.35},
+      {transform:base+"rotate("+to+"deg)", opacity:1}
+    ], {duration:TURN_MS, easing:TURN_EASE});
+  });
+  clearTimeout(turnT);
+  turnT=setTimeout(function(){ wrap.classList.remove("turning"); }, TURN_MS+30);
+}
 $("savePreset").addEventListener("click", function(){
   var suggested = S.g.cols+"\u00d7"+S.g.rows+" \u00b7 "+r2(labelW())+"\u00d7"+r2(labelH())+" mm";
   var name=prompt(t("pPresetName"), suggested);
@@ -3515,8 +3588,8 @@ $("idxChk").addEventListener("change", function(){ S.opts.idx=this.checked; save
 
 /* ================= zoom ================= */
 function fitZoom(){
-  var st=$("stage");
-  var z=Math.min((st.clientHeight-80)/(S.g.ph*PXMM), (st.clientWidth-96)/(S.g.pw*PXMM));
+  var st=$("stage"), tn=rotOn();   /* turned paper is landscape on screen */
+  var z=Math.min((st.clientHeight-80)/((tn ? S.g.pw : S.g.ph)*PXMM), (st.clientWidth-96)/((tn ? S.g.ph : S.g.pw)*PXMM));
   zoom=Math.max(0.15, Math.min(3, z)); autoZoom=true; showZoom();
 }
 function pageUI(){
