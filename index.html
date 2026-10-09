@@ -121,6 +121,9 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .topbar .btn.ghost{color:var(--on-brand)}
 .topbar .btn.ghost:hover{background:rgba(255,255,255,.14);color:var(--on-brand)}
 .topbar .btn.ghost:active{background:rgba(255,255,255,.22)}
+.topbar .btn.ghost.on{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:var(--on-brand)}
+#rotBtn{gap:6px}
+#rotBtn svg{flex:none}
 .topbar .hint{color:var(--brand-tint)}
 .topbar select{background-color:#fff;color:#17131f;border-color:transparent}
 .topbar select:hover{border-color:transparent;box-shadow:0 0 0 2px rgba(255,255,255,.45)}
@@ -136,6 +139,7 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .brand .dot{color:var(--brand-tint)}
 .sep{width:1px;height:20px;background:var(--line);flex:none}
 .spacer{flex:1;min-width:0}
+.tbBreak{display:none}
 
 /* ================= controls ================= */
 .btn{
@@ -372,12 +376,19 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .cell .inner.stack{flex-direction:column}
 .cell .inner.rowlay{flex-direction:row}
 .cell .inner.fillimg{padding:0;gap:0}
+/* Tall labels (S.g.rot): the content is laid out in a box of the label's
+   swapped size, then turned 90deg to sit on the same die-cut - so a wide
+   sticker peels off as a tall one. cellHTML() sets the swapped mm size
+   inline; clientWidth/scrollWidth ignore transforms, so autofit() measures
+   the tall box exactly as it is laid out. */
+.cell .inner.rot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
 .cell .txt{
   white-space:pre-wrap;word-break:break-word;line-height:1.14;overflow:hidden;
   max-width:100%;max-height:100%;min-width:0;min-height:0;flex:0 1 auto;
   font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
 }
 .cell .nm{display:block}
+.cell .nb{white-space:nowrap}
 .cell .sb{display:block;font-size:.72em;font-weight:400;opacity:.82;line-height:1.15}
 .cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
 .cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
@@ -645,7 +656,11 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 @media (max-width:760px){
   .sep.zoomgrp{display:none}
   .topbar{flex-wrap:wrap; height:auto; min-height:48px; padding-top:6px; padding-bottom:6px}
-  #presetSel{width:100% !important;min-width:0;order:5;flex:1 1 100%;height:34px}
+  /* A zero-height full-width break starts the paper row, so the select and
+     the Tall toggle share it whatever wraps before them. */
+  .tbBreak{display:block;order:5;flex:1 1 100%;height:0}
+  #presetSel{width:100% !important;min-width:0;order:5;flex:1 1 0;height:34px}
+  #rotBtn{order:5;height:34px}
   #dimChip{display:block !important;order:6;flex:1 1 100%;white-space:normal;font-size:12px}
   /* The zoom controls were hidden outright below this width, which meant
      a phone had no way to see a label bigger than the ~32px it renders
@@ -726,7 +741,9 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   <header class="topbar">
     <a class="brand" id="brandName" href="./" aria-label="Naald.mn"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z" fill="#FFFFFF"></path><path d="M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z" fill="#A98AEE"></path><path d="M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z" fill="#CDBAF7"></path></svg><span class="wm">Naald<span class="dot">.mn</span></span></a>
     <div class="sep"></div>
+    <span class="tbBreak" aria-hidden="true"></span>
     <select id="presetSel" style="width:252px;height:36px"></select>
+    <button class="btn sm ghost" id="rotBtn" aria-pressed="false" data-i18n-title="rotTitle"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="2.5" width="9" height="15" rx="2"/><path d="M8.5 7h3M8.5 10h3M8.5 13h2" stroke-linecap="round"/></svg><span data-i18n="rotLbl">Tall</span></button>
     <div class="sep"></div>
     <button class="btn sm ghost" id="undoBtn" data-i18n-title="kbUndo" aria-label="Undo">&#8630;</button>
     <button class="btn sm ghost" id="redoBtn" data-i18n-title="kbRedo" aria-label="Redo">&#8631;</button>
@@ -1512,6 +1529,11 @@ var STR = {
   toLightTitle: "Цайвар загвар руу шилжих",
   toastUndoBtn: "Буцаах",
   typeHint: "<b>Автомат</b> нь үсгийн хэмжээг шошгонд багтахаар өөрөө тохируулна. Өөрчлөлт сонгосон шошгонд шууд орно.",
+  rotLbl: "Босоо",
+  rotTitle: "Шошгыг 90° эргүүлж босоо болгох. Цаасны хэмжээ өөрчлөгдөхгүй.",
+  rotNote: "босоо, 90° эргүүлсэн",
+  tRotOn: "Шошгыг босоо болголоо. Хуудсан дээр хажуугаараа хэвлэгдэнэ, хуулаад босгож наагаарай.",
+  tRotOff: "Шошгыг хэвтээ болголоо",
   untag: "Тэмдэг арилгах",
   upper: "ТОМООР",
   wBlank: "хоосон",
@@ -1800,7 +1822,7 @@ function sharePayload(){
   S.pages[S.page]=S.cells;
   var builtin = BUILTIN.some(function(b){ return b.id===S.presetId; });
   var out = {v:1, page:S.page, n:S.pages.length};
-  if(builtin) out.presetId=S.presetId; else out.g=S.g;
+  if(builtin){ out.presetId=S.presetId; if(S.g.rot) out.rot=1; } else out.g=S.g;
   out.pages = S.pages.map(function(pg){
     var sparse={}, i;
     for(i=0;i<pg.length;i++){ var sc=slimCell(pg[i]); if(sc) sparse[i]=sc; }
@@ -1811,6 +1833,7 @@ function sharePayload(){
 function expandSharedPayload(obj){
   var preset = obj.presetId ? BUILTIN.filter(function(b){ return b.id===obj.presetId; })[0] : null;
   var g = preset ? JSON.parse(JSON.stringify(preset)) : (obj.g || JSON.parse(JSON.stringify(BUILTIN[0])));
+  if(obj.rot) g.rot = 1;
   var n = g.cols*g.rows;
   var pages = (obj.pages||[]).map(function(sparse){
     var arr=blankCells(n), k;
@@ -1910,6 +1933,12 @@ function effOffset(){
 }
 function labelW(){ var g=S.g; return (g.pw - g.ml - g.mr - g.gx*(g.cols-1)) / g.cols; }
 function labelH(){ var g=S.g; return (g.ph - g.mt - g.mb - g.gy*(g.rows-1)) / g.rows; }
+/* Tall mode swaps the box the label is designed in; the die-cut on the
+   sheet (labelW x labelH) never changes. Anything sizing label CONTENT
+   uses boxW/boxH; anything about the sheet itself keeps labelW/labelH. */
+function rotOn(){ return !!S.g.rot; }
+function boxW(){ return rotOn() ? labelH() : labelW(); }
+function boxH(){ return rotOn() ? labelW() : labelH(); }
 
 var pageEl=null;
 function pageStyle(){
@@ -2234,7 +2263,7 @@ function render(){
   $("sheetouter").style.height=(g.ph*PXMM*zoom)+"px";
 
   if(cur>=n) cur=n-1;
-  var gk=[g.cols,g.rows,g.pw,g.ph,g.ml,g.mt,g.gx,g.gy].join("x");
+  var gk=[g.cols,g.rows,g.pw,g.ph,g.ml,g.mt,g.gx,g.gy,g.rot?1:0].join("x");
   if(fitCacheGeom!==gk){ fitCache={}; fitCacheGeom=gk; }
   var html="", i;
   for(i=0;i<n;i++) html += cellHTML(i, S.cells[i]||{});
@@ -2243,10 +2272,11 @@ function render(){
 
   headers(lw, lh, off);
   var bad = (lw<=0 || lh<=0);
-  $("dimChip").innerHTML = t("dimChipLabel")+" "+r2(lw)+"&times;"+r2(lh)+" mm &middot; "+g.cols+"&times;"+g.rows;
+  /* Sizes read as the label is designed: 15x32 once it is turned tall. */
+  $("dimChip").innerHTML = t("dimChipLabel")+" "+r2(boxW())+"&times;"+r2(boxH())+" mm &middot; "+g.cols+"&times;"+g.rows;
   $("calcInfo").innerHTML = bad
     ? "<b style='color:var(--danger)'>"+esc(t("badGeom"))+"</b>"
-    : t("calcFmt",{w:r2(lw),h:r2(lh),n:n}) +
+    : t("calcFmt",{w:r2(boxW()),h:r2(boxH()),n:n}) + (rotOn() ? " ("+t("rotNote")+")" : "") +
       ((off.x||off.y) ? "<br>"+t("shiftedFmt",{x:r2(off.x),y:r2(off.y)})+(off.clamped?t("limited"):"") : "");
   $("aiPromptText").value = aiPrompt();
   autofit();
@@ -2311,14 +2341,22 @@ function cellHTML(i, c){
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
   if(hasTxt || hasPrice || hasSub){
-    var inner1 = (c.t ? '<span class="nm">'+esc(c.t)+'</span>' : "") +
+    /* Auto size lets text wrap between words, and a browser also breaks
+       after a hyphen - which splits a phone number or SKU ("9911-" /
+       "2233") as soon as a label is narrow, as a tall one is. Hyphenated
+       words are kept whole; autofit() shrinks the text until they fit. */
+    var words = function(s){
+      s = esc(s);
+      return st.fit ? s.replace(/[^\s]*-[^\s]*/g, function(w){ return '<span class="nb">'+w+'</span>'; }) : s;
+    };
+    var inner1 = (c.t ? '<span class="nm">'+words(c.t)+'</span>' : "") +
                  (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "") +
-                 (hasSub ? '<span class="sb">'+esc(c.s)+'</span>' : "");
+                 (hasSub ? '<span class="sb">'+words(c.s)+'</span>' : "");
     txt = '<div class="txt" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
   var bcs = "";
-  if(c.bc && c.t) bcs = barcodeSVG(c.t, labelH()*0.90, labelW()*0.96);
+  if(c.bc && c.t) bcs = barcodeSVG(c.t, boxH()*0.90, boxW()*0.96);
   else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.90));
   var base = mBase(c.m);
   var dot = HEX[base]
@@ -2329,7 +2367,8 @@ function cellHTML(i, c){
               (base ? ", "+cname(base)+" "+t("taggedW") : "");
   return '<div class="'+cls+'" data-i="'+i+'" role="option" aria-selected="'+(sel.has(i)?"true":"false")+
          '" aria-label="'+esc(label)+'" style="border-radius:'+S.g.rad+'mm">'+
-         '<div class="inner '+dir+'">'+(textFirst ? txt+img : img+txt)+bcs+'</div>'+
+         '<div class="inner '+dir+(rotOn() ? ' rot" style="width:'+labelH()+'mm;height:'+labelW()+'mm"' : '"')+'>'+
+         (textFirst ? txt+img : img+txt)+bcs+'</div>'+
          dot+'<span class="idx">'+(i+1)+'</span></div>';
 }
 
@@ -2416,12 +2455,25 @@ function autofit(){
        Targeting 97% of the measured space leaves real margin instead. */
     var av=availBox(txtEl), safeH=av.h*0.97, safeW=av.w*0.97;
     var hi=Math.max(6, safeH*0.75), lo=FIT_FLOOR, best=FIT_FLOOR, k, mid;
+    /* Measure with the text capped at the 97% width, and allowed to break
+       lines only between words. Uncapped, wrapped text always measured the
+       full 100% width, so any size needing a second line "overflowed" and
+       every caption collapsed onto one shrinking line - small on a wide
+       label, tiny on a tall (rotated) one. With break-word on, a size that
+       split a word mid-way would have counted as fitting. Both are undone
+       after, so the printed text keeps the 3% slack for other screens.
+       The cap is a whole pixel: scrollWidth is rounded, so a 111.5px cap
+       reads back as 112 and would fail every wrapped size. */
+    var capW=Math.floor(safeW);
+    txtEl.style.maxWidth=capW+"px";
+    txtEl.style.overflowWrap="normal"; txtEl.style.wordBreak="normal";
     for(k=0;k<10;k++){
       mid=(lo+hi)/2;
       txtEl.style.fontSize=mid+"pt";
-      if(txtEl.scrollHeight <= safeH && txtEl.scrollWidth <= safeW){ best=mid; lo=mid; }
+      if(txtEl.scrollHeight <= safeH && txtEl.scrollWidth <= capW){ best=mid; lo=mid; }
       else hi=mid;
     }
+    txtEl.style.maxWidth=""; txtEl.style.overflowWrap=""; txtEl.style.wordBreak="";
     best=Math.floor(best*10)/10;
     /* best landing right on the floor means the fit loop never found a
        single size that actually fit - either the text is genuinely too
@@ -2866,7 +2918,7 @@ $("applyText").addEventListener("click", function(){
   var thin=false;
   if(ex.bc && v){
     var enc=code128(v);
-    if(enc && (labelW()*0.96)/enc.width < 0.25) thin=true;
+    if(enc && (boxW()*0.96)/enc.width < 0.25) thin=true;
   }
   mark();
   selArr().forEach(function(i){
@@ -3310,7 +3362,7 @@ $("imgSize").addEventListener("change", liveStyle);
    The mismatch doesn't actually matter - img-fill already applies
    object-fit:cover, which crops any reasonable aspect ratio to fit. */
 function aiPrompt(){
-  var wmm=labelW(), hmm=labelH();
+  var wmm=boxW(), hmm=boxH();
   var orient = wmm > hmm*1.15 ? t("aiOrientLandscape")
              : hmm > wmm*1.15 ? t("aiOrientPortrait")
              : t("aiOrientSquare");
@@ -3326,7 +3378,7 @@ $("copyPromptBtn").addEventListener("click", function(){
    guide lines: those show up as artifacts in whatever the AI generates,
    which defeats the point. */
 function downloadSizeTemplate(){
-  var dpi=300, wmm=labelW(), hmm=labelH();
+  var dpi=300, wmm=boxW(), hmm=boxH();
   var pxW=Math.max(1,Math.round(wmm/25.4*dpi)), pxH=Math.max(1,Math.round(hmm/25.4*dpi));
   var cv=document.createElement("canvas");
   cv.width=pxW; cv.height=pxH;
@@ -3358,6 +3410,7 @@ function syncFitUI(){
 function fillGeo(){
   GEO_EDIT.forEach(function(k){ $(k).value=S.g[k]; });
   $("ox").value=S.opts.ox||0; $("oy").value=S.opts.oy||0;
+  press($("rotBtn"), rotOn());
 }
 GEO_EDIT.forEach(function(k){
   $(k).addEventListener("change", function(){
@@ -3432,6 +3485,15 @@ function pickPreset(id){
   if(lost) toastUndo(t("tPresetLost",{n:lost}));
 }
 $("presetSel").addEventListener("change", function(){ pickPreset(this.value); });
+/* Sheet-wide, kept in S.g so Undo, saving and share codes carry it; not one
+   of GEO, so switching paper size keeps the choice. */
+$("rotBtn").addEventListener("click", function(){
+  mark();
+  S.g.rot = rotOn() ? 0 : 1;
+  press(this, rotOn());
+  save(); render();
+  toast(t(rotOn() ? "tRotOn" : "tRotOff"));
+});
 $("savePreset").addEventListener("click", function(){
   var suggested = S.g.cols+"\u00d7"+S.g.rows+" \u00b7 "+r2(labelW())+"\u00d7"+r2(labelH())+" mm";
   var name=prompt(t("pPresetName"), suggested);
