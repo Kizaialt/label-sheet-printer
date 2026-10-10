@@ -13,6 +13,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<!-- Label fonts: only families verified to draw Mongolian Ө/Ү (Unbounded,
+     Playfair Display, Amatic SC, Russo One do not). Files load only when used. -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=PT+Sans:wght@400;700&family=Rubik:wght@400;700&family=Oswald:wght@400;700&family=Noto+Serif:wght@400;700&family=Merriweather:wght@400;700&family=Comfortaa:wght@400;700&family=Caveat:wght@400;700&family=Lobster:wght@400;700&family=Pacifico:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- Quill 2.0.3, BSD-3-Clause (vendor/quill/LICENSE): the rich text editor
+     behind the label text box. If it fails to load, the plain box is used. -->
+<link rel="stylesheet" href="vendor/quill/quill.snow.css">
+<script src="vendor/quill/quill.js"></script>
 <style>
 /* ============================================================
    Naald.mn brand: purple band and primary actions, Unbounded
@@ -439,6 +446,70 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .cell .dt{display:block;font-size:.5em;font-weight:400;line-height:1.25;margin-top:.35em}
 .cell .stg{display:block;font-size:.5em;font-weight:400;line-height:1.22;margin-top:.15em}
 .cell .txt.pack .sb{font-size:.5em;margin-top:.15em}
+/* rich label text (Quill's semantic HTML, sanitised); sizes are relative so
+   auto size still scales the whole block */
+.cell .nm.rt p{margin:0}
+.cell .nm.rt ul,.cell .nm.rt ol{margin:0;padding-left:1.15em;text-align:left}
+.rt .ql-align-center,.ql-editor .ql-align-center{text-align:center}
+.rt .ql-align-right,.ql-editor .ql-align-right{text-align:right}
+.rt .ql-align-justify,.ql-editor .ql-align-justify{text-align:justify}
+.rt .ql-size-small{font-size:.7em}
+.rt .ql-size-large{font-size:1.5em}
+.rt .ql-size-huge{font-size:2.1em}
+.rt .ql-lh-0-9,.ql-editor .ql-lh-0-9{line-height:.95}
+.rt .ql-lh-1-5,.ql-editor .ql-lh-1-5{line-height:1.5}
+.rt .ql-lh-2,.ql-editor .ql-lh-2{line-height:2}
+.ql-font-roboto{font-family:'Roboto', sans-serif}
+.ql-font-montserrat{font-family:'Montserrat', sans-serif}
+.ql-font-ptsans{font-family:'PT Sans', sans-serif}
+.ql-font-rubik{font-family:'Rubik', sans-serif}
+.ql-font-oswald{font-family:'Oswald', sans-serif}
+.ql-font-notoserif{font-family:'Noto Serif', serif}
+.ql-font-merriweather{font-family:'Merriweather', serif}
+.ql-font-comfortaa{font-family:'Comfortaa', sans-serif}
+.ql-font-caveat{font-family:'Caveat', cursive}
+.ql-font-lobster{font-family:'Lobster', cursive}
+.ql-font-pacifico{font-family:'Pacifico', cursive}
+.ql-font-robotomono{font-family:'Roboto Mono', monospace}
+/* the editor and its Docs-style toolbar, in the app's own colours */
+#rtWrap .ql-toolbar.ql-snow{border:1px solid var(--line-2);border-radius:var(--r-1) var(--r-1) 0 0;background:var(--panel-2);padding:4px 6px}
+#rtWrap .ql-container.ql-snow{border:1px solid var(--line-2);border-top:none;border-radius:0 0 var(--r-1) var(--r-1);background:var(--panel);
+  font-family:system-ui,"Segoe UI",Arial,sans-serif;font-size:15px}
+#rtWrap .ql-editor{min-height:84px;max-height:220px;color:var(--ink);padding:10px 12px;line-height:1.35}
+#rtWrap .ql-editor.ql-blank::before{color:var(--ink-3);font-style:normal;left:12px;right:12px}
+#rtWrap .ql-snow .ql-stroke{stroke:var(--ink-2)}
+#rtWrap .ql-snow .ql-fill{fill:var(--ink-2)}
+#rtWrap .ql-snow .ql-picker{color:var(--ink-2)}
+#rtWrap .ql-snow.ql-toolbar button:hover .ql-stroke,#rtWrap .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+#rtWrap .ql-snow .ql-picker-label:hover .ql-stroke,#rtWrap .ql-snow .ql-picker-label.ql-active .ql-stroke{stroke:var(--brand)}
+#rtWrap .ql-snow.ql-toolbar button:hover .ql-fill,#rtWrap .ql-snow.ql-toolbar button.ql-active .ql-fill{fill:var(--brand)}
+#rtWrap .ql-snow.ql-toolbar button:hover,#rtWrap .ql-snow.ql-toolbar button.ql-active,
+#rtWrap .ql-snow .ql-picker-label:hover,#rtWrap .ql-snow .ql-picker-label.ql-active,
+#rtWrap .ql-snow .ql-picker-item:hover,#rtWrap .ql-snow .ql-picker-item.ql-selected{color:var(--brand)}
+#rtWrap .ql-snow .ql-picker-options{background:var(--panel);border-color:var(--line-2) !important;box-shadow:var(--sh-pop, 0 6px 20px rgba(0,0,0,.18));z-index:5}
+#rtWrap .ql-snow .ql-formats{margin-right:8px}
+#rtWrap .ql-snow .ql-picker.ql-font{width:112px}
+#rtWrap .ql-snow .ql-picker.ql-size{width:86px}
+#rtWrap .ql-snow .ql-picker.ql-lineheight{width:58px}
+#rtWrap .ql-snow .ql-picker.ql-font .ql-picker-label[data-label]:not([data-label=''])::before,
+#rtWrap .ql-snow .ql-picker.ql-font .ql-picker-item[data-label]:not([data-label=''])::before,
+#rtWrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-label]:not([data-label=''])::before,
+#rtWrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-label]:not([data-label=''])::before,
+#rtWrap .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-label]:not([data-label=''])::before,
+#rtWrap .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-label]:not([data-label=''])::before{content:attr(data-label)}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=roboto]::before{font-family:'Roboto', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=montserrat]::before{font-family:'Montserrat', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=ptsans]::before{font-family:'PT Sans', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=rubik]::before{font-family:'Rubik', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=oswald]::before{font-family:'Oswald', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=notoserif]::before{font-family:'Noto Serif', serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=merriweather]::before{font-family:'Merriweather', serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=comfortaa]::before{font-family:'Comfortaa', sans-serif}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=caveat]::before{font-family:'Caveat', cursive}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=lobster]::before{font-family:'Lobster', cursive}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=pacifico]::before{font-family:'Pacifico', cursive}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value=robotomono]::before{font-family:'Roboto Mono', monospace}
+#rtWrap.introHighlight .ql-container{animation:introPulse 1.1s var(--ease) 2}
 .cell .sb{display:block;font-size:.72em;font-weight:400;opacity:.82;line-height:1.15}
 .cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
 .cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
@@ -888,7 +959,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <span data-i18n="introNudge">Replace the example with your own, then press Apply.</span>
           </div>
           <div>
-            <label class="lbl" for="txtInput" data-i18n="lblText">Label text</label>
+            <label class="lbl" for="txtInput" id="txtLbl" data-i18n="lblText">Label text</label>
+            <div id="rtWrap" hidden><div id="rtToolbar"></div><div id="rtEditor"></div></div>
             <textarea id="txtInput" rows="3" placeholder="ABC-1234"></textarea>
           </div>
           <div id="priceRow">
@@ -972,6 +1044,18 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                 <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans</option>
                 <option value="Georgia, 'Times New Roman', serif">Serif</option>
                 <option value="ui-monospace, Consolas, 'Courier New', monospace">Mono</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+                <option value="'PT Sans', sans-serif">PT Sans</option>
+                <option value="'Rubik', sans-serif">Rubik</option>
+                <option value="'Oswald', sans-serif">Oswald</option>
+                <option value="'Noto Serif', serif">Noto Serif</option>
+                <option value="'Merriweather', serif">Merriweather</option>
+                <option value="'Comfortaa', sans-serif">Comfortaa</option>
+                <option value="'Caveat', cursive">Caveat</option>
+                <option value="'Lobster', cursive">Lobster</option>
+                <option value="'Pacifico', cursive">Pacifico</option>
+                <option value="'Roboto Mono', monospace">Roboto Mono</option>
               </select>
             </div>
           </div>
@@ -1713,6 +1797,10 @@ var STR = {
   chkNut: "Шим тэжээл, 100 г-д: илчлэг, өөх тос, ханасан тос, нүүрс ус, сахар, уураг, давс",
   chkNote: "Товч сануулга, хуулийн зөвлөгөө биш. Албан ёсны шаардлагыг Стандарт, хэмжил зүйн газрын MNS 6648:2016-ийн эх бичвэрээс шалгаарай. Бүгд нэг шошгонд багтахгүй бол савлагааны ар талд тусдаа шошго нааж болно.",
   tplLbl: "Загвар:",
+  rtFontDefault: "Үндсэн фонт", rtSmall: "Жижиг", rtNormal: "Хэвийн", rtLarge: "Том", rtHuge: "Маш том",
+  rtBold: "Тод (Ctrl+B)", rtItalic: "Налуу (Ctrl+I)", rtUnderline: "Доогуур зураас (Ctrl+U)", rtStrike: "Дундуур зураас",
+  rtColor: "Үсгийн өнгө", rtBg: "Тодруулах өнгө", rtAlign: "Зэрэгцүүлэх", rtLh: "Мөр хоорондын зай",
+  rtList: "Цэгтэй жагсаалт", rtOrdered: "Дугаартай жагсаалт", rtClean: "Хэлбэржүүлэлтийг арилгах", rtFont: "Фонт", rtSize: "Үсгийн хэмжээ",
   tplSchool: "Сургуулийн нэр",
   tplSpice: "Амтлагч",
   tplFolder: "Хавтас",
@@ -2118,6 +2206,10 @@ var STR_EN = {
   chkNut: "Nutrition per 100 g: energy, fat, saturated fat, carbohydrate, sugars, protein, salt",
   chkNote: "A quick reminder, not legal advice. Check the official text of MNS 6648:2016 from the Mongolian Agency for Standardization and Metrology. If it all won't fit on one label, put a separate label on the back of the pack. Food sold in Mongolia must be labelled in Mongolian: switch the app to МН to print the label headings in Mongolian.",
   tplLbl: "Templates:",
+  rtFontDefault: "Default font", rtSmall: "Small", rtNormal: "Normal", rtLarge: "Large", rtHuge: "Huge",
+  rtBold: "Bold (Ctrl+B)", rtItalic: "Italic (Ctrl+I)", rtUnderline: "Underline (Ctrl+U)", rtStrike: "Strikethrough",
+  rtColor: "Text colour", rtBg: "Highlight colour", rtAlign: "Align", rtLh: "Line spacing",
+  rtList: "Bulleted list", rtOrdered: "Numbered list", rtClean: "Clear formatting", rtFont: "Font", rtSize: "Text size",
   tplSchool: "School name",
   tplSpice: "Spice jar",
   tplFolder: "Folder",
@@ -2148,6 +2240,114 @@ var STR_EN = {
   obpPack: "<b>Honey</b><em>Ingredients: flower honey 100%</em><em>Use by: 2027.10.10</em>",
   phList: "T-shirt ; 15000\nTrousers ; 45000\nCap ; 12000 ; x3"
 };
+/* ================= rich label text =================
+   The label text box is a Quill editor (vendor/quill, BSD-3) with a Docs-
+   style toolbar. A label keeps its plain text in c.t - barcodes, QR captions,
+   lists, search and the clipboard all read that - and, only when something
+   is actually formatted, the sanitised HTML in c.rt, which is what prints.
+   #txtInput stays as the plain-text mirror so everything that reads its
+   value keeps working; if Quill is missing, it is simply shown instead. */
+var quill = null, rtCurrent = "";
+/* Allow-list sanitiser: share codes and imported files are outside input,
+   and this HTML goes straight into the page. Only these tags survive,
+   classes must match Quill's own, styles only colour/background as #hex or
+   rgb(); everything else is dropped and only its text kept. */
+var RT_TAGS = {P:"p", BR:"br", STRONG:"strong", B:"strong", EM:"em", I:"em", U:"u", S:"s", SPAN:"span", UL:"ul", OL:"ol", LI:"li", DIV:"p"};
+var RT_DROP = {SCRIPT:1, STYLE:1, TEMPLATE:1, IFRAME:1, OBJECT:1, EMBED:1, SVG:1, MATH:1, NOSCRIPT:1, TEXTAREA:1, SELECT:1};
+var RT_CLASS = /^ql-(align-(center|right|justify)|size-(small|large|huge)|font-[a-z]+|lh-(0-9|1-5|2)|indent-[1-8])$/;
+var RT_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i;
+var rtCache = {};
+function sanitizeRT(html){
+  if(!html) return "";
+  if(rtCache.hasOwnProperty(html)) return rtCache[html];
+  var doc = new DOMParser().parseFromString("<!doctype html><body>"+html, "text/html");
+  function walk(node){
+    var out = "";
+    Array.prototype.forEach.call(node.childNodes, function(n){
+      if(n.nodeType===3){ out += esc(n.nodeValue.replace(/\u00a0/g, " ")); return; }
+      if(n.nodeType!==1 || RT_DROP[n.tagName]) return;
+      var name = RT_TAGS[n.tagName], inner = walk(n);
+      if(!name){ out += inner; return; }
+      if(name==="br"){ out += "<br>"; return; }
+      var attrs = "", cls = (n.getAttribute("class")||"").split(/\s+/).filter(function(c){ return RT_CLASS.test(c); }), st = [];
+      if(cls.length) attrs += ' class="'+cls.join(" ")+'"';
+      (n.getAttribute("style")||"").split(";").forEach(function(d){
+        var m = /^\s*(color|background-color)\s*:\s*(.+?)\s*$/i.exec(d);
+        if(m && RT_COLOR.test(m[2])) st.push(m[1].toLowerCase()+":"+m[2].replace(/\s+/g, ""));
+      });
+      if(st.length) attrs += ' style="'+st.join(";")+'"';
+      out += "<"+name+attrs+">"+inner+"</"+name+">";
+    });
+    return out;
+  }
+  return (rtCache[html] = walk(doc.body));
+}
+function rtPlain(){ return quill ? quill.getText().replace(/\n+$/, "") : $("txtInput").value; }
+/* formatted HTML of the box, or "" when nothing in it is formatted */
+function rtValue(){
+  if(!quill) return "";
+  var styled = quill.getContents().ops.some(function(op){ return op.attributes && Object.keys(op.attributes).length; });
+  return styled ? sanitizeRT(quill.getSemanticHTML()) : "";
+}
+function rtSync(){
+  $("txtInput").value = rtPlain(); rtCurrent = rtValue();
+  $("txtInput").dispatchEvent(new Event("input"));
+}
+/* put a label's text into the box (silently: loading is not an edit) */
+function setTxt(plain, rt){
+  $("txtInput").value = plain || ""; rtCurrent = rt ? sanitizeRT(rt) : "";
+  if(!quill) return;
+  if(rtCurrent) quill.setContents(quill.clipboard.convert({html: rtCurrent}), "silent");
+  else quill.setText(plain || "", "silent");
+  quill.history.clear();
+}
+function editorFocus(){
+  if(quill){ quill.focus(); quill.setSelection(0, quill.getLength()); }
+  else { $("txtInput").focus(); $("txtInput").select(); }
+}
+function editorBox(){ return quill ? $("rtWrap") : $("txtInput"); }
+function toolbarHTML(){
+  var o = function(v, label, sel){ return '<option'+(v ? ' value="'+v+'"' : '')+(sel ? ' selected' : '')+'>'+esc(label)+'</option>'; };
+  return '<span class="ql-formats"><select class="ql-font">'+o("", t("rtFontDefault"), true)+
+      RT_FONTS.map(function(f){ return o(f.id, f.name); }).join("")+'</select>'+
+    '<select class="ql-size">'+o("small", t("rtSmall"))+o("", t("rtNormal"), true)+o("large", t("rtLarge"))+o("huge", t("rtHuge"))+'</select></span>'+
+    '<span class="ql-formats"><button type="button" class="ql-bold"></button><button type="button" class="ql-italic"></button>'+
+      '<button type="button" class="ql-underline"></button><button type="button" class="ql-strike"></button></span>'+
+    '<span class="ql-formats"><select class="ql-color"></select><select class="ql-background"></select></span>'+
+    '<span class="ql-formats"><select class="ql-align"></select><select class="ql-lineheight">'+
+      o("0-9", "0.9")+o("", "1.15", true)+o("1-5", "1.5")+o("2", "2")+'</select></span>'+
+    '<span class="ql-formats"><button type="button" class="ql-list" value="bullet"></button><button type="button" class="ql-list" value="ordered"></button></span>'+
+    '<span class="ql-formats"><button type="button" class="ql-clean"></button></span>';
+}
+var rtRegistered = false;
+/* (Re)builds the editor; run at start and on a language switch so the
+   toolbar's own labels follow the language. Content carries over. */
+function initEditor(){
+  if(!window.Quill) return;
+  if(!rtRegistered){
+    var Font = Quill.import("formats/font");
+    Font.whitelist = RT_FONTS.map(function(f){ return f.id; });
+    Quill.register(Font, true);
+    var Parch = Quill.import("parchment");
+    Quill.register(new Parch.ClassAttributor("lineheight", "ql-lh", {scope: Parch.Scope.BLOCK, whitelist: ["0-9","1-5","2"]}), true);
+    rtRegistered = true;
+  }
+  var plain = rtPlain(), rt = quill ? rtValue() : rtCurrent;
+  var wrap = $("rtWrap");
+  wrap.innerHTML = '<div id="rtToolbar">'+toolbarHTML()+'</div><div id="rtEditor"></div>';
+  quill = new Quill("#rtEditor", {theme: "snow", modules: {toolbar: "#rtToolbar"}, placeholder: $("txtInput").placeholder});
+  var tips = {bold:"rtBold", italic:"rtItalic", underline:"rtUnderline", strike:"rtStrike", color:"rtColor", background:"rtBg",
+              align:"rtAlign", lineheight:"rtLh", list:"rtList", clean:"rtClean", font:"rtFont", size:"rtSize"};
+  Object.keys(tips).forEach(function(k){
+    Array.prototype.forEach.call(wrap.querySelectorAll(".ql-"+k), function(el){
+      el.title = t(k==="list" && el.value==="ordered" ? "rtOrdered" : tips[k]);
+    });
+  });
+  wrap.hidden = false; $("txtInput").hidden = true;
+  setTxt(plain, rt);
+  quill.on("text-change", rtSync);
+}
+
 /* ===== lookup ===== */
 /* The UI language is a per-browser option; Mongolian is the default. */
 function lang(){ return (S && S.opts && S.opts.lang === "en") ? "en" : "mn"; }
@@ -2227,7 +2427,7 @@ function rowInto(cell, row, ex){
     /* typed on a phone: "Бат, 9900-0001, БЗД, 3-р хороо" - commas only */
     if(f.length===1 && ex.mode==="addr" && f[0].indexOf(",")>0)
       f=f[0].split(",").map(function(v){ return v.trim(); });
-    cell.t=f[0]||""; cell.s=""; cell.p=""; cell.bc=0; cell.qr="";
+    cell.t=f[0]||""; cell.s=""; cell.p=""; cell.bc=0; cell.qr=""; delete cell.rt;
     writeX(cell, rowToX(f, ex.mode));
     return;
   }
@@ -2235,7 +2435,7 @@ function rowInto(cell, row, ex){
      reapply whatever's sitting in the single #priceInput field and
      silently clobber the price this exact row just parsed. bc/qr still
      come from the current mode as normal. */
-  cell.t=row.t; cell.s=row.s; cell.p=row.p||"";
+  cell.t=row.t; cell.s=row.s; cell.p=row.p||""; delete cell.rt;
   writeExtras(cell, {p:null, bc:ex.bc, qr:ex.qr}, true);
   writeX(cell, null);
 }
@@ -2282,9 +2482,23 @@ function presetName(p){
   return t("sizeFmt",{w:p.w,h:p.h,c:p.cols,r:p.rows,n:p.cols*p.rows});
 }
 var DEF_STYLE = {fs:8, ff:0, b:true, up:false, lay:"img-top", is:55, fit:true};
+/* index = the label's ff; the first three predate the web fonts, so they keep
+   their numbers. RT_FONTS doubles as Quill's font whitelist (ql-font-<id>). */
+var RT_FONTS = [{id:"roboto", name:"Roboto", css:"'Roboto', sans-serif"},
+  {id:"montserrat", name:"Montserrat", css:"'Montserrat', sans-serif"},
+  {id:"ptsans", name:"PT Sans", css:"'PT Sans', sans-serif"},
+  {id:"rubik", name:"Rubik", css:"'Rubik', sans-serif"},
+  {id:"oswald", name:"Oswald", css:"'Oswald', sans-serif"},
+  {id:"notoserif", name:"Noto Serif", css:"'Noto Serif', serif"},
+  {id:"merriweather", name:"Merriweather", css:"'Merriweather', serif"},
+  {id:"comfortaa", name:"Comfortaa", css:"'Comfortaa', sans-serif"},
+  {id:"caveat", name:"Caveat", css:"'Caveat', cursive"},
+  {id:"lobster", name:"Lobster", css:"'Lobster', cursive"},
+  {id:"pacifico", name:"Pacifico", css:"'Pacifico', cursive"},
+  {id:"robotomono", name:"Roboto Mono", css:"'Roboto Mono', monospace"}];
 var FONTS = ["system-ui, 'Segoe UI', Arial, sans-serif",
              "Georgia, 'Times New Roman', serif",
-             "ui-monospace, Consolas, 'Courier New', monospace"];
+             "ui-monospace, Consolas, 'Courier New', monospace"].concat(RT_FONTS.map(function(f){ return f.css; }));
 var GEO = ["pw","ph","cols","rows","mt","mr","mb","ml","gx","gy","rad"];
 var GEO_EDIT = ["cols","rows","mt","mr","mb","ml","gx","gy","rad"];
 
@@ -2332,7 +2546,7 @@ function applyMode(){
     MODE_FIELDS[k].forEach(function(id){ $(id).hidden = (k !== mode); });
   }
   /* the main box is the person's name on an address label, the product on packaging */
-  $("txtInput").previousElementSibling.textContent = t(mode==="addr" ? "lblName" : mode==="pack" ? "lblProduct" : "lblText");
+  $("txtLbl").textContent = t(mode==="addr" ? "lblName" : mode==="pack" ? "lblProduct" : "lblText");
   $("subInput").placeholder = t(mode==="addr" ? "phSubAddr" : mode==="pack" ? "phSubPack" : "phSub");
   if(mode==="pack" && !$("mdInput").value) $("mdInput").value = isoToday();
   if(typeof renderTemplates === "function" && $("tplRow")){ renderTemplates(); syncChecklist(); }
@@ -2347,6 +2561,7 @@ function applyMode(){
      makes sense and a real SKU shape only where SKUs are the point. */
   if(typeof EXAMPLES !== "undefined" && EXAMPLES[lang()] && exampleFor(mode)){
     $("txtInput").placeholder = exampleFor(mode).t;
+    if(quill) quill.root.dataset.placeholder = exampleFor(mode).t;
   }
 }
 var curImg = null;
@@ -2490,6 +2705,7 @@ function slimCell(c){
   if(!c) return 0;
   var out={}, has=false, base=Object.assign({}, DEF_STYLE, S.style||{});
   if(c.t){ out.t=c.t; has=true; }
+  if(c.rt) out.rt=c.rt;
   if(c.p){ out.p=c.p; has=true; }
   if(c.s){ out.s=c.s; has=true; }
   if(c.bc){ out.bc=1; has=true; }
@@ -2523,7 +2739,7 @@ function expandSharedPayload(obj){
   var n = g.cols*g.rows;
   var pages = (obj.pages||[]).map(function(sparse){
     var arr=blankCells(n), k;
-    for(k in sparse) if(sparse.hasOwnProperty(k)) arr[+k]=sparse[k];
+    for(k in sparse) if(sparse.hasOwnProperty(k)){ arr[+k]=sparse[k]; if(arr[+k] && arr[+k].rt) arr[+k].rt=sanitizeRT(arr[+k].rt); }
     return arr;
   });
   if(!pages.length) pages=[blankCells(n)];
@@ -3049,7 +3265,8 @@ function cellHTML(i, c){
     var dates = (c.md ? '<b>'+esc(t("pfxMade"))+'</b> '+esc(fmtDate(c.md)) : "") +
                 (c.md && c.ex ? "<br>" : "") +
                 (c.ex ? '<b>'+esc(t("pfxExp"))+'</b> '+esc(fmtDate(c.ex)) : "");
-    var inner1 = (c.t ? '<span class="nm">'+words(c.t)+'</span>' : "") +
+    var name = c.rt && !c.bc ? '<span class="nm rt">'+sanitizeRT(c.rt)+'</span>' : (c.t ? '<span class="nm">'+words(c.t)+'</span>' : "");
+    var inner1 = name +
                  (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "") +
                  part("tel", c.ph) + part("adr", c.ad) +
                  part("wt", c.wt) + part("ing", c.ing, "pfxIng") +
@@ -3156,7 +3373,7 @@ function autofit(){
     if(!st.fit){ txtEl.style.fontSize=st.fs+"pt"; continue; }
 
     var box=txtEl.parentNode;
-    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, c.qr||"", XF.map(function(f){ return c[f]||""; }).join("\u0001"), box.clientWidth, box.clientHeight, st.ff,
+    var key=[c.t, c.rt||"", c.p||"", c.s||"", c.bc?1:0, c.qr||"", XF.map(function(f){ return c[f]||""; }).join("\u0001"), box.clientWidth, box.clientHeight, st.ff,
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){
       txtEl.style.fontSize=fitCache[key]+"pt";
@@ -3248,7 +3465,7 @@ function selCount(){
        completely different label. jm below already stays null for a
        genuinely empty cell, so removing the guard here doesn't reopen
        the auto-mode-switch risk, it just makes the fields honest. */
-    $("txtInput").value = c.t || "";
+    setTxt(c.t, c.rt);
     $("priceInput").value = c.p || "";
     $("subInput").value = c.s || "";
     $("qrInput").value = c.qr || "";
@@ -3474,7 +3691,7 @@ $("sheet").addEventListener("dblclick", function(e){
     if(save_it && v!==((S.cells[i]||{}).t||"")){
       mark();
       var c=S.cells[i]||(S.cells[i]={});
-      c.t=v; applyStyleTo(c);
+      c.t=v; delete c.rt; applyStyleTo(c);
       save(); render();
     }
   }
@@ -3518,7 +3735,7 @@ function moveCur(d, extend){
 }
 document.addEventListener("keydown", function(e){
   var tag=(e.target.tagName||"").toLowerCase();
-  if(tag==="input"||tag==="textarea"||tag==="select") return;
+  if(tag==="input"||tag==="textarea"||tag==="select"||e.target.isContentEditable) return;
   var k=e.key, ctrl=e.ctrlKey||e.metaKey, g=S.g;
 
   if(ctrl && k.toLowerCase()==="a"){ e.preventDefault(); selectAll(); return; }
@@ -3547,11 +3764,11 @@ document.addEventListener("keydown", function(e){
     if(sel.has(cur)) sel.delete(cur); else sel.add(cur);
     syncSelUI(); return;
   }
-  if(k==="Enter"){ e.preventDefault(); $("txtInput").focus(); $("txtInput").select(); }
+  if(k==="Enter"){ e.preventDefault(); editorFocus(); }
 });
 document.addEventListener("paste", function(e){
   var tag=(e.target.tagName||"").toLowerCase();
-  if(tag==="input"||tag==="textarea"||tag==="select") return;
+  if(tag==="input"||tag==="textarea"||tag==="select"||e.target.isContentEditable) return;
   e.preventDefault();
   var txt = e.clipboardData ? e.clipboardData.getData("text/plain") : "";
   if(clip && (!txt || txt===clipText)) pasteClip();
@@ -3667,6 +3884,7 @@ $("applyText").addEventListener("click", function(){
     if(ex.bc===null) c.bc=0;
     if(ex.qr===null) c.qr="";
     c.t=v; c.s=sv; writeExtras(c, ex, true); writeX(c, ex.x); applyStyleTo(c);
+    var rv = ex.bc ? "" : rtCurrent; if(rv) c.rt = rv; else delete c.rt;
   });
   save(); render();
   var wrote = v.trim() || Object.keys(ex.x).some(function(f){ return ex.x[f]; });
@@ -3699,7 +3917,7 @@ $("applySeq").addEventListener("click", function(){
   selArr().forEach(function(i,k){
     var num=String(start+k); while(num.length<pad) num="0"+num;
     var c=S.cells[i]||(S.cells[i]={});
-    c.t=p+num+sfx; writeExtras(c, ex, true); applyStyleTo(c);
+    c.t=p+num+sfx; delete c.rt; writeExtras(c, ex, true); applyStyleTo(c);
   });
   save(); render();
   var msg=t("tNumbered",{n:n,lbl:plural(n)});
@@ -3860,11 +4078,11 @@ $("mapApplyBtn").addEventListener("click", function(){
       if(f==="ignore"||f==="copies") return;
       var val=(row[colIdx]||"").trim();
       if(!val) return;
-      if(f==="t") cell.t=val;
+      if(f==="t"){ cell.t=val; delete cell.rt; }
       else if(f==="p") cell.p=val;
       else if(f==="s") cell.s=val;
-      else if(f==="bc"){ cell.t=val; if(code128(val)!==null) cell.bc=1; else skippedBc++; }
-      else if(f==="qr"){ cell.t=val; cell.qr=val; }
+      else if(f==="bc"){ cell.t=val; delete cell.rt; if(code128(val)!==null) cell.bc=1; else skippedBc++; }
+      else if(f==="qr"){ cell.t=val; delete cell.rt; cell.qr=val; }
       else if(f==="md"||f==="ex") cell[f]=normDate(val);
       else if(XF.indexOf(f)>=0) cell[f]=val;
     });
@@ -4000,7 +4218,7 @@ function applyTheme(){
 }
 $("langBtn").addEventListener("click", function(){
   S.opts.lang = lang()==="en" ? "mn" : "en";
-  save(); applyLang(); toast(t("tLang"));
+  save(); initEditor(); applyLang(); toast(t("tLang"));
 });
 $("themeBtn").addEventListener("click", function(){
   S.opts.theme = (S.opts.theme === "dark") ? "light" : "dark";
@@ -4497,8 +4715,9 @@ $("reopenOnboardBtn").addEventListener("click", openOnboarding);
 
 function showIntroNudge(){
   $("introNudge").hidden = false;
-  $("txtInput").classList.add("introHighlight");
-  setTimeout(function(){ $("txtInput").classList.remove("introHighlight"); }, 2300);
+  var hb = editorBox();
+  hb.classList.add("introHighlight");
+  setTimeout(function(){ hb.classList.remove("introHighlight"); }, 2300);
 }
 function hideIntroNudge(){
   if($("introNudge").hidden) return;
@@ -4632,7 +4851,7 @@ $("tplRow").addEventListener("click", function(e){
   var c = tplCell(tp);
   var fresh = (sheetWhollyBlank() || sheetIsOnboardSeedOnly()) && S.pages.length===1 && !sheetHasImages();
   if(!fresh){
-    $("txtInput").value = c.t || ""; $("priceInput").value = c.p || ""; $("subInput").value = c.s || ""; $("qrInput").value = c.qr || "";
+    setTxt(c.t, ""); $("priceInput").value = c.p || ""; $("subInput").value = c.s || ""; $("qrInput").value = c.qr || "";
     XF.forEach(function(f){ $(X_INPUT[f]).value = c[f] || ""; });
     syncChecklist();
     toast(t("tTplLoaded",{name: t(tp.name)}));
@@ -4782,6 +5001,7 @@ function syncOpts(){
 }
 S = load();
 if(migrated) save();
+initEditor();
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
 fitZoom(); applyLang();
 if(!new URLSearchParams(location.search).has("d")) maybeShowOnboarding();
