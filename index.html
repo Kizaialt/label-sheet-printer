@@ -301,6 +301,14 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   transition:background var(--t) var(--ease),color var(--t) var(--ease);
 }
 .seg.seg4{grid-template-columns:repeat(4,1fr)}
+/* six jobs: two rows of three */
+.seg.seg6{grid-template-columns:repeat(3,1fr)}
+.seg.seg6 .segb:nth-child(3n+1){border-left:none}
+.seg.seg6 .segb:nth-child(n+4){border-top:1px solid var(--line-2)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.quick button{min-height:32px;padding:0 10px;border:1px solid var(--line-2);border-radius:var(--r-pill);background:var(--panel);
+  color:var(--ink-2);font:inherit;font-size:var(--fs-micro);cursor:pointer}
+.quick button:hover{border-color:var(--brand);color:var(--ink)}
 .segb+.segb{border-left:1px solid var(--line-2)}
 .segb:hover{background:var(--panel-2);color:var(--ink)}
 /* The old selected fill was 1.2:1 against its neighbours - the job you'd
@@ -406,6 +414,17 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 }
 .cell .nm{display:block}
 .cell .nb{white-space:nowrap}
+/* address and packaging parts, sized against the name so auto size keeps
+   their proportions as it scales the whole block */
+.cell .tel{display:block;font-size:.86em;font-weight:600;margin-top:.08em}
+.cell .adr{display:block;font-size:.7em;font-weight:400;line-height:1.18;margin-top:.1em}
+.cell .txt.pack{text-align:left}
+.cell .wt{display:block;font-size:.66em;font-weight:600;margin-top:.04em}
+.cell .ing{display:block;font-size:.5em;font-weight:400;line-height:1.22;margin-top:.35em}
+.cell .ing b,.cell .dt b,.cell .stg b{font-weight:700}
+.cell .dt{display:block;font-size:.5em;font-weight:400;line-height:1.25;margin-top:.35em}
+.cell .stg{display:block;font-size:.5em;font-weight:400;line-height:1.22;margin-top:.15em}
+.cell .txt.pack .sb{font-size:.5em;margin-top:.15em}
 .cell .sb{display:block;font-size:.72em;font-weight:400;opacity:.82;line-height:1.15}
 .cell .pr{display:block;font-size:2em;font-weight:800;line-height:1.06;letter-spacing:-.01em}
 .cell .bc{display:block;width:96%;max-width:96%;flex:0 0 auto}
@@ -627,6 +646,12 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .obp-price b{font-size:15px;font-weight:700}
 .obp-sku i{font-style:normal;font-size:7px;margin-top:2px;letter-spacing:.02em}
 .obp-qr i{font-style:normal;font-size:7px;margin-top:2px}
+.obp-addr b{font-size:10px;font-weight:700;display:block}
+.obp-addr i{font-style:normal;font-size:8px;font-weight:600;display:block}
+.obp-addr em{font-style:normal;font-size:7px;display:block}
+.obp-pack{align-items:flex-start !important;padding:0 7px;box-sizing:border-box;text-align:left}
+.obp-pack b{font-size:9px;font-weight:700;display:block}
+.obp-pack em{font-style:normal;font-size:5.5px;line-height:1.2;display:block}
 .obSkipRow{margin-top:20px}
 .obSkipBtn{
   background:transparent;border:none;padding:0 12px;min-height:44px;cursor:pointer;
@@ -834,11 +859,13 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <button type="button" class="obReopenLink" id="reopenOnboardBtn"
                       data-i18n="obReopen" data-i18n-title="obReopenTitle">Choose again</button>
             </div>
-            <div class="seg seg4" id="modeSeg" role="group">
+            <div class="seg seg6" id="modeSeg" role="group">
               <button class="segb on" data-mode="plain" data-i18n="modePlain">Plain</button>
               <button class="segb" data-mode="price" data-i18n="modePrice">Price</button>
               <button class="segb" data-mode="sku" data-i18n="modeSku">Barcode</button>
               <button class="segb" data-mode="qr" data-i18n="modeQr">QR</button>
+              <button class="segb" data-mode="addr" data-i18n="modeAddr">Address</button>
+              <button class="segb" data-mode="pack" data-i18n="modePack">Packaging</button>
             </div>
           </div>
           <div class="introNudge" id="introNudge" hidden>
@@ -860,6 +887,39 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
             <label class="lbl" for="qrInput" data-i18n="lblQr">QR content</label>
             <input type="text" id="qrInput" data-i18n-ph="phQr">
             <div class="hint" style="margin-top:5px" data-i18n="qrHint"></div>
+          </div>
+          <div id="addrRow">
+            <label class="lbl" for="phoneInput" data-i18n="lblPhone">Phone</label>
+            <input type="text" id="phoneInput" inputmode="tel" data-i18n-ph="phPhone">
+            <label class="lbl" for="addrInput" style="margin-top:10px" data-i18n="lblAddr">Address</label>
+            <textarea id="addrInput" rows="2" data-i18n-ph="phAddr"></textarea>
+            <div class="hint" style="margin-top:5px" data-i18n="addrHint"></div>
+          </div>
+          <div id="packRow">
+            <label class="lbl" for="wtInput" data-i18n="lblWeight">Net weight</label>
+            <input type="text" id="wtInput" data-i18n-ph="phWeight">
+            <label class="lbl" for="ingInput" style="margin-top:10px" data-i18n="lblIng">Ingredients</label>
+            <textarea id="ingInput" rows="3" data-i18n-ph="phIng"></textarea>
+            <div class="g2" style="margin-top:10px">
+              <div>
+                <label class="lbl" for="mdInput" data-i18n="lblMade">Made</label>
+                <input type="date" id="mdInput">
+              </div>
+              <div>
+                <label class="lbl" for="exInput" data-i18n="lblExp">Use by</label>
+                <input type="date" id="exInput">
+              </div>
+            </div>
+            <div class="quick" id="exQuick" role="group" data-i18n-aria="lblExp">
+              <button type="button" data-add="7d">+7 хоног</button>
+              <button type="button" data-add="1m">+1 сар</button>
+              <button type="button" data-add="3m">+3 сар</button>
+              <button type="button" data-add="6m">+6 сар</button>
+              <button type="button" data-add="1y">+1 жил</button>
+            </div>
+            <label class="lbl" for="stgInput" style="margin-top:10px" data-i18n="lblStore">Storage</label>
+            <input type="text" id="stgInput" data-i18n-ph="phStore">
+            <div class="hint" style="margin-top:5px" data-i18n="packHint"></div>
           </div>
           <div>
             <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
@@ -1182,6 +1242,16 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <b data-i18n="obQrTitle">QR label</b>
         <span data-i18n="obQrDesc">A link your phone scans</span>
       </button>
+      <button type="button" class="obCard" data-mode="addr">
+        <span class="obPreview obp-addr"><b>Бат-Эрдэнэ</b><i>9900-0001</i><em>БЗД, 3-р хороо</em></span>
+        <b data-i18n="obAddrTitle">Address label</b>
+        <span data-i18n="obAddrDesc">Name, phone, address</span>
+      </button>
+      <button type="button" class="obCard" data-mode="pack">
+        <span class="obPreview obp-pack"><b>Зөгийн бал</b><em>Орц: цэцгийн бал 100%</em><em>Хэрэглэх хугацаа: 2027.10.10</em></span>
+        <b data-i18n="obPackTitle">Packaging label</b>
+        <span data-i18n="obPackDesc">Ingredients, weight, dates</span>
+      </button>
     </div>
     <div class="obSkipRow">
       <button type="button" class="obSkipBtn" id="onboardSkipBtn"
@@ -1330,6 +1400,42 @@ var STR = {
   modePrice: "Үнэ",
   modeSku: "Баркод",
   modeQr: "QR",
+  modeAddr: "Хаяг",
+  modePack: "Савлагаа",
+  obAddrTitle: "Хаягийн шошго",
+  obAddrDesc:  "Нэр, утас, хаяг",
+  obPackTitle: "Савлагааны шошго",
+  obPackDesc:  "Орц, жин, огноо",
+  lblName: "Нэр",
+  lblProduct: "Бүтээгдэхүүний нэр",
+  lblPhone: "Утас",
+  phPhone: "9900-0001",
+  lblAddr: "Хаяг",
+  phAddr: "БЗД, 3-р хороо, 15-р байр",
+  addrHint: "Олон хаягтай бол Нэр, Утас, Хаяг гэсэн 3 баганатай жагсаалтаа Excel-ээс хуулаад шууд хуудсан дээр буулгаарай.",
+  lblWeight: "Цэвэр жин / хэмжээ",
+  phWeight: "500 гр",
+  lblIng: "Орц",
+  phIng: "Жишээ нь: Байгалийн цэцгийн бал 100%",
+  lblMade: "Үйлдвэрлэсэн",
+  lblExp: "Хэрэглэх хугацаа",
+  lblStore: "Хадгалах нөхцөл",
+  phStore: "Жишээ нь: Хуурай, сэрүүн газар",
+  packHint: "Хоосон үлдээсэн талбар шошгон дээр гарахгүй. Лонх, саванд «Босоо» товчийг дараарай.",
+  phSubPack: "Үйлдвэрлэгч, утас",
+  phSubAddr: "Тэмдэглэл (заавал биш)",
+  pfxIng: "Орц:",
+  pfxMade: "Үйлдвэрлэсэн:",
+  pfxExp: "Хэрэглэх хугацаа:",
+  pfxStore: "Хадгалах:",
+  fldPhone: "Утас",
+  fldAddr: "Хаяг",
+  fldWeight: "Жин",
+  fldIng: "Орц",
+  fldMade: "Үйлдвэрлэсэн",
+  fldExp: "Хэрэглэх хугацаа",
+  fldStore: "Хадгалах нөхцөл",
+  tExpSet: "Хэрэглэх хугацааг {d} болголоо. «Сонгосонд бичих»-ийг дарж шошгондоо оруулна уу.",
   lblQr: "QR-д хийх холбоос, текст",
   phQr: "https://facebook.com/...",
   qrHint: "QR нь кирилл үсэг дэмждэг — цэс, Facebook, QPay холбоос тавихад тохиромжтой.",
@@ -1600,10 +1706,53 @@ function parseRows(lines){
        blank line under the price on the actual printed sticker.
        Dropping empty fields before joining removes the phantom spaces
        without affecting a genuine multi-word third column. */
-    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).filter(function(x){ return x; }).join(" ")};
+    var row={t:f[0]||"", p:f[1]||"", s:f.slice(2).filter(function(x){ return x; }).join(" "), f:f};
     for(var q=0;q<copies;q++) rows.push(row);
   });
   return rows;
+}
+/* A pasted row on an address or packaging job: the first column is the
+   name, the rest are read by what they look like - a phone number, a date,
+   a weight - so column order doesn't matter. Packaging dates and storage
+   left out of the row fall back to the boxes: one batch, one set of dates. */
+var RX_PHONE=/^\+?\d[\d\s\-()]{5,}$/;
+var RX_DATE=/^(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2}|\d{1,2}[.\-\/]\d{1,2}[.\-\/]\d{4})$/;
+var RX_WEIGHT=/^\d+([.,]\d+)?\s*(гр|г|кг|мг|мл|л|ш|ширхэг|g|kg|mg|ml|l)\.?$/i;
+function rowToX(f, mode){
+  var rest=f.slice(1).filter(function(v){ return v; }), x={}, others;
+  if(mode==="addr"){
+    x.ph = rest.filter(function(v){ return RX_PHONE.test(v); })[0] || "";
+    others = rest.filter(function(v){ return v!==x.ph; });
+    x.ad = others.join(", ");
+    return x;
+  }
+  var dates = rest.filter(function(v){ return RX_DATE.test(v); });
+  x.wt = rest.filter(function(v){ return RX_WEIGHT.test(v); })[0] || "";
+  others = rest.filter(function(v){ return v!==x.wt && dates.indexOf(v)<0; });
+  x.ing = others[0] || "";
+  x.stg = others[1] || $("stgInput").value.trim();
+  x.md = dates[0] ? normDate(dates[0]) : $("mdInput").value;
+  x.ex = dates[1] ? normDate(dates[1]) : $("exInput").value;
+  return x;
+}
+/* one pasted/listed row into a label, whichever job is active */
+function rowInto(cell, row, ex){
+  if(MODE_X[ex.mode]){
+    var f=row.f;
+    /* typed on a phone: "Бат, 9900-0001, БЗД, 3-р хороо" - commas only */
+    if(f.length===1 && ex.mode==="addr" && f[0].indexOf(",")>0)
+      f=f[0].split(",").map(function(v){ return v.trim(); });
+    cell.t=f[0]||""; cell.s=""; cell.p=""; cell.bc=0; cell.qr="";
+    writeX(cell, rowToX(f, ex.mode));
+    return;
+  }
+  /* Each row owns its own price outright - writeExtras() would otherwise
+     reapply whatever's sitting in the single #priceInput field and
+     silently clobber the price this exact row just parsed. bc/qr still
+     come from the current mode as normal. */
+  cell.t=row.t; cell.s=row.s; cell.p=row.p||"";
+  writeExtras(cell, {p:null, bc:ex.bc, qr:ex.qr}, true);
+  writeX(cell, null);
 }
 var SEP=/\t|\s\|\s|;/;   /* tab, " | " or ";" splits a row into name and price */
 function plural(n){ return n===1 ? t("label1") : t("labelN"); }
@@ -1662,12 +1811,44 @@ var curColor = COLORS[0].id;
 var gradMode = false;
 /* The sidebar only shows the fields the current job needs. Everything is still
    reachable; it is just not all on screen at once. */
-var MODE_FIELDS = {plain:[], price:["priceRow"], sku:["bcRow"], qr:["qrRow"]};
+var MODE_FIELDS = {plain:[], price:["priceRow"], sku:["bcRow"], qr:["qrRow"], addr:["addrRow"], pack:["packRow"]};
+/* Extra text fields beyond name/price/small line, and which job owns them:
+   ph phone, ad address; wt net weight, ing ingredients, md made date,
+   ex use-by date, stg storage. Dates are stored as ISO yyyy-mm-dd. */
+var XF = ["ph","ad","wt","ing","md","ex","stg"];
+var MODE_X = {addr:["ph","ad"], pack:["wt","ing","md","ex","stg"]};
+var X_INPUT = {ph:"phoneInput", ad:"addrInput", wt:"wtInput", ing:"ingInput", md:"mdInput", ex:"exInput", stg:"stgInput"};
+function hasX(c){ return XF.some(function(f){ return c[f] && String(c[f]).trim().length; }); }
+function isoDay(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+function isoToday(){ return isoDay(new Date()); }
+/* 7d / 1m / 3m / 6m / 1y after an ISO date; month ends clamp (Jan 31 + 1m = Feb 28/29) */
+function addPeriod(iso, code){
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"") || /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoToday());
+  var y=+m[1], mo=+m[2]-1, d=+m[3], n=parseInt(code,10), u=code.slice(-1);
+  if(u==="d") return isoDay(new Date(y, mo, d+n));
+  var tm = mo + (u==="y" ? 12*n : n), last=new Date(y, tm+1, 0).getDate();
+  return isoDay(new Date(y, tm, Math.min(d, last)));
+}
+/* shown the Mongolian way, 2026.10.10; anything that is not a date prints as typed */
+function fmtDate(v){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||""); return m ? m[1]+"."+m[2]+"."+m[3] : (v||""); }
+/* pasted dates: 2026.10.10, 2026-10-10, 2026/10/10 or 10.10.2026 -> ISO */
+function normDate(v){
+  v=String(v||"").trim();
+  var m=/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/.exec(v);
+  if(m) return m[1]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[3]).slice(-2);
+  m=/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/.exec(v);
+  if(m) return m[3]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2);
+  return v;
+}
 function applyMode(){
   var mode = S.opts.mode || "plain", k;
   for(k in MODE_FIELDS){
     MODE_FIELDS[k].forEach(function(id){ $(id).hidden = (k !== mode); });
   }
+  /* the main box is the person's name on an address label, the product on packaging */
+  $("txtInput").previousElementSibling.textContent = t(mode==="addr" ? "lblName" : mode==="pack" ? "lblProduct" : "lblText");
+  $("subInput").placeholder = t(mode==="addr" ? "phSubAddr" : mode==="pack" ? "phSubPack" : "phSub");
+  if(mode==="pack" && !$("mdInput").value) $("mdInput").value = isoToday();
   Array.prototype.forEach.call($("modeSeg").children, function(b){
     b.classList.toggle("on", b.dataset.mode === mode);
   });
@@ -1686,7 +1867,7 @@ var paint = false;
 
 function $(id){ return document.getElementById(id); }
 function count(){ return S.g.cols * S.g.rows; }
-function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length) && !(c.qr && c.qr.length)); }
+function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length) && !(c.qr && c.qr.length) && !hasX(c)); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function r2(n){ return Math.round(n*100)/100; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -1826,6 +2007,7 @@ function slimCell(c){
   if(c.s){ out.s=c.s; has=true; }
   if(c.bc){ out.bc=1; has=true; }
   if(c.qr){ out.qr=c.qr; has=true; }
+  XF.forEach(function(f){ if(c[f]){ out[f]=c[f]; has=true; } });
   if(c.m){ out.m=c.m; has=true; }
   if(!has) return 0;
   if(!sameStyle(Object.assign({},DEF_STYLE,c), base)){
@@ -2364,7 +2546,8 @@ function cellHTML(i, c){
     else if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
-  if(hasTxt || hasPrice || hasSub){
+  var xtra = hasX(c), pack = !!(c.wt || c.ing || c.md || c.ex || c.stg);
+  if(hasTxt || hasPrice || hasSub || xtra){
     /* Auto size lets text wrap between words, and a browser also breaks
        after a hyphen - which splits a phone number or SKU ("9911-" /
        "2233") as soon as a label is narrow, as a tall one is. Hyphenated
@@ -2373,10 +2556,19 @@ function cellHTML(i, c){
       s = esc(s);
       return st.fit ? s.replace(/[^\s]*-[^\s]*/g, function(w){ return '<span class="nb">'+w+'</span>'; }) : s;
     };
+    var part = function(cls, v, pfx){
+      return v && String(v).trim() ? '<span class="'+cls+'">'+(pfx ? '<b>'+esc(t(pfx))+'</b> ' : "")+words(v)+'</span>' : "";
+    };
+    var dates = (c.md ? '<b>'+esc(t("pfxMade"))+'</b> '+esc(fmtDate(c.md)) : "") +
+                (c.md && c.ex ? "<br>" : "") +
+                (c.ex ? '<b>'+esc(t("pfxExp"))+'</b> '+esc(fmtDate(c.ex)) : "");
     var inner1 = (c.t ? '<span class="nm">'+words(c.t)+'</span>' : "") +
                  (hasPrice ? '<span class="pr">'+esc(money(c.p))+'</span>' : "") +
+                 part("tel", c.ph) + part("adr", c.ad) +
+                 part("wt", c.wt) + part("ing", c.ing, "pfxIng") +
+                 (dates ? '<span class="dt">'+dates+'</span>' : "") + part("stg", c.stg, "pfxStore") +
                  (hasSub ? '<span class="sb">'+words(c.s)+'</span>' : "");
-    txt = '<div class="txt" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
+    txt = '<div class="txt'+(pack ? " pack" : "")+'" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
   var bcs = "";
@@ -2469,14 +2661,14 @@ function autofit(){
      hitFloor toast below (t("...") would try to call a DOM element). */
   var sheet=$("sheet"), n=count(), i, hitFloor=false;
   for(i=0;i<n;i++){
-    var c=S.cells[i]; if(!c || (!c.t && !c.p && !c.s)) continue;
+    var c=S.cells[i]; if(!c || (!c.t && !c.p && !c.s && !hasX(c))) continue;
     var st=Object.assign({},DEF_STYLE,c);
     var el=sheet.children[i]; if(!el) continue;
     var txtEl=el.querySelector(".txt"); if(!txtEl) continue;
     if(!st.fit){ txtEl.style.fontSize=st.fs+"pt"; continue; }
 
     var box=txtEl.parentNode;
-    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, c.qr||"", box.clientWidth, box.clientHeight, st.ff,
+    var key=[c.t, c.p||"", c.s||"", c.bc?1:0, c.qr||"", XF.map(function(f){ return c[f]||""; }).join("\u0001"), box.clientWidth, box.clientHeight, st.ff,
              st.b?1:0, st.up?1:0, (c.img?1:0), st.lay, st.is].join("|");
     if(fitCache[key] !== undefined){
       txtEl.style.fontSize=fitCache[key]+"pt";
@@ -2572,7 +2764,10 @@ function selCount(){
     $("priceInput").value = c.p || "";
     $("subInput").value = c.s || "";
     $("qrInput").value = c.qr || "";
+    XF.forEach(function(f){ if(f!=="md" || c.md || !isEmpty(c)) $(X_INPUT[f]).value = c[f] || ""; });
     var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
+    if(!jm && (c.wt || c.ing || c.md || c.ex || c.stg)) jm = "pack";
+    else if(!jm && (c.ph || c.ad)) jm = "addr";
     if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
     $("layoutSel").value = arrangeForLogoUI(st.lay); $("imgSize").value = st.is;
@@ -2696,14 +2891,7 @@ function pasteText(txt){
   var out=new Set(), k=0, i;
   for(i=0;i<rows.length && start+i<n;i++){
     var idx=start+i, cell=S.cells[idx]||(S.cells[idx]={});
-    /* Each pasted row owns its own price outright - writeExtras() would
-       otherwise reapply whatever's sitting in the single #priceInput
-       field (stale from some earlier, unrelated single-cell edit) and
-       silently clobber the price this exact row just parsed, right after
-       setting it. bc/qr still come from the current mode as normal;
-       only price is row-owned data here. */
-    cell.t=rows[i].t; cell.s=rows[i].s; cell.p=rows[i].p||"";
-    writeExtras(cell, {p:null, bc:ex.bc, qr:ex.qr}, true);
+    rowInto(cell, rows[i], ex);   /* row-owned price; see rowInto() */
     applyStyleTo(cell);
     out.add(idx); k++;
   }
@@ -2939,17 +3127,26 @@ function styleNow(){
    a field the current job does not show is left untouched. */
 function modeExtras(){
   var mode=S.opts.mode||"plain";
+  var x = {};
+  (MODE_X[mode]||[]).forEach(function(f){ x[f] = $(X_INPUT[f]).value.trim(); });
   return {
     mode: mode,
     p:  mode==="price" ? $("priceInput").value : null,
     bc: mode==="sku"   ? 1 : null,
-    qr: mode==="qr"    ? $("qrInput").value : null
+    qr: mode==="qr"    ? $("qrInput").value : null,
+    x:  x
   };
 }
 function writeExtras(c, ex, ownText){
   if(ex.p  !== null) c.p  = ex.p;
   if(ex.bc !== null) c.bc = ex.bc;
   if(ex.qr !== null) c.qr = ex.qr || (ownText ? c.t : "");
+}
+/* The address/packaging fields of one job, written whole: the job's own
+   fields take the box values, every other job's extra fields are cleared,
+   same as a leftover price is cleared when writing a barcode label. */
+function writeX(c, x){
+  XF.forEach(function(f){ if(x && x.hasOwnProperty(f)) c[f] = x[f]; else delete c[f]; });
 }
 function applyStyleTo(c){
   var st=styleNow();
@@ -2980,12 +3177,13 @@ $("applyText").addEventListener("click", function(){
     if(ex.p===null)  c.p="";
     if(ex.bc===null) c.bc=0;
     if(ex.qr===null) c.qr="";
-    c.t=v; c.s=sv; writeExtras(c, ex, true); applyStyleTo(c);
+    c.t=v; c.s=sv; writeExtras(c, ex, true); writeX(c, ex.x); applyStyleTo(c);
   });
   save(); render();
-  var msg = thin ? t("tThinBarcode") : (v.trim() ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
+  var wrote = v.trim() || Object.keys(ex.x).some(function(f){ return ex.x[f]; });
+  var msg = thin ? t("tThinBarcode") : (wrote ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
   if(mixed) toastUndo(msg); else toast(msg);
-  if(v.trim()) showPrintNudge();
+  if(wrote) showPrintNudge();
 });
 function clearCells(){
   if(!needSel()) return;
@@ -3033,11 +3231,8 @@ $("applyList").addEventListener("click", function(){
     if(k>=rows.length && !rep) return;
     var c=S.cells[i]||(S.cells[i]={});
     var row=rows[rep ? (k%rows.length) : k];
-    /* Same reasoning as pasteText(): this row's own price must win over
-       whatever's sitting in #priceInput, or a list-fill silently reuses
-       one unrelated stale price for every row instead of each row's own. */
-    c.t=row.t; c.s=row.s; c.p=row.p||"";
-    writeExtras(c, {p:null, bc:ex.bc, qr:ex.qr}, true);
+    /* Same as pasteText(): each row's own price wins over #priceInput. */
+    rowInto(c, row, ex);
     applyStyleTo(c); used++;
   });
   save(); render();
@@ -3053,15 +3248,27 @@ $("applyList").addEventListener("click", function(){
    ID, for instance. Reuses the same listInput/listRepeat controls as the
    plain fill so nothing has to be typed twice. */
 var mapRows = [], mapFields = [], mapTouched = [];
-var FIELD_OPTS = ["ignore","t","p","s","bc","qr","copies"];
+var FIELD_OPTS = ["ignore","t","p","s","bc","qr","copies","ph","ad","wt","ing","md","ex","stg"];
 function fieldLabel(f){
   return {ignore:t("fldIgnore"), t:t("fldText"), p:t("fldPrice"), s:t("fldSmall"),
-          bc:t("fldBarcode"), qr:t("fldQr"), copies:t("fldCopies")}[f];
+          bc:t("fldBarcode"), qr:t("fldQr"), copies:t("fldCopies"),
+          ph:t("fldPhone"), ad:t("fldAddr"), wt:t("fldWeight"), ing:t("fldIng"),
+          md:t("fldMade"), ex:t("fldExp"), stg:t("fldStore")}[f];
 }
+/* Column guesses read what the column holds. Phones, dates and weights
+   are recognised anywhere; plain text columns become the address on an
+   address job and ingredients then storage on a packaging job. */
 function guessField(colIdx, rows){
   if(colIdx===0) return "t";
   var vals=rows.map(function(r){ return (r[colIdx]||"").trim(); }).filter(function(v){ return v; });
-  if(vals.length && vals.every(function(v){ return /^\d+([.,]\d+)?$/.test(v); })) return "p";
+  var all=function(rx){ return vals.length && vals.every(function(v){ return rx.test(v); }); };
+  var mode=S.opts.mode||"plain", taken=mapFields.slice(0, colIdx);
+  if(all(/^\d+([.,]\d+)?$/) && mode!=="addr") return "p";
+  if(all(RX_PHONE) && (mode==="addr" || /[\s\-]/.test(vals[0]))) return "ph";
+  if(all(RX_DATE)) return taken.indexOf("md")<0 ? "md" : (taken.indexOf("ex")<0 ? "ex" : "ignore");
+  if(all(RX_WEIGHT)) return "wt";
+  if(mode==="addr" && taken.indexOf("ad")<0) return "ad";
+  if(mode==="pack") return taken.indexOf("ing")<0 ? "ing" : (taken.indexOf("stg")<0 ? "stg" : "ignore");
   return "ignore";
 }
 function openMapDlg(){
@@ -3071,9 +3278,14 @@ function openMapDlg(){
   var maxCols=0;
   mapRows.forEach(function(r){ maxCols=Math.max(maxCols, r.length); });
   maxCols=Math.min(maxCols, 10);
+  /* A header row ("Нэр / Утас / Хаяг") has no digits where the rows under
+     it do - tick "first row is a header" for them, and guess from the data. */
+  var first=mapRows[0], below=mapRows.slice(1);
+  var head = below.length>0 && first.every(function(v){ return !/\d/.test(v); }) &&
+    first.some(function(v,ci){ return below.every(function(r){ return /\d/.test(r[ci]||""); }); });
+  $("mapHeader").checked = head;
   mapFields = []; mapTouched = [];
-  for(var i=0;i<maxCols;i++){ mapFields.push(guessField(i, mapRows)); mapTouched.push(false); }
-  $("mapHeader").checked = false;
+  for(var i=0;i<maxCols;i++){ mapFields.push(guessField(i, head ? below : mapRows)); mapTouched.push(false); }
   renderMapSelects(maxCols);
   renderMapSamples();
   updateMapWarn();
@@ -3164,6 +3376,8 @@ $("mapApplyBtn").addEventListener("click", function(){
       else if(f==="s") cell.s=val;
       else if(f==="bc"){ cell.t=val; if(code128(val)!==null) cell.bc=1; else skippedBc++; }
       else if(f==="qr"){ cell.t=val; cell.qr=val; }
+      else if(f==="md"||f==="ex") cell[f]=normDate(val);
+      else if(XF.indexOf(f)>=0) cell[f]=val;
     });
     applyStyleTo(cell); used++;
   });
@@ -3822,13 +4036,22 @@ function hidePrintNudge(){
 }
 $("printBtn").addEventListener("click", hidePrintNudge);
 
-var PRESET_FOR_MODE = {plain:"s-32x15", price:"s-100x55", sku:"s-100x55", qr:"s-100x55"};
+var PRESET_FOR_MODE = {plain:"s-32x15", price:"s-100x55", sku:"s-100x55", qr:"s-100x55", addr:"s-100x55", pack:"s-100x55"};
 var EXAMPLE_FOR_MODE = {
   plain: {t:"Цамц"},
   price: {t:"Цамц", p:"15000"},
   sku:   {t:"SKU-001", bc:1},
-  qr:    {t:"Манай хуудас", qr:"https://facebook.com/manai.delguur"}
+  qr:    {t:"Манай хуудас", qr:"https://facebook.com/manai.delguur"},
+  addr:  {t:"Бат-Эрдэнэ", ph:"9900-0001", ad:"БЗД, 3-р хороо, 15-р байр"},
+  pack:  {t:"Зөгийн бал", wt:"500 гр", ing:"Байгалийн цэцгийн бал 100%", md:isoToday(), ex:addPeriod(isoToday(), "1y"), stg:"Хуурай, сэрүүн газар"}
 };
+/* +7 days / +1 month ... from the made date (today if it is blank) */
+$("exQuick").addEventListener("click", function(e){
+  var code = e.target.dataset ? e.target.dataset.add : null; if(!code) return;
+  if(!$("mdInput").value) $("mdInput").value = isoToday();
+  $("exInput").value = addPeriod($("mdInput").value, code);
+  toast(t("tExpSet",{d: fmtDate($("exInput").value)}));
+});
 /* Clicking a second onboarding card (via "Дахин сонгох") after the first one
    already wrote an example into A1 must still count as fresh - otherwise the
    sheet is no longer wholly blank and chooseJob falls into the plain mode-
