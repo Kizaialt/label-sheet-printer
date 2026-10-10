@@ -309,6 +309,20 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 .quick button{min-height:32px;padding:0 10px;border:1px solid var(--line-2);border-radius:var(--r-pill);background:var(--panel);
   color:var(--ink-2);font:inherit;font-size:var(--fs-micro);cursor:pointer}
 .quick button:hover{border-color:var(--brand);color:var(--ink)}
+/* quick templates under the job picker */
+.tpl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.tpl .tplLbl{font-size:var(--fs-micro);color:var(--ink-3);margin-right:2px}
+.tpl button{min-height:32px;padding:0 11px;border:1px solid var(--line-2);border-radius:var(--r-pill);background:var(--panel);
+  color:var(--ink-2);font:inherit;font-size:var(--fs-micro);cursor:pointer}
+.tpl button:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--ink)}
+/* food label checklist */
+.chk{list-style:none;margin:8px 0;padding:0}
+.chk li{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-micro);line-height:1.35;padding:3px 0;color:var(--ink-3)}
+.chk li i{flex:none;width:16px;height:16px;margin-top:1px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--line-2);
+  display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;line-height:1}
+.chk li.ok{color:var(--ink)}
+.chk li.ok i{background:var(--brand);border-color:var(--brand);color:#fff}
+#chkCount{margin-left:6px;font-variant-numeric:tabular-nums;color:var(--ink-3);font-weight:400}
 .segb+.segb{border-left:1px solid var(--line-2)}
 .segb:hover{background:var(--panel-2);color:var(--ink)}
 /* The old selected fill was 1.2:1 against its neighbours - the job you'd
@@ -800,6 +814,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <span class="hint" id="dimChip" style="white-space:nowrap"></span>
     <a class="btn sm ghost" id="buyLink" target="_blank" rel="noopener"
        data-i18n="buyPaper" data-i18n-title="buyPaperTitle" style="text-decoration:none"></a>
+    <button class="btn sm ghost" id="langBtn" data-i18n="langBtn" data-i18n-title="langTitle" data-i18n-aria="langTitle">EN</button>
     <button class="btn sm ghost" id="themeBtn" data-i18n-aria="themeAria">Dark</button>
     <button class="btn primary" id="printBtn" data-i18n="print" data-i18n-title="printTitle">Print</button>
     <div class="printNudge" id="printNudge" hidden>
@@ -867,6 +882,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <button class="segb" data-mode="addr" data-i18n="modeAddr">Address</button>
               <button class="segb" data-mode="pack" data-i18n="modePack">Packaging</button>
             </div>
+            <div class="tpl" id="tplRow"></div>
           </div>
           <div class="introNudge" id="introNudge" hidden>
             <span data-i18n="introNudge">Replace the example with your own, then press Apply.</span>
@@ -911,15 +927,27 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               </div>
             </div>
             <div class="quick" id="exQuick" role="group" data-i18n-aria="lblExp">
-              <button type="button" data-add="7d">+7 хоног</button>
-              <button type="button" data-add="1m">+1 сар</button>
-              <button type="button" data-add="3m">+3 сар</button>
-              <button type="button" data-add="6m">+6 сар</button>
-              <button type="button" data-add="1y">+1 жил</button>
+              <button type="button" data-add="7d" data-i18n="q7d">+7 хоног</button>
+              <button type="button" data-add="1m" data-i18n="q1m">+1 сар</button>
+              <button type="button" data-add="3m" data-i18n="q3m">+3 сар</button>
+              <button type="button" data-add="6m" data-i18n="q6m">+6 сар</button>
+              <button type="button" data-add="1y" data-i18n="q1y">+1 жил</button>
             </div>
             <label class="lbl" for="stgInput" style="margin-top:10px" data-i18n="lblStore">Storage</label>
             <input type="text" id="stgInput" data-i18n-ph="phStore">
+            <label class="lbl" for="lotInput" style="margin-top:10px" data-i18n="lblLot">Serial / batch number</label>
+            <input type="text" id="lotInput" data-i18n-ph="phLot">
+            <label class="lbl" for="nutInput" style="margin-top:10px" data-i18n="lblNut">Nutrition per 100 g</label>
+            <textarea id="nutInput" rows="2" data-i18n-ph="phNut"></textarea>
             <div class="hint" style="margin-top:5px" data-i18n="packHint"></div>
+            <details class="sub" id="foodChk" style="margin-top:10px">
+              <summary><span data-i18n="chkTitle">Food label checklist</span><span id="chkCount"></span></summary>
+              <div class="subbody">
+                <div class="hint" data-i18n="chkIntro"></div>
+                <ul class="chk" id="chkList"></ul>
+                <div class="hint" data-i18n="chkNote"></div>
+              </div>
+            </details>
           </div>
           <div>
             <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
@@ -978,7 +1006,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
           <div>
             <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
             <div class="hint" style="margin:-2px 0 5px" data-i18n="colsHint"></div>
-            <textarea id="listInput" rows="4" placeholder="Цамц ; 15000&#10;Өмд ; 45000&#10;Малгай ; 12000 ; x3"></textarea>
+            <textarea id="listInput" rows="4" data-i18n-ph="phList" placeholder="Цамц ; 15000&#10;Өмд ; 45000&#10;Малгай ; 12000 ; x3"></textarea>
           </div>
           <div class="g2">
             <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
@@ -1187,7 +1215,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 <div class="obWrap" id="onboardWrap" hidden>
   <div class="obModal" role="dialog" aria-modal="true" aria-labelledby="obH">
     <button type="button" class="obClose" id="onboardClose"
-            data-i18n-title="obClose" aria-label="Хаах">&times;</button>
+            data-i18n-title="obClose" data-i18n-aria="obClose" aria-label="Хаах">&times;</button>
     <div class="obHero">
       <svg class="obMotif" width="300" height="150" aria-hidden="true"><defs><pattern id="obCells" width="46" height="25" patternUnits="userSpaceOnUse"><rect x="1.5" y="1.5" width="40" height="19" rx="3" fill="none" stroke="#ffffff" stroke-opacity=".34" stroke-width="1.5"></rect></pattern></defs><rect width="100%" height="100%" fill="url(#obCells)"></rect></svg>
       <h2 class="obTitle" id="obH" data-i18n="obTitle">What are you making?</h2>
@@ -1195,12 +1223,12 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     </div>
     <div class="obGrid" id="obGrid">
       <button type="button" class="obCard" data-mode="plain">
-        <span class="obPreview obp-plain">Цамц</span>
+        <span class="obPreview obp-plain" data-i18n-html="obpPlain">Цамц</span>
         <b data-i18n="obPlainTitle">Plain label</b>
         <span data-i18n="obPlainDesc">Just text</span>
       </button>
       <button type="button" class="obCard" data-mode="price">
-        <span class="obPreview obp-price"><i>Цамц</i><b>15,000&#8366;</b></span>
+        <span class="obPreview obp-price" data-i18n-html="obpPrice"><i>Цамц</i><b>15,000&#8366;</b></span>
         <b data-i18n="obPriceTitle">Price tag</b>
         <span data-i18n="obPriceDesc">Name and a big price</span>
       </button>
@@ -1237,18 +1265,18 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
               <rect x="5" y="5" width="1" height="1"/>
             </g>
           </svg>
-          <i>Манай хуудас</i>
+          <i data-i18n="obpQr">Манай хуудас</i>
         </span>
         <b data-i18n="obQrTitle">QR label</b>
         <span data-i18n="obQrDesc">A link your phone scans</span>
       </button>
       <button type="button" class="obCard" data-mode="addr">
-        <span class="obPreview obp-addr"><b>Бат-Эрдэнэ</b><i>9900-0001</i><em>БЗД, 3-р хороо</em></span>
+        <span class="obPreview obp-addr" data-i18n-html="obpAddr"><b>Бат-Эрдэнэ</b><i>9900-0001</i><em>БЗД, 3-р хороо</em></span>
         <b data-i18n="obAddrTitle">Address label</b>
         <span data-i18n="obAddrDesc">Name, phone, address</span>
       </button>
       <button type="button" class="obCard" data-mode="pack">
-        <span class="obPreview obp-pack"><b>Зөгийн бал</b><em>Орц: цэцгийн бал 100%</em><em>Хэрэглэх хугацаа: 2027.10.10</em></span>
+        <span class="obPreview obp-pack" data-i18n-html="obpPack"><b>Зөгийн бал</b><em>Орц: цэцгийн бал 100%</em><em>Хэрэглэх хугацаа: 2027.10.10</em></span>
         <b data-i18n="obPackTitle">Packaging label</b>
         <span data-i18n="obPackDesc">Ingredients, weight, dates</span>
       </button>
@@ -1422,7 +1450,7 @@ var STR = {
   lblStore: "Хадгалах нөхцөл",
   phStore: "Жишээ нь: Хуурай, сэрүүн газар",
   packHint: "Хоосон үлдээсэн талбар шошгон дээр гарахгүй. Лонх, саванд «Босоо» товчийг дараарай.",
-  phSubPack: "Үйлдвэрлэгч, утас",
+  phSubPack: "Үйлдвэрлэгчийн нэр, хаяг, утас",
   phSubAddr: "Тэмдэглэл (заавал биш)",
   pfxIng: "Орц:",
   pfxMade: "Үйлдвэрлэсэн:",
@@ -1436,6 +1464,14 @@ var STR = {
   fldExp: "Хэрэглэх хугацаа",
   fldStore: "Хадгалах нөхцөл",
   tExpSet: "Хэрэглэх хугацааг {d} болголоо. «Сонгосонд бичих»-ийг дарж шошгондоо оруулна уу.",
+  lblLot: "Серийн (багцын) дугаар",
+  phLot: "Жишээ нь: 2026-10-A",
+  pfxLot: "Серийн №:",
+  fldLot: "Серийн дугаар",
+  lblNut: "Шим тэжээл (100 г-д)",
+  phNut: "Илчлэг 304 ккал, уураг 0.3 г, өөх тос 0 г, нүүрс ус 82 г, сахар 82 г, давс 0 г",
+  pfxNut: "Шим тэжээл (100 г):",
+  fldNut: "Шим тэжээл",
   lblQr: "QR-д хийх холбоос, текст",
   phQr: "https://facebook.com/...",
   qrHint: "QR нь кирилл үсэг дэмждэг — цэс, Facebook, QPay холбоос тавихад тохиромжтой.",
@@ -1663,11 +1699,460 @@ var STR = {
   wImage: "зураг",
   zoomIn: "Томруулах",
   zoomOut: "Багасгах",
-  zoomReset: "100% болгох"
+  zoomReset: "100% болгох",
+  chkTitle: "Хүнсний шошгоны шалгах хуудас",
+  chkIntro: "Хүнсний бүтээгдэхүүн бол MNS 6648:2016 стандарт ба хүнсний аюулгүй байдлын хуулиар шошгон дээр дараах мэдээлэл байх ёстой:",
+  chkName: "Бүтээгдэхүүний нэр",
+  chkIng: "Орц",
+  chkWt: "Цэвэр жин / хэмжээ",
+  chkMade: "Үйлдвэрлэсэн огноо",
+  chkExp: "Хэрэглэх (хадгалах) хугацаа",
+  chkStore: "Хадгалах нөхцөл",
+  chkMaker: "Үйлдвэрлэгчийн нэр, хаяг («Нэмэлт мөр»-д)",
+  chkLot: "Серийн (багцын) дугаар",
+  chkNut: "Шим тэжээл, 100 г-д: илчлэг, өөх тос, ханасан тос, нүүрс ус, сахар, уураг, давс",
+  chkNote: "Товч сануулга, хуулийн зөвлөгөө биш. Албан ёсны шаардлагыг Стандарт, хэмжил зүйн газрын MNS 6648:2016-ийн эх бичвэрээс шалгаарай. Бүгд нэг шошгонд багтахгүй бол савлагааны ар талд тусдаа шошго нааж болно.",
+  tplLbl: "Загвар:",
+  tplSchool: "Сургуулийн нэр",
+  tplSpice: "Амтлагч",
+  tplFolder: "Хавтас",
+  tplClothes: "Хувцас",
+  tplGrocery: "Хүнсний дэлгүүр",
+  tplStock: "Бараа",
+  tplShelf: "Тавиур",
+  tplFb: "Facebook",
+  tplWifi: "Wi-Fi",
+  tplShip: "Хүргэлт",
+  tplSender: "Илгээгч",
+  tplHoney: "Зөгийн бал",
+  tplBakery: "Нарийн боов",
+  tplJam: "Чанамал",
+  tplSoap: "Саван",
+  tTplLoaded: "«{name}» загварыг талбаруудад орууллаа. Шошгоо сонгоод «Сонгосонд бичих» дараарай.",
+  tTplSeeded: "«{name}» загвар бэлэн. Өөрийнхөөрөө засаад «Бүгдийг ижил болгох» дараарай.",
+  langBtn: "EN",
+  langTitle: "Switch to English",
+  tLang: "Монгол хэл",
+  docTitle: "Naald.mn — A4 наалтын шошго бэлтгэх",
+  docDesc: "A4 наалтын цаасан дээр үнийн шошго, баркод, QR, хаяг, савлагааны шошго бэлтгээд өөрийн принтерээр хэвлэнэ. Үнэгүй.",
+  q7d: "+7 хоног", q1m: "+1 сар", q3m: "+3 сар", q6m: "+6 сар", q1y: "+1 жил",
+  obpPlain: "Цамц",
+  obpPrice: "<i>Цамц</i><b>15,000&#8366;</b>",
+  obpQr: "Манай хуудас",
+  obpAddr: "<b>Бат-Эрдэнэ</b><i>9900-0001</i><em>БЗД, 3-р хороо</em>",
+  obpPack: "<b>Зөгийн бал</b><em>Орц: цэцгийн бал 100%</em><em>Хэрэглэх хугацаа: 2027.10.10</em>",
+  phList: "Цамц ; 15000\nӨмд ; 45000\nМалгай ; 12000 ; x3"
+};
+/* ===== English UI strings =====
+   Same keys as STR. A key missing here falls back to the Mongolian one, so a
+   string added to STR without a translation still shows something. */
+var STR_EN = {
+  applyText: "Write to selected",
+  badGeom: "Margins and gaps are larger than the page.",
+  bold: "Bold",
+  buyPaper: "Buy paper",
+  buyPaperTitle: "Buy A4 sticker paper",
+  cEmptyAll: "Empty the {n} filled or tagged labels on this page?",
+  calcFmt: "One label <b>{w} &times; {h} mm</b> &middot; <b>{n}</b> per A4 sheet",
+  camber: "Amber",
+  cblack: "Black",
+  cblue: "Blue",
+  cgreen: "Green",
+  chipAll: "All",
+  chipBlank: "Blank",
+  chipFilled: "Filled",
+  chipInvert: "Invert",
+  chipNone: "None",
+  chipTagged: "Tagged",
+  chipFilter: "Filter",
+  clearBtn: "Clear",
+  colourHint: "Select labels and tap a colour to tag them. Tags only show on screen — they print only if you turn on “Also print the dots” in the dialog that opens when you press Print. Logos and label text always print.",
+  cols: "Columns",
+  copyBtn: "Copy",
+  corange: "Orange",
+  cpink: "Pink",
+  cred: "Red",
+  cslate: "Grey",
+  cteal: "Teal",
+  customUnsaved: "Custom size (not saved)",
+  cviolet: "Violet",
+  delPreset: "Delete size",
+  dotGrad: "Gradient",
+  dotSolid: "Solid",
+  dotStyleAria: "Dot style",
+  dropBrowse: "browse",
+  dropMain: "Drag an image here, or",
+  dropSub: "PNG, JPG, SVG · stays in your browser only",
+  pagePrev: "Previous page",
+  pageNext: "Next page",
+  pageAdd: "Add page",
+  pageDel: "Delete this page",
+  pageOf: "{a} / {b}",
+  tPageAdded: "Added page {n}",
+  tPageDel: "Page deleted",
+  tLastPage: "The only page can't be deleted",
+  tAllPages: "Printing {p} pages, {n} labels in total",
+  cPageDel: "Delete all the labels on this page?",
+  shareBtn: "Share",
+  loadCodeBtn: "Open from code",
+  dlgShareTitle: "Share",
+  shareInfo: "Copy the link and send it on Messenger, or bookmark it to use again later.",
+  moreCode: "Text code, if the link doesn't work",
+  tSharedAsFile: "It has a logo, so it downloaded as a file — send that file",
+  copyCode: "Copy code",
+  copyLink: "Copy link",
+  tCodeCopied: "Code copied",
+  tLinkCopied: "Link copied",
+  tPromptCopied: "Text copied",
+  tCopyFail: "Couldn't copy — select it and copy it by hand",
+  dlgClose: "Close",
+  dlgLoadTitle: "Open from code",
+  loadPh: "Paste here",
+  loadGo: "Open",
+  tCodeBad: "Couldn't read this code",
+  tCodeOld: "Your browser is too old to open this code — update Chrome or Edge",
+  cLoadReplace: "Open the shared sheet? It replaces your current work.",
+  tCodeLoaded: "Shared sheet opened",
+  dlgTitle: "Check before printing",
+  dlgA4: "Paper: <b>A4</b>",
+  dlgMargin: "Margins: <b>None</b>",
+  dlgScale: "Scale: <b>100%</b> — not “fit to page”",
+  dlgWhy: "If any of these is wrong, the labels won't line up with the die-cut shapes on the sheet.",
+  dlgFillWarnText: "This sheet has {total} labels. Only {filled} have anything on them.",
+  dlgWhere: "In the next window, look for “More settings” — Margins and Scale are there. On a phone they may be somewhere else or missing; if so, carry on with the defaults.",
+  dlgTip: "Not sure? Print once on plain paper first, lay it over a sticker sheet and hold both up to the light.",
+  dlgGo: "Print",
+  dlgCancel: "Cancel",
+  dlgNever: "Don't show again",
+  restorePrintDlg: "Show the pre-print reminder again",
+  tPrintDlgRestored: "The pre-print reminder will show again.",
+  ptAuto: "With “Auto” on, the text size is set for you",
+  modeAsk: "What are you making?",
+  modePlain: "Plain",
+  modePrice: "Price",
+  modeSku: "Barcode",
+  modeQr: "QR",
+  modeAddr: "Address",
+  modePack: "Packaging",
+  obAddrTitle: "Address label",
+  obAddrDesc: "Name, phone, address",
+  obPackTitle: "Packaging label",
+  obPackDesc: "Ingredients, weight, dates",
+  lblName: "Name",
+  lblProduct: "Product name",
+  lblPhone: "Phone",
+  phPhone: "9900-0001",
+  lblAddr: "Address",
+  phAddr: "Bayanzurkh, 3rd khoroo, bldg 15",
+  addrHint: "Many addresses? Copy a 3-column Name, Phone, Address list from Excel and paste it straight onto the sheet.",
+  lblWeight: "Net weight / volume",
+  phWeight: "500 g",
+  lblIng: "Ingredients",
+  phIng: "e.g. Natural flower honey 100%",
+  lblMade: "Made on",
+  lblExp: "Use by",
+  lblStore: "Storage",
+  phStore: "e.g. Store in a cool, dry place",
+  packHint: "Empty fields are left off the label. For bottles and jars, press “Tall”.",
+  phSubPack: "Maker's name, address, phone",
+  phSubAddr: "Note (optional)",
+  pfxIng: "Ingredients:",
+  pfxMade: "Made:",
+  pfxExp: "Use by:",
+  pfxStore: "Storage:",
+  fldPhone: "Phone",
+  fldAddr: "Address",
+  fldWeight: "Weight",
+  fldIng: "Ingredients",
+  fldMade: "Made",
+  fldExp: "Use by",
+  fldStore: "Storage",
+  tExpSet: "Use-by date set to {d}. Press “Write to selected” to put it on your labels.",
+  lblLot: "Serial / batch number",
+  phLot: "e.g. 2026-10-A",
+  pfxLot: "Batch no.:",
+  fldLot: "Serial number",
+  lblNut: "Nutrition (per 100 g)",
+  phNut: "Energy 304 kcal, protein 0.3 g, fat 0 g, carbohydrate 82 g, sugars 82 g, salt 0 g",
+  pfxNut: "Nutrition (per 100 g):",
+  fldNut: "Nutrition",
+  lblQr: "Link or text for the QR",
+  phQr: "https://facebook.com/...",
+  qrHint: "QR codes handle Cyrillic too — good for menus, Facebook and QPay links.",
+  moreType: "Text settings",
+  moreBulk: "Fill many at once",
+  mapColsBtn: "Match columns",
+  dlgMapTitle: "Match columns",
+  mapInfo: "Choose what each column becomes, then press “Apply”.",
+  mapHeaderChk: "First row is a header",
+  mapApply: "Apply",
+  fldText: "Text",
+  fldPrice: "Price",
+  fldSmall: "Small line",
+  fldBarcode: "Barcode",
+  fldQr: "QR",
+  fldCopies: "Copies",
+  fldIgnore: "Skip",
+  mapWarnDup: "Pick only one of Text, Barcode and QR",
+  tMapEmpty: "The list is empty",
+  tMapNoFields: "Choose at least one column",
+  tMapFilled: "Filled {n} {lbl} from {k} rows",
+  tMapSkipBc: " — {n} rows weren't valid barcodes, so they stayed as text",
+  tQrLong: "The link is too long — shorten it",
+  lblSub: "Small line",
+  phSub: "Use by: 2026.12.31",
+  subHint: "Prints underneath in small type — good for dates, ingredients or an address.",
+  lblCopies: "Copies",
+  colsHint: "Separate the name and price with a semicolon (;): name ; price ; small line. End a line with “x3” to print 3 copies.",
+  tOverflow: "{n} labels didn't fit — print them on the next sheet",
+  dblEdit: "Double-tap a label to edit it in place",
+  lblPrice: "Price",
+  phPrice: "89000",
+  barcodeHint: "Prints the label text as a Code 128 barcode. Only Latin letters, digits and symbols work.",
+  priceHint: "The price prints big and bold, with thousands separators and ₮ added for you.",
+  tThinBarcode: "The barcode is very thin — a scanner may not read it. A bigger label is more reliable.",
+  tTextTooSmall: "Text doesn't fit on some labels — shorten it or choose a bigger label.",
+  tBadBarcode: "Barcodes can't contain Cyrillic — use Latin letters",
+  listCols: "With two columns pasted, column 1 is the name and column 2 the price",
+  emptyTitle: "The sheet is empty",
+  emptyBody: "Select labels and type your text under “Content”",
+  emptySheet: "Empty sheet",
+  exportBtn: "Export",
+  fillBtn: "Fill",
+  fillAllBannerText: "This sheet has {total} labels. Only 1 has anything on it.",
+  fillAllBannerBtn: "Make them all the same",
+  fillList: "Fill from list",
+  fillNum: "Number them",
+  filledW: "filled",
+  fineTune: "Fine-tune this size",
+  fit: "Fit",
+  fitTitle: "Fit the sheet in the window",
+  importBtn: "Import",
+  kbArrows: "Move the cursor; with Shift, extend the selection",
+  kbClick: "Select one label",
+  kbCopy: "Copy the selected labels",
+  kbCtrl: "Add to or remove from the selection",
+  kbDel: "Clear the selected labels",
+  kbDrag: "Select a block of labels",
+  kbFill: "Fill the selection from the first label",
+  kbPaste: "Paste, repeating to fill the selection",
+  kbPrint: "Print",
+  kbRedo: "Redo",
+  kbShift: "Extend the selection",
+  kbSpace: "Select or deselect the label under the cursor",
+  kbUndo: "Undo; Ctrl+Shift+Z redoes",
+  label1: "label",
+  labelN: "labels",
+  layBottom: "Image below the text",
+  layLeft: "Image left of the text",
+  layRight: "Image right of the text",
+  layTop: "Image above the text",
+  lblArrange: "When a label has both",
+  lblAutoNum: "Number automatically",
+  lblFace: "Font",
+  lblGaps: "Horizontal gap, vertical gap, corner rounding",
+  lblImgSize: "Image size",
+  lblList: "Or paste a list — one label per line",
+  lblMargins: "Margins — top, right, bottom, left",
+  calBtn: "Print a calibration page",
+  tCalHint: "It prints on plain paper. Hold it against a sticker sheet up to the light and enter any difference under “Printer offset” above.",
+  lblOffset: "Printer offset — shifts the whole grid if your printer pulls the paper off-line",
+  lblOffX: "→ Right (mm)",
+  lblOffY: "↓ Down (mm)",
+  groupSize: "Label size",
+  groupFile: "Files and sharing",
+  obTitle: "What are you making?",
+  obSub: "You can change this later.",
+  obPlainTitle: "Plain label",
+  obPlainDesc: "Just text",
+  obPriceTitle: "Price tag",
+  obPriceDesc: "Name and a big ₮ price",
+  obSkuTitle: "Barcode label",
+  obSkuDesc: "A scannable code",
+  obQrTitle: "QR label",
+  obQrDesc: "A link phones can scan",
+  obSkip: "Skip for now",
+  obClose: "Close",
+  obReopen: "Choose again",
+  obReopenTitle: "See the first steps again",
+  tModeSet: "Switched to “{lbl}”",
+  tPresetAuto: "Switched to {name} paper. Using different paper? Change it in the picker at the top.",
+  tPresetLost: "{n} labels didn't fit this size and were removed.",
+  introNudge: "Replace the example with your own, then press “Write to selected”.",
+  printNudge: "When it's ready, press “Print” in the top right.",
+  lblSize: "Text size (pt)",
+  lblSizeSel: "Label size — the paper is always A4, 210 × 297 mm",
+  lblText: "Label text",
+  limited: " (reached the margin)",
+  ofLabel: "of the label",
+  offXAria: "Shift right, mm",
+  offYAria: "Shift down, mm",
+  offsetHint: "Positive numbers move right and down. The label size doesn't change.",
+  optCut: "Print cut lines",
+  optIdx: "Number empty labels on screen",
+  pPresetName: "Name this size:",
+  paint: "Paint mode",
+  paintOnLbl: "Paint mode on",
+  pasteBtn: "Paste",
+  phSuffix: "Suffix",
+  placeImg: "Place on selected",
+  print: "Print",
+  printDots: "Also print the dots",
+  printHint: "In the print dialog: <b>A4</b> paper, <b>margins None</b>, <b>scale 100%</b> (not &laquo;fit to page&raquo;), headers and footers off. Turn on Background graphics only when printing cut lines or dots.<br><br>Do a test print on plain paper first, lay it over a sticker sheet and hold both up to the light. If your printer pulls the paper off-line, adjust the <b>Printer offset</b>.",
+  printTitle: "Print (Ctrl+P)",
+  removeImg: "Remove",
+  repeatFill: "Repeat to fill",
+  resetBtn: "Reset",
+  rows: "Rows",
+  savePreset: "Save size",
+  secColour: "Colour tags",
+  secContent: "Content",
+  dimChipLabel: "Paper:",
+  secImage: "Image",
+  secLogo: "Logo",
+  secMore: "More tools",
+  secAutoNum: "Auto numbering",
+  secListFill: "Fill from a list",
+  logoHint: "Shows the image small beside the text. For a full-image label, use the “Image” section above.",
+  placeImgFull: "Fill the whole label",
+  aiPromptHint: "Give the text below to an AI image tool such as ChatGPT and add what you want after it. Save the picture it makes, add it below and press “Fill the whole label”.",
+  aiPromptTmpl: "Please make a {orient} picture that fills right to the edges, with no white border. Bright colours, a simple background.\n\nWhat to draw: ",
+  aiOrientLandscape: "landscape",
+  aiOrientPortrait: "portrait",
+  aiOrientSquare: "square",
+  copyPromptBtn: "Copy text",
+  dlTemplateBtn: "Download a size template",
+  secPrintHelp: "Printing and shortcuts",
+  secPrintHelpMobile: "How to print",
+  secSheet: "Sheet",
+  secType: "Text",
+  selNone: "Nothing selected — tap a label, or drag to select",
+  selectTagged: "Select tagged",
+  selected: "selected",
+  shiftedFmt: "Shifted {x} mm across, {y} mm down",
+  shrink: "Auto",
+  sizeFmt: "{w} × {h} mm  ·  {c}×{r}  ·  {n} per sheet",
+  sizeFull: "Full sheet  ·  1×1  ·  210 × 297 mm",
+  tAddImg: "Add an image first",
+  tBuiltin: "Built-in sizes can't be deleted",
+  tCleared: "Cleared {n} {lbl}; colour tags kept",
+  tClipEmpty: "Nothing copied yet",
+  tColourRdy: "{c} ready — select labels, or turn on paint mode",
+  tCopied: "Copied {n} {lbl}",
+  tCut: "Cut {n} {lbl}",
+  tDeleted: "Deleted size {name}",
+  tDigits: "Pad with zeros to",
+  tEmptied: "Cleared the text on {n} {lbl}",
+  tExported: "Sheet exported",
+  tFilled: "Filled {n} {lbl} from {k} rows",
+  tFilledOne: "Filled {n} {lbl} from the first label",
+  tFillNeedsMore: "Select at least 2 labels.",
+  tFull: "Storage is full, so this sheet is no longer saved automatically. Export it to keep a copy.",
+  tImgAdded: "Image added — select labels and press “Place on selected”",
+  tImgDel: "Image deleted",
+  tImgGone: "Image removed",
+  tImgPlaced: "Placed the image on {n} {lbl}",
+  tImgRead: "Couldn't read this image",
+  tImportBad: "Couldn't read this file as a sheet",
+  tImported: "Sheet imported",
+  tLeftover: " — {n} rows left over",
+  tListEmpty: "Paste your lines into the list box first",
+  tNeedSel: "Select labels on the sheet first",
+  tNewGrad: "New tags fade to white",
+  tNewSolid: "New tags are solid",
+  tNoMatch: "No matching labels",
+  tNoRedo: "Nothing to redo",
+  tNoStore: "This browser won't save the sheet. Export it to keep a copy.",
+  tNoTag: "No labels are tagged {c}",
+  tNoUndo: "Nothing to undo",
+  tNotImage: "This file isn't an image",
+  tNumbered: "Numbered {n} {lbl}",
+  tOffClamp: "There's no room to shift that far at this size, so it stopped at the margin",
+  tOffClear: "Printer offset reset",
+  tPaintOff: "Paint mode off",
+  tPaintOn: "Tap or drag on the sheet to tag with {c}",
+  tPasted: "Pasted onto {n} {lbl}",
+  tPastedTxt: "Filled {n} {lbl} from the pasted text",
+  tPrefix: "Prefix",
+  tRedone: "Redone",
+  tRestyled: "Changed the tag style on {n} {lbl}",
+  tSaved: "Size saved",
+  tSet: "Wrote {n} {lbl}",
+  tSheetEmpty: "Sheet emptied",
+  tStart: "Start at",
+  tTagCount: "Selected {n} {lbl} tagged {c}",
+  tTagged: "Tagged {n} {lbl} {c}",
+  tUndone: "Undone",
+  tUntagged: "Removed the tags from {n} {lbl}",
+  taggedW: "tagged",
+  themeAria: "Change colour theme",
+  toDark: "Dark",
+  toDarkTitle: "Switch to the dark theme",
+  toLight: "Light",
+  toLightTitle: "Switch to the light theme",
+  toastUndoBtn: "Undo",
+  typeHint: "<b>Auto</b> sizes the text to fit the label. Changes apply to the selected labels straight away.",
+  rotLbl: "Tall",
+  rotTitle: "Turn the labels 90° to make them tall. The paper size doesn't change.",
+  rotNote: "tall, turned 90°",
+  tRotOn: "Labels are tall now. The paper is shown turned: on the sheet the labels print sideways — peel them off and stick them upright.",
+  tRotOff: "Labels are wide again",
+  untag: "Remove tag",
+  upper: "CAPS",
+  wBlank: "blank",
+  wImage: "image",
+  zoomIn: "Zoom in",
+  zoomOut: "Zoom out",
+  zoomReset: "Reset to 100%",
+  /* added with the English UI, checklist and templates */
+  chkTitle: "Food label checklist",
+  chkIntro: "For food, Mongolia's labelling standard MNS 6648:2016 and the food safety law ask the label to carry:",
+  chkName: "Product name",
+  chkIng: "Ingredients",
+  chkWt: "Net weight / volume",
+  chkMade: "Production date",
+  chkExp: "Use-by / best-before date",
+  chkStore: "Storage conditions",
+  chkMaker: "Maker's name and address (in “Small line”)",
+  chkLot: "Serial / batch number",
+  chkNut: "Nutrition per 100 g: energy, fat, saturated fat, carbohydrate, sugars, protein, salt",
+  chkNote: "A quick reminder, not legal advice. Check the official text of MNS 6648:2016 from the Mongolian Agency for Standardization and Metrology. If it all won't fit on one label, put a separate label on the back of the pack. Food sold in Mongolia must be labelled in Mongolian: switch the app to МН to print the label headings in Mongolian.",
+  tplLbl: "Templates:",
+  tplSchool: "School name",
+  tplSpice: "Spice jar",
+  tplFolder: "Folder",
+  tplClothes: "Clothing",
+  tplGrocery: "Grocery",
+  tplStock: "Stock item",
+  tplShelf: "Shelf",
+  tplFb: "Facebook",
+  tplWifi: "Wi-Fi",
+  tplShip: "Delivery",
+  tplSender: "Sender",
+  tplHoney: "Honey",
+  tplBakery: "Bakery",
+  tplJam: "Jam",
+  tplSoap: "Soap",
+  tTplLoaded: "Put the “{name}” template into the boxes. Select labels and press “Write to selected”.",
+  tTplSeeded: "“{name}” template ready. Edit it to suit, then press “Make them all the same”.",
+  langBtn: "МН",
+  langTitle: "Монгол хэл рүү шилжих",
+  tLang: "English",
+  docTitle: "Naald.mn — A4 sticker label maker",
+  docDesc: "Make price tags, barcodes, QR codes, address and packaging labels on A4 sticker paper and print them on your own printer. Free.",
+  q7d: "+7 days", q1m: "+1 month", q3m: "+3 months", q6m: "+6 months", q1y: "+1 year",
+  obpPlain: "T-shirt",
+  obpPrice: "<i>T-shirt</i><b>15,000&#8366;</b>",
+  obpQr: "Find us",
+  obpAddr: "<b>Bat-Erdene</b><i>9900-0001</i><em>Bayanzurkh, 3rd khoroo</em>",
+  obpPack: "<b>Honey</b><em>Ingredients: flower honey 100%</em><em>Use by: 2027.10.10</em>",
+  phList: "T-shirt ; 15000\nTrousers ; 45000\nCap ; 12000 ; x3"
 };
 /* ===== lookup ===== */
+/* The UI language is a per-browser option; Mongolian is the default. */
+function lang(){ return (S && S.opts && S.opts.lang === "en") ? "en" : "mn"; }
 function t(key, vars){
-  var str = STR[key];
+  var str = (lang()==="en" && STR_EN[key] !== undefined) ? STR_EN[key] : STR[key];
   if(str === undefined) return key;
   if(vars) for(var k in vars) if(vars.hasOwnProperty(k))
     str = str.split("{"+k+"}").join(vars[k]);
@@ -1814,10 +2299,11 @@ var gradMode = false;
 var MODE_FIELDS = {plain:[], price:["priceRow"], sku:["bcRow"], qr:["qrRow"], addr:["addrRow"], pack:["packRow"]};
 /* Extra text fields beyond name/price/small line, and which job owns them:
    ph phone, ad address; wt net weight, ing ingredients, md made date,
-   ex use-by date, stg storage. Dates are stored as ISO yyyy-mm-dd. */
-var XF = ["ph","ad","wt","ing","md","ex","stg"];
-var MODE_X = {addr:["ph","ad"], pack:["wt","ing","md","ex","stg"]};
-var X_INPUT = {ph:"phoneInput", ad:"addrInput", wt:"wtInput", ing:"ingInput", md:"mdInput", ex:"exInput", stg:"stgInput"};
+   ex use-by date, stg storage, lot serial/batch number, nut nutrition per
+   100 g (MNS 6648:2016 asks for both). Dates are stored as ISO yyyy-mm-dd. */
+var XF = ["ph","ad","wt","ing","md","ex","stg","lot","nut"];
+var MODE_X = {addr:["ph","ad"], pack:["wt","ing","md","ex","stg","lot","nut"]};
+var X_INPUT = {ph:"phoneInput", ad:"addrInput", wt:"wtInput", ing:"ingInput", md:"mdInput", ex:"exInput", stg:"stgInput", lot:"lotInput", nut:"nutInput"};
 function hasX(c){ return XF.some(function(f){ return c[f] && String(c[f]).trim().length; }); }
 function isoDay(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
 function isoToday(){ return isoDay(new Date()); }
@@ -1849,17 +2335,18 @@ function applyMode(){
   $("txtInput").previousElementSibling.textContent = t(mode==="addr" ? "lblName" : mode==="pack" ? "lblProduct" : "lblText");
   $("subInput").placeholder = t(mode==="addr" ? "phSubAddr" : mode==="pack" ? "phSubPack" : "phSub");
   if(mode==="pack" && !$("mdInput").value) $("mdInput").value = isoToday();
+  if(typeof renderTemplates === "function" && $("tplRow")){ renderTemplates(); syncChecklist(); }
   Array.prototype.forEach.call($("modeSeg").children, function(b){
     b.classList.toggle("on", b.dataset.mode === mode);
   });
   /* The text box's placeholder used to be a hardcoded "ABC-1234" no
      matter which job was active - a technical-looking serial number is
      a strange example for someone typing a product name in Plain or
-     Price mode. Reuses the same EXAMPLE_FOR_MODE data the onboarding
+     Price mode. Reuses the same EXAMPLES data the onboarding
      cards already seed with, so it's a real product name where that
      makes sense and a real SKU shape only where SKUs are the point. */
-  if(typeof EXAMPLE_FOR_MODE !== "undefined" && EXAMPLE_FOR_MODE[mode]){
-    $("txtInput").placeholder = EXAMPLE_FOR_MODE[mode].t;
+  if(typeof EXAMPLES !== "undefined" && EXAMPLES[lang()] && exampleFor(mode)){
+    $("txtInput").placeholder = exampleFor(mode).t;
   }
 }
 var curImg = null;
@@ -1928,7 +2415,7 @@ function freshState(){
   var st = {
     presetId:g.id, g:g, pages:[blankCells(g.cols*g.rows)], page:0, images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0}
+    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"}
   };
   st.cells = st.pages[0];
   return st;
@@ -1952,7 +2439,7 @@ function normalise(s){
   if(s.opts && !s.opts.guidesFixed){ s.opts.guides = false; s.opts.guidesFixed = 1; migrated = true; }
   s.custom = s.custom || [];
   s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0}, s.opts || {});
+  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"}, s.opts || {});
   s.cells.forEach(function(c){
     if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
   });
@@ -2546,7 +3033,7 @@ function cellHTML(i, c){
     else if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
   }
-  var xtra = hasX(c), pack = !!(c.wt || c.ing || c.md || c.ex || c.stg);
+  var xtra = hasX(c), pack = !!(c.wt || c.ing || c.md || c.ex || c.stg || c.lot || c.nut);
   if(hasTxt || hasPrice || hasSub || xtra){
     /* Auto size lets text wrap between words, and a browser also breaks
        after a hyphen - which splits a phone number or SKU ("9911-" /
@@ -2567,6 +3054,7 @@ function cellHTML(i, c){
                  part("tel", c.ph) + part("adr", c.ad) +
                  part("wt", c.wt) + part("ing", c.ing, "pfxIng") +
                  (dates ? '<span class="dt">'+dates+'</span>' : "") + part("stg", c.stg, "pfxStore") +
+                 part("stg", c.lot, "pfxLot") + part("ing", c.nut, "pfxNut") +
                  (hasSub ? '<span class="sb">'+words(c.s)+'</span>' : "");
     txt = '<div class="txt'+(pack ? " pack" : "")+'" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
           ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
@@ -2765,8 +3253,9 @@ function selCount(){
     $("subInput").value = c.s || "";
     $("qrInput").value = c.qr || "";
     XF.forEach(function(f){ if(f!=="md" || c.md || !isEmpty(c)) $(X_INPUT[f]).value = c[f] || ""; });
+    if(typeof syncChecklist === "function") syncChecklist();
     var jm = c.qr ? "qr" : (c.bc ? "sku" : (c.p ? "price" : null));
-    if(!jm && (c.wt || c.ing || c.md || c.ex || c.stg)) jm = "pack";
+    if(!jm && (c.wt || c.ing || c.md || c.ex || c.stg || c.lot || c.nut)) jm = "pack";
     else if(!jm && (c.ph || c.ad)) jm = "addr";
     if(jm && jm !== S.opts.mode){ S.opts.mode = jm; applyMode(); }
     $("fontSize").value = st.fs; $("fontFam").value = FONTS[st.ff||0];
@@ -3248,12 +3737,12 @@ $("applyList").addEventListener("click", function(){
    ID, for instance. Reuses the same listInput/listRepeat controls as the
    plain fill so nothing has to be typed twice. */
 var mapRows = [], mapFields = [], mapTouched = [];
-var FIELD_OPTS = ["ignore","t","p","s","bc","qr","copies","ph","ad","wt","ing","md","ex","stg"];
+var FIELD_OPTS = ["ignore","t","p","s","bc","qr","copies","ph","ad","wt","ing","md","ex","stg","lot","nut"];
 function fieldLabel(f){
   return {ignore:t("fldIgnore"), t:t("fldText"), p:t("fldPrice"), s:t("fldSmall"),
           bc:t("fldBarcode"), qr:t("fldQr"), copies:t("fldCopies"),
           ph:t("fldPhone"), ad:t("fldAddr"), wt:t("fldWeight"), ing:t("fldIng"),
-          md:t("fldMade"), ex:t("fldExp"), stg:t("fldStore")}[f];
+          md:t("fldMade"), ex:t("fldExp"), stg:t("fldStore"), lot:t("fldLot"), nut:t("fldNut")}[f];
 }
 /* Column guesses read what the column holds. Phones, dates and weights
    are recognised anywhere; plain text columns become the address on an
@@ -3484,7 +3973,9 @@ $("paintBtn").addEventListener("click", function(){
 $("printMarkers").addEventListener("change", function(){ S.opts.printMarkers=this.checked; save(); render(); });
 
 function applyLang(){
-  document.documentElement.lang = "mn";
+  document.documentElement.lang = lang();
+  document.title = t("docTitle");
+  var md = document.querySelector('meta[name="description"]'); if(md) md.setAttribute("content", t("docDesc"));
   var q = function(a){ return document.querySelectorAll(a); };
   Array.prototype.forEach.call(q("[data-i18n]"), function(el){ el.textContent = t(el.dataset.i18n); });
   Array.prototype.forEach.call(q("[data-i18n-html]"), function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
@@ -3507,6 +3998,10 @@ function applyTheme(){
   $("themeBtn").textContent = dark ? t("toLight") : t("toDark");
   $("themeBtn").title = dark ? t("toLightTitle") : t("toDarkTitle");
 }
+$("langBtn").addEventListener("click", function(){
+  S.opts.lang = lang()==="en" ? "mn" : "en";
+  save(); applyLang(); toast(t("tLang"));
+});
 $("themeBtn").addEventListener("click", function(){
   S.opts.theme = (S.opts.theme === "dark") ? "light" : "dark";
   save(); applyTheme();
@@ -4036,8 +4531,17 @@ function hidePrintNudge(){
 }
 $("printBtn").addEventListener("click", hidePrintNudge);
 
+var seededJSON = null;   /* the last sample written into A1 by a card or template */
 var PRESET_FOR_MODE = {plain:"s-32x15", price:"s-100x55", sku:"s-100x55", qr:"s-100x55", addr:"s-100x55", pack:"s-100x55"};
-var EXAMPLE_FOR_MODE = {
+var EXAMPLES = {en: {
+  plain: {t:"T-shirt"},
+  price: {t:"T-shirt", p:"15000"},
+  sku:   {t:"SKU-001", bc:1},
+  qr:    {t:"Find us on Facebook", qr:"https://facebook.com/our.shop"},
+  addr:  {t:"Bat-Erdene", ph:"9900-0001", ad:"Bayanzurkh, 3rd khoroo, bldg 15"},
+  pack:  {t:"Honey", wt:"500 g", ing:"Natural flower honey 100%", md:isoToday(), ex:addPeriod(isoToday(), "1y"), stg:"Store in a cool, dry place"}
+}};
+EXAMPLES.mn = {
   plain: {t:"Цамц"},
   price: {t:"Цамц", p:"15000"},
   sku:   {t:"SKU-001", bc:1},
@@ -4045,12 +4549,103 @@ var EXAMPLE_FOR_MODE = {
   addr:  {t:"Бат-Эрдэнэ", ph:"9900-0001", ad:"БЗД, 3-р хороо, 15-р байр"},
   pack:  {t:"Зөгийн бал", wt:"500 гр", ing:"Байгалийн цэцгийн бал 100%", md:isoToday(), ex:addPeriod(isoToday(), "1y"), stg:"Хуурай, сэрүүн газар"}
 };
+function exampleFor(mode){ return EXAMPLES[lang()][mode]; }
 /* +7 days / +1 month ... from the made date (today if it is blank) */
 $("exQuick").addEventListener("click", function(e){
   var code = e.target.dataset ? e.target.dataset.add : null; if(!code) return;
   if(!$("mdInput").value) $("mdInput").value = isoToday();
   $("exInput").value = addPeriod($("mdInput").value, code);
   toast(t("tExpSet",{d: fmtDate($("exInput").value)}));
+  syncChecklist();
+});
+
+/* ---- food label checklist ----
+   What MNS 6648:2016 (Mongolia's prepackaged-food labelling standard) and
+   the food safety law ask a label to carry, ticked off live from the boxes.
+   A reminder, not a legal check: the official text is the authority. */
+var CHECK = [["chkName","txtInput"],["chkIng","ingInput"],["chkWt","wtInput"],["chkMade","mdInput"],["chkExp","exInput"],
+             ["chkStore","stgInput"],["chkMaker","subInput"],["chkLot","lotInput"],["chkNut","nutInput"]];
+function syncChecklist(){
+  if(!CHECK) return;
+  var ok=0, h="";
+  CHECK.forEach(function(it){
+    var on = !!$(it[1]).value.trim(); if(on) ok++;
+    h += '<li'+(on?' class="ok"':'')+'><i>'+(on?'&#10003;':'')+'</i><span>'+esc(t(it[0]))+'</span></li>';
+  });
+  $("chkList").innerHTML = h;
+  $("chkCount").textContent = ok+"/"+CHECK.length;
+}
+CHECK.forEach(function(it){ $(it[1]).addEventListener("input", syncChecklist); });
+
+/* ---- quick templates ----
+   One tap per common job: on a blank sheet it picks the paper, turns the
+   labels tall if the job wants it and writes the sample into A1 (the same
+   path as the onboarding cards, so "Fill all the same" follows); on a sheet
+   with work on it, it only fills the boxes and leaves the sheet alone.
+   Each template carries its sample in both UI languages. */
+var TEMPLATES = {
+  plain: [
+    {name:"tplSchool", preset:"s-32x15", mn:{t:"Тэмүүлэн\n3А анги"}, en:{t:"Temuulen\nClass 3A"}},
+    {name:"tplSpice", preset:"s-32x15", mn:{t:"Давс"}, en:{t:"Salt"}},
+    {name:"tplFolder", preset:"s-100x55", rot:1, mn:{t:"2026\nСанхүүгийн баримт"}, en:{t:"2026\nReceipts"}}
+  ],
+  price: [
+    {name:"tplClothes", preset:"s-100x55", mn:{t:"Эрэгтэй цамц", p:"45000", s:"Хэмжээ: M"}, en:{t:"Men's shirt", p:"45000", s:"Size: M"}},
+    {name:"tplGrocery", preset:"s-32x15", mn:{t:"Талх", p:"2500"}, en:{t:"Bread", p:"2500"}}
+  ],
+  sku: [
+    {name:"tplStock", preset:"s-32x15", mn:{t:"SKU-001", bc:1}, en:{t:"SKU-001", bc:1}},
+    {name:"tplShelf", preset:"s-100x55", mn:{t:"A-01-03", bc:1, s:"Тавиур A · 1-р эгнээ"}, en:{t:"A-01-03", bc:1, s:"Rack A · Row 1"}}
+  ],
+  qr: [
+    {name:"tplFb", preset:"s-100x55", mn:{t:"Манай хуудас", qr:"https://facebook.com/manai.delguur"}, en:{t:"Find us on Facebook", qr:"https://facebook.com/our.shop"}},
+    {name:"tplWifi", preset:"s-100x55", mn:{t:"Wi-Fi", qr:"WIFI:T:WPA;S:Manai-WiFi;P:nuuts-ug;;", s:"Сүлжээ: Manai-WiFi"}, en:{t:"Wi-Fi", qr:"WIFI:T:WPA;S:Our-WiFi;P:password;;", s:"Network: Our-WiFi"}}
+  ],
+  addr: [
+    {name:"tplShip", preset:"s-100x55", mn:{t:"Бат-Эрдэнэ", ph:"9900-0001", ad:"БЗД, 3-р хороо, 15-р байр"}, en:{t:"Bat-Erdene", ph:"9900-0001", ad:"Bayanzurkh, 3rd khoroo, bldg 15"}},
+    {name:"tplSender", preset:"s-32x15", mn:{t:"Илгээгч: Манай дэлгүүр", ph:"9900-0000"}, en:{t:"From: Our Shop", ph:"9900-0000"}}
+  ],
+  pack: [
+    {name:"tplHoney", preset:"s-100x55", period:"1y", mn:{t:"Зөгийн бал", wt:"500 гр", ing:"Байгалийн цэцгийн бал 100%", stg:"Хуурай, сэрүүн газар"},
+      en:{t:"Honey", wt:"500 g", ing:"Natural flower honey 100%", stg:"Store in a cool, dry place"}},
+    {name:"tplBakery", preset:"s-100x55", period:"3d", mn:{t:"Үхрийн нүдтэй бялуу", wt:"400 гр", ing:"Гурил, өндөг, цөцгийн тос, элсэн чихэр, үхрийн нүд", stg:"+2…+6°C-д хадгална"},
+      en:{t:"Blackcurrant cake", wt:"400 g", ing:"Flour, eggs, butter, sugar, blackcurrant", stg:"Keep refrigerated at +2…+6°C"}},
+    {name:"tplJam", preset:"s-100x55", rot:1, period:"6m", mn:{t:"Чацарганы чанамал", wt:"350 гр", ing:"Чацаргана, элсэн чихэр", stg:"Нээсний дараа хөргөгчинд хадгална"},
+      en:{t:"Sea buckthorn jam", wt:"350 g", ing:"Sea buckthorn, sugar", stg:"Refrigerate after opening"}},
+    {name:"tplSoap", preset:"s-100x55", mn:{t:"Гар хийцийн саван", wt:"100 гр", ing:"Ямааны сүү, кокосын тос, лавандын тос"},
+      en:{t:"Handmade soap", wt:"100 g", ing:"Goat milk, coconut oil, lavender oil"}}
+  ]
+};
+function tplCell(tp){
+  var c = JSON.parse(JSON.stringify(tp[lang()] || tp.mn));
+  if(tp.period){ c.md = isoToday(); c.ex = addPeriod(c.md, tp.period); }
+  return c;
+}
+function renderTemplates(){
+  var list = (TEMPLATES && TEMPLATES[S.opts.mode||"plain"]) || [];
+  $("tplRow").innerHTML = '<span class="tplLbl">'+esc(t("tplLbl"))+'</span>' +
+    list.map(function(tp, i){ return '<button type="button" data-i="'+i+'">'+esc(t(tp.name))+'</button>'; }).join("");
+}
+$("tplRow").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(!b) return;
+  var tp = (TEMPLATES[S.opts.mode||"plain"]||[])[+b.dataset.i]; if(!tp) return;
+  var c = tplCell(tp);
+  var fresh = (sheetWhollyBlank() || sheetIsOnboardSeedOnly()) && S.pages.length===1 && !sheetHasImages();
+  if(!fresh){
+    $("txtInput").value = c.t || ""; $("priceInput").value = c.p || ""; $("subInput").value = c.s || ""; $("qrInput").value = c.qr || "";
+    XF.forEach(function(f){ $(X_INPUT[f]).value = c[f] || ""; });
+    syncChecklist();
+    toast(t("tTplLoaded",{name: t(tp.name)}));
+    return;
+  }
+  if(tp.preset !== S.presetId) pickPreset(tp.preset);
+  var wantTall = !!tp.rot;
+  mark();
+  S.cells[0] = c; seededJSON = JSON.stringify(c);
+  sel = new Set([0]); cur = 0; anchor = 0;
+  if(wantTall !== rotOn()){ S.g.rot = wantTall ? 1 : 0; press($("rotBtn"), wantTall); turnSheet(); }
+  else { save(); render(); }
+  toast(t("tTplSeeded",{name: t(tp.name)}));
 });
 /* Clicking a second onboarding card (via "Дахин сонгох") after the first one
    already wrote an example into A1 must still count as fresh - otherwise the
@@ -4063,8 +4658,8 @@ $("exQuick").addEventListener("click", function(e){
 function sheetIsOnboardSeedOnly(){
   if(S.pages.length!==1) return false;
   var cells = S.cells, seed = JSON.stringify(cells[0]||{}), i;
-  var isSeed = Object.keys(EXAMPLE_FOR_MODE).some(function(m){
-    return JSON.stringify(EXAMPLE_FOR_MODE[m]) === seed;
+  var isSeed = seed === seededJSON || ["mn","en"].some(function(l){
+    return Object.keys(EXAMPLES[l]).some(function(m){ return JSON.stringify(EXAMPLES[l][m]) === seed; });
   });
   if(!isSeed) return false;
   for(i=1;i<cells.length;i++){ if(!isEmpty(cells[i]) || (cells[i] && cells[i].m)) return false; }
@@ -4082,7 +4677,7 @@ function chooseJob(mode){
       if(pp) toast(t("tPresetAuto",{name: pp.full ? t("sizeFull") : (r2(pp.w)+"×"+r2(pp.h)+" mm")}));
     }
     mark();
-    S.cells[0] = Object.assign({}, EXAMPLE_FOR_MODE[mode]);
+    S.cells[0] = Object.assign({}, exampleFor(mode)); seededJSON = JSON.stringify(S.cells[0]);
     sel = new Set([0]); cur = 0; anchor = 0;
     save(); render();
     closeOnboarding();
