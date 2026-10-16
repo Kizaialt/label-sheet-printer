@@ -1,0 +1,14 @@
+Copyright (c) 2026 Naald.mn. All rights reserved.
+
+The Naald.mn label tool, sales page, design, text, logo and brand assets in
+this repository are proprietary. You may use the tool at https://naald.mn,
+but you may not copy, modify, redistribute or host this code, design or
+branding, in whole or in part, without written permission from Naald.mn.
+
+Contact: info@naald.mn
+
+Third-party software
+--------------------
+vendor/quill/ contains Quill (https://quilljs.com), which is distributed
+under its own BSD 3-Clause license; see vendor/quill/LICENSE. That license
+applies to those files only.
