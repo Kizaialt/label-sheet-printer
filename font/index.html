@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Фонт Шүүгч — Монгол үсэгтэй фонт олох</title>
-<meta name="description" content="Компьютер дээрх аль фонт Ө ө Ү ү үсгийг бүрэн агуулж, сурталчилгаанд хууль ёсоор ашиглаж болохыг шалгана. Монгол үсэгтэй үнэгүй фонтын сан.">
+<title>Монгол үсэгтэй фонт | Naald.mn</title>
+<meta name="description" content="Аль фонт Ө ө Ү ү үсэгтэй, аль нь зарт ашиглагдах вэ гэдгийг шалгана. Монгол үсэг бүрэн, үнэгүй фонтын сан.">
 <link rel="canonical" href="https://naald.mn/font/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Фонт Шүүгч — Монгол үсэгтэй фонт олох">
-<meta property="og:description" content="Аль фонт Ө ө Ү ү үсэгтэй, аль нь сурталчилгаанд хууль ёсоор ашиглаж болохыг шалгана. Монгол үсэгтэй, арилжааны хэрэглээнд үнэгүй фонтын сан.">
+<meta property="og:title" content="Монгол үсэгтэй фонт | Naald.mn">
+<meta property="og:description" content="Аль фонт Ө ө Ү ү үсэгтэй, аль нь зарт ашиглагдах вэ гэдгийг шалгана.">
 <meta property="og:url" content="https://naald.mn/font/">
 <meta property="og:image" content="https://naald.mn/font/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#141416">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141416'/%3E%3Cellipse cx='32' cy='32' rx='15' ry='19' fill='none' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M17 32h30' stroke='%23fff' stroke-width='6'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#6b2bd9">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%236b2bd9%22/%3E%3Cg transform=%22translate(12 12) scale(.76)%22%3E%3Cpath d=%22M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3Cpath d=%22M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z%22 fill=%22%23A98AEE%22%3E%3C/path%3E%3Cpath d=%22M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z%22 fill=%22%23CDBAF7%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root {
   color-scheme: light dark;
@@ -37,7 +38,7 @@
   --info: #2450a6;
   --info-bg: #e5ecfa;
   --star: #d99a00;
-  --accent: #141416;
+  --accent: #6b2bd9;
   --accent-ink: #ffffff;
   --focus: #2f5bea;
   --spec-size: 48px;
@@ -62,8 +63,8 @@
     --info: #8db1ff;
     --info-bg: #1b2740;
     --star: #f2b630;
-    --accent: #f1f0ec;
-    --accent-ink: #111113;
+    --accent: #a98aee;
+    --accent-ink: #14101f;
     --focus: #7d9bff;
   }
 }
@@ -85,7 +86,12 @@ a { color: inherit; }
 
 /* Header */
 .brand { display: flex; align-items: center; gap: 10px; margin: 0; flex: none; }
-.brand svg { flex: none; width: 30px; height: 30px; }
+.brand { gap: 12px; }
+.brand .mark { display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; }
+.brand svg { flex: none; width: 32px; height: 32px; }
+.brand .wm { font: 700 17px/1 "Unbounded", "Golos Text", system-ui, sans-serif; letter-spacing: -.01em; }
+.brand .dot { color: var(--accent); }
+.brand .sub { font-size: 15px; font-weight: 500; color: var(--ink-3); padding-left: 12px; border-left: 1px solid var(--line-2); letter-spacing: 0; }
 h1 { font-size: 20px; line-height: 1.1; letter-spacing: -0.015em; margin: 0; font-weight: 700; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 .lang { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line-2); border-radius: 999px; }
@@ -320,8 +326,8 @@ h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
   <div class="wrap">
     <div class="nav">
     <div class="brand">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="currentColor"/><ellipse cx="32" cy="32" rx="15" ry="19" fill="none" stroke="var(--bg)" stroke-width="6"/><path d="M17 32h30" stroke="var(--bg)" stroke-width="6"/></svg>
-      <h1 data-i18n="brand">Фонт Шүүгч</h1>
+      <a class="mark" href="/" aria-label="Naald.mn"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#6b2bd9"/><g transform="translate(12 12) scale(.76)"><path d="M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z" fill="#FFFFFF"></path><path d="M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z" fill="#A98AEE"></path><path d="M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z" fill="#CDBAF7"></path></g></svg><span class="wm">Naald<span class="dot">.mn</span></span></a>
+      <h1 class="sub" data-i18n="brand"></h1>
     </div>
     <nav class="tabs" id="tabs" role="tablist">
       <button class="tab" role="tab" type="button" data-tab="mine"><span data-i18n="tabMine"></span><b id="cMine"></b></button>
@@ -981,16 +987,16 @@ const MS_FAQ = "https://learn.microsoft.com/en-us/typography/fonts/font-faq";
 const OFL_URL = "https://openfontlicense.org/";
 const I18N = {
   mn: {
-    docTitle: "Фонт Шүүгч — Монгол үсэгтэй фонт олох",
-    docDesc: n => `Компьютер дээрх аль фонт Ө ө Ү ү үсгийг бүрэн агуулж, сурталчилгаанд хууль ёсоор ашиглаж болохыг шалгана. Монгол үсэгтэй, арилжааны хэрэглээнд үнэгүй ${n} фонт.`,
-    brand: "Фонт Шүүгч",
-    tagline: "Таны компьютерт суусан фонтуудаас <strong>Ө ө Ү ү</strong> үсгийг бүрэн агуулсныг нь олж, сурталчилгаанд хууль ёсоор ашиглаж болох эсэхийг харуулна.",
+    docTitle: "Монгол үсэгтэй фонт | Naald.mn",
+    docDesc: n => `Аль фонт Ө ө Ү ү үсэгтэй, аль нь зарт ашиглагдах вэ гэдгийг шалгана. Монгол үсэг бүрэн, үнэгүй ${n} фонт.`,
+    brand: "Фонт",
+    tagline: "<strong>Ө ө Ү ү</strong> үсэг бүрэн байгаа фонтыг олж, зар сурталчилгаанд ашиглаж болох эсэхийг нь харуулна.",
     scan: "Фонтоо шалгах", rescan: "Дахин шалгах", checkFiles: "Фонт файл шалгах",
     tabMine: "Миний фонтууд", tabLib: "Фонтын сан", tabGuide: "Лицензийн заавар", tabShort: "Жагсаалт", tabShared: "Ирсэн жагсаалт",
-    intro1: "<strong>Фонтоо шалгах</strong> товчийг дарна уу. Chrome эсвэл Edge хөтөч таны фонтын жагсаалтыг унших зөвшөөрлийг нэг удаа асууна.",
-    privacy: "Бүх шалгалт таны хөтөч дотор явагдана. Фонтууд тань хаашаа ч илгээгдэхгүй.",
-    intro2: "Фонтоо суулгахаасаа өмнө шалгах бол <code>.ttf</code>, <code>.otf</code>, <code>.ttc</code> файлаа энэ хуудас руу чирж оруулаарай.",
-    intro3: n => `Тохирох фонт цөөн байна уу? <button type="button" class="link" data-go="lib">Фонтын сан</button> хэсэгт Монгол үсэг бүрэн, арилжааны хэрэглээнд үнэгүй ${n} фонт бий.`,
+    intro1: "<strong>Фонтоо шалгах</strong> товчийг дарна. Chrome эсвэл Edge нэг удаа зөвшөөрөл асууна.",
+    privacy: "Бүгд таны хөтөч дотор ажиллана. Фонт хаашаа ч явахгүй.",
+    intro2: "Суулгахаасаа өмнө шалгах бол <code>.ttf</code>, <code>.otf</code>, <code>.ttc</code> файлаа энд чирээд тавина.",
+    intro3: n => `Тохирох фонт олдсонгүй юу? <button type="button" class="link" data-go="lib">Фонтын сан</button>-д Монгол үсэг бүрэн, үнэгүй ${n} фонт бий.`,
     sampleAria: "Жишээ текст", presetSentence: "Өгүүлбэр", presetCaps: "ТОМ ҮСЭГ", presetAbc: "Цагаан толгой", size: "Хэмжээ",
     segMn: "Монгол үсэгтэй", segRu: "Дутуу", segNone: "Кириллгүй", segAll: "Бүгд",
     segMnT: "Ө ө Ү ү зэрэг Монгол кирилл үсэг бүгд бий",
@@ -1000,22 +1006,22 @@ const I18N = {
     licSegRights: "Лиценз шаардлагатай", licSegPersonal: "Хувийн/Demo", licSegUnknown: "Тодорхойгүй",
     libFree: "Үнэгүй", libMn: "Монгол хувилбар", libWin: "Windows-тай ирдэг", libPaid: "Төлбөртэй",
     licInfo: "Лиценз", licGuideLink: "Лицензийн заавар →", libCount: n => `${n} фонт`, libHave: n => `${n} нь танд суусан`,
-    libMnStatus: n => `Ө ө Ү ү эсвэл ₮ дутуу байсан ${n} нээлттэй фонтод эдгээр үсгийг тухайн фонтын өөрийн хэв маягаар нэмсэн Монгол хувилбарууд. Арилжааны хэрэглээнд үнэгүй (OFL).`,
-    mnBadge: "Монгол хувилбар", mnBadgeT: (b, d) => `${b} (${d}) фонт дээр Ө ө Ү ү ₮ нэмсэн`, mnAdditions: "Монгол үсгийг нэмсэн: Фонт Шүүгч",
+    libMnStatus: n => `Ө ө Ү ү, ₮ байгаагүй ${n} нээлттэй фонтод эдгээр үсгийг нэмсэн хувилбарууд. Арилжаанд үнэгүй (OFL).`,
+    mnBadge: "Монгол хувилбар", mnBadgeT: (b, d) => `${b} (${d}) фонт дээр Ө ө Ү ү ₮ нэмсэн`, mnAdditions: "Монгол үсгийг нэмсэн: Naald.mn",
     catAll: "Бүгд", catS: "Sans serif", catR: "Serif", catD: "Чимэглэлийн", catH: "Гар бичмэл", catM: "Monospace",
     searchPh: "Фонт хайх", hasTug: "₮ тэмдэгтэй", variable: "Variable", hideInstalled: "Суусныг нуух",
     copyNames: "Нэрсийг хуулах", copyLink: "Хуваалцах холбоос хуулах", addAll: "Миний жагсаалтад нэмэх", closeShared: "Хаах",
     alphabet: "Монгол цагаан толгой", stylesH: "Хэв маяг", licenseH: "Лиценз", copyName: "Нэр хуулах", copyCss: "CSS хуулах", close: "Хаах",
     drop: ".ttf, .otf, .ttc файлаа энд тавьж шалгаарай",
-    footer: "Үнэгүй хэрэгсэл. Фонтууд тань таны компьютерээс гарахгүй, бүх шалгалт хөтөч дотор явагдана. Үнэгүй фонтын жишээг Google Fonts болон jsDelivr-ээс ачаална. Лицензийн мэдээлэл нь ерөнхий чиглүүлэг, хуулийн зөвлөгөө биш. Компьютер дээрх Chrome эсвэл Edge хөтөчид хамгийн сайн ажиллана. <button type=\"button\" class=\"link\" data-go=\"guide\">Лицензийн заавар</button>",
+    footer: "Бүх шалгалт таны хөтөч дотор явагдах тул фонт тань компьютерээсээ гарахгүй. Жишээ фонтыг Google Fonts, jsDelivr-ээс ачаална. Лицензийн мэдээлэл нь зөвхөн лавлах, хуулийн зөвлөгөө биш. Компьютер дээр Chrome эсвэл Edge-ээр хамгийн сайн ажиллана. <button type=\"button\" class=\"link\" data-go=\"guide\">Лицензийн заавар</button>",
     styles: n => `${n} хэв маяг`,
     status: (all, mn, shown) => `${all} фонт · ${mn} нь Монгол үсэгтэй · ${shown} харагдаж байна`,
     scanning: (d, total) => `Фонт шалгаж байна… ${d} / ${total}`,
     checkingStyles: (d, total) => `· Хэв маяг бүрийг шалгаж байна… ${d} / ${total}`,
-    libFreeStatus: (n, have) => `Монгол үсэг бүрэн, арилжааны хэрэглээнд үнэгүй ${n} фонт. Зар, лого, хэвлэл, вэбэд ашиглаж болно.` + (have === null ? "" : ` · ${have} нь танд суусан`),
-    libWinStatus: n => `Windows-тай хамт ирдэг, Монгол үсэг бүрэн ${n} фонт. Зар, лого, хэвлэл, видеод болно; вэб сайтад байршуулах, бусдад өгөхийг хориглоно.`,
+    libFreeStatus: (n, have) => `Монгол үсэг бүрэн ${n} фонт. Зар, лого, хэвлэл, вэбд үнэгүй.` + (have === null ? "" : ` · ${have} нь танд суусан`),
+    libWinStatus: n => `Windows-той ирдэг, Монгол үсэг бүрэн ${n} фонт. Зар, лого, хэвлэл, видеонд болно. Вэб сайтад тавих, бусдад дамжуулахыг хориглоно.`,
     notWindows: " Таны төхөөрөмж Windows биш тул зарим нь харагдахгүй байж магадгүй.",
-    libPaidStatus: "Худалдаж авах боломжтой эх сурвалж. Эдгээрийг бид шалгаагүй, худалдагчийн мэдээлэл.",
+    libPaidStatus: "Худалдаж авах газрууд. Бид шалгаагүй, мэдээлэл нь худалдагчийнх.",
     shortStatus: n => `Жагсаалтад ${n} фонт`,
     sharedTitle: n => `Танд ${n} фонттой жагсаалт ирлээ`,
     sharedScan: "Аль нь танд суусныг харахын тулд фонтоо шалгаарай.",
@@ -1066,10 +1072,10 @@ const I18N = {
     paidRentafont: "Фонт түрээслэх, худалдах үйлчилгээ. «Mongolian Cyrillic» шүүлтүүрээр 94 фонтын гэр бүл (948 хэв маяг) гардаг. Хэв маяг бүрээр үнэтэй, түрээслэх эсвэл худалдаж авах боломжтой.",
     paidTypeType: "Олон улсын фонтын компани. Сайтын Mongolian ангилалд 25 гаруй фонт байгаа бөгөөд бүгд Монгол цагаан толгойтой гэж бичсэн. Үнэгүй туршилтын хувилбартай.",
     submitTitle: "Та Монгол фонт бүтээсэн үү?",
-    submitText: "Фонтоо энд нэмүүлэхийг хүсвэл санал илгээгээрэй. Лиценз, худалдаж авах холбоосоо хавсаргаарай. Бид файлыг нь шалгаад нэмнэ.",
+    submitText: "Лиценз болон худалдаж авах холбоосоо хамт явуулаарай. Файлыг шалгаад нэмнэ.",
     notHere: "Таны компьютерт алга.",
     notInFree: "Фонтын санд байхгүй. Илгээсэн хүнээс хаанаас авахыг асуугаарай.",
-    noteUnsupported: "Энэ хөтөч суусан фонтуудыг уншиж чадахгүй. Компьютер дээрээ Chrome эсвэл Edge хөтчөөр нээгээрэй (Firefox, Safari, Brave болон утсан дээр ажиллахгүй). Фонт файлаа чирж оруулж шалгах боломжтой хэвээр.",
+    noteUnsupported: "Энэ хөтөч суусан фонтыг уншиж чадахгүй. Компьютер дээрээ Chrome эсвэл Edge-ээр нээнэ үү (Firefox, Safari, Brave, утас дээр болохгүй). Фонт файлаа чирж оруулаад шалгаж болно.",
     noteDenied: "Фонт унших зөвшөөрөл хаалттай байна. Хаягийн мөрний зүүн талд байгаа дүрс дээр дарж Fonts-ыг зөвшөөрөөд дахин шалгаарай.",
     noteError: m => "Фонтын жагсаалтыг уншиж чадсангүй" + (m ? ": " + m : "."),
     axes: { wght: "Зузаан", wdth: "Өргөн", slnt: "Налуу", ital: "Italic", opsz: "Оптик хэмжээ", YEAR: "Он" },
@@ -1083,23 +1089,23 @@ const I18N = {
 <article class="rule bad"><h3><span>✗</span> «Personal use», «Demo», «Trial» фонт</h3><p>Зөвхөн хувийн хэрэглээнд. Зар, лого, захиалгат ажилд ашиглахыг хориглоно. Үнэгүй фонтын сайтаас татсан гоё фонтуудын ихэнх нь ийм байдаг.</p></article>
 <article class="rule bad"><h3><span>✗</span> Олон зуун фонттой багц, архив</h3><p>500, 1000 гаруй фонттой архив, Google Drive-ын багц, файл худалдааны сайтаас авсан фонтууд ихэвчлэн лицензгүй. Архивыг мөнгөөр авсан ч фонтын лиценз авсан гэсэн үг биш.</p></article>
 <article class="rule bad"><h3><span>✗</span> Нэрийг нь өөрчилсөн хуулбар</h3><p>Arial, Times New Roman зэрэг фонтод Монгол үсэг нэмж, нэрийг нь сольсон хуулбарыг ашиглах эрхгүй. Windows-ын фонтыг өөрчлөхийг Microsoft зөвшөөрдөггүй.</p></article>
-<article class="rule bad"><h3><span>✗</span> Хуучин кодчиллын фонт</h3><p>Юникодоос өмнөх зарим фонт Ө, Ү-г өөр тэмдэгтийн байранд суулгасан байдаг. Ийм фонтоор бичсэн текст өөр фонт руу шилжихэд эвдэрнэ. Фонт Шүүгч ийм фонтыг «Дутуу» эсвэл «Кириллгүй» гэж харуулна.</p></article>
+<article class="rule bad"><h3><span>✗</span> Хуучин кодчиллын фонт</h3><p>Юникодоос өмнөх зарим фонт Ө, Ү-г өөр тэмдэгтийн байранд суулгасан байдаг. Ийм фонтоор бичсэн текст өөр фонт руу шилжихэд эвдэрнэ. Энэ хэрэгсэл ийм фонтыг «Дутуу» эсвэл «Кириллгүй» гэж харуулна.</p></article>
 </div>
 <h3 class="sub-h">Өөрийн фонтуудаа шалгах</h3>
 <p><button type="button" class="link" data-go="mine">Миний фонтууд</button> хэсэгт фонт бүрийн файлд бичигдсэн лицензийн мэдээллийг уншиж «Сурталчилгаанд OK», «Лиценз шаардлагатай», «Хувийн/Demo», «Тодорхойгүй» гэж ангилна. Энэ нь файлд бичигдсэн мэдээлэл төдий тул эргэлзээтэй бол фонтыг татсан эх сурвалжаас нь лицензийг шалгаарай.</p>
 <p class="fine">Энэ бол ерөнхий мэдээлэл, хуулийн зөвлөгөө биш. Эх сурвалж: <a href="${MS_FAQ}" target="_blank" rel="noopener">Microsoft Font FAQ</a>, <a href="${OFL_URL}" target="_blank" rel="noopener">SIL Open Font License</a>.</p>`,
   },
   en: {
-    docTitle: "Mongolian Font Finder",
-    docDesc: n => `Finds the fonts on your computer that really contain Ө ө Ү ү and can legally go in your ads, plus ${n} free fonts verified for every Mongolian letter.`,
-    brand: "Mongolian Font Finder",
-    tagline: "Finds the fonts on your computer that really contain <strong>Ө ө Ү ү</strong>, and shows whether you can legally use them in ads.",
+    docTitle: "Mongolian fonts | Naald.mn",
+    docDesc: n => `Check which of your fonts have Ө ө Ү ү and which are safe for ads, plus ${n} free fonts with every Mongolian letter.`,
+    brand: "Fonts",
+    tagline: "Find out which of your fonts have <strong>Ө ө Ү ү</strong>, and which ones you can use in ads.",
     scan: "Scan my fonts", rescan: "Rescan", checkFiles: "Check font files",
     tabMine: "My fonts", tabLib: "Font library", tabGuide: "License guide", tabShort: "Shortlist", tabShared: "Shared list",
-    intro1: "Press <strong>Scan my fonts</strong>. Chrome or Edge asks once for permission to read your font list.",
-    privacy: "Everything runs inside your browser. Your fonts are never uploaded.",
-    intro2: "To check fonts before installing them, drop <code>.ttf</code>, <code>.otf</code> or <code>.ttc</code> files anywhere on this page.",
-    intro3: n => `Short on fonts? The <button type="button" class="link" data-go="lib">Font library</button> has ${n} fonts with every Mongolian letter that are free for commercial use.`,
+    intro1: "Click <strong>Scan my fonts</strong>. Chrome or Edge will ask for permission once.",
+    privacy: "It all runs in your browser. Nothing is uploaded.",
+    intro2: "To check files before installing them, drop <code>.ttf</code>, <code>.otf</code> or <code>.ttc</code> files here.",
+    intro3: n => `Nothing suitable? The <button type="button" class="link" data-go="lib">Font library</button> has ${n} fonts with every Mongolian letter, free to use commercially.`,
     sampleAria: "Sample text", presetSentence: "Sentence", presetCaps: "CAPS", presetAbc: "Alphabet", size: "Size",
     segMn: "Mongolian ready", segRu: "Partial", segNone: "No Cyrillic", segAll: "All",
     segMnT: "Every Mongolian Cyrillic letter, including Ө ө Ү ү",
@@ -1109,22 +1115,22 @@ const I18N = {
     licSegRights: "License required", licSegPersonal: "Personal/Demo", licSegUnknown: "Unknown",
     libFree: "Free", libMn: "MN editions", libWin: "Comes with Windows", libPaid: "Paid",
     licInfo: "License", licGuideLink: "License guide →", libCount: n => `${n} ${n === 1 ? "font" : "fonts"}`, libHave: n => `${n} already installed`,
-    libMnStatus: n => `${n} open-licensed fonts that lacked Ө ө Ү ү or ₮, with those letters added in each font's own style. Free for commercial use (OFL).`,
-    mnBadge: "MN edition", mnBadgeT: (b, d) => `${b} by ${d}, with Ө ө Ү ү ₮ added`, mnAdditions: "Mongolian letters added by Font Shuugch",
+    libMnStatus: n => `${n} open-license fonts that were missing Ө ө Ү ү or ₮. We added the letters in each font's own style. Free for commercial use (OFL).`,
+    mnBadge: "MN edition", mnBadgeT: (b, d) => `${b} by ${d}, with Ө ө Ү ү ₮ added`, mnAdditions: "Mongolian letters added by Naald.mn",
     catAll: "All", catS: "Sans serif", catR: "Serif", catD: "Display", catH: "Handwriting", catM: "Monospace",
     searchPh: "Search fonts", hasTug: "Has ₮", variable: "Variable", hideInstalled: "Hide installed",
     copyNames: "Copy names", copyLink: "Copy share link", addAll: "Add to my shortlist", closeShared: "Close",
     alphabet: "Mongolian alphabet", stylesH: "Styles", licenseH: "License", copyName: "Copy name", copyCss: "Copy CSS", close: "Close",
     drop: "Drop .ttf / .otf / .ttc files to check them",
-    footer: "Free tool. Your fonts never leave your computer; every check runs in your browser. Free-font previews load from Google Fonts and jsDelivr. License information is general guidance, not legal advice. Works best in Chrome or Edge on a computer. <button type=\"button\" class=\"link\" data-go=\"guide\">License guide</button>",
+    footer: "Every check runs in your browser, so your fonts stay on your computer. Sample fonts load from Google Fonts and jsDelivr. License info is a guide, not legal advice. Works best in Chrome or Edge on a computer. <button type=\"button\" class=\"link\" data-go=\"guide\">License guide</button>",
     styles: n => `${n} style${n === 1 ? "" : "s"}`,
     status: (all, mn, shown) => `${all} font families · ${mn} ready for Mongolian · showing ${shown}`,
     scanning: (d, total) => `Checking fonts… ${d} / ${total}`,
     checkingStyles: (d, total) => `· Checking every style… ${d} / ${total}`,
-    libFreeStatus: (n, have) => `${n} fonts with every Mongolian letter, free for commercial use: ads, logos, print and web.` + (have === null ? "" : ` · ${have} already installed`),
-    libWinStatus: n => `${n} fonts that come with Windows and have every Mongolian letter. OK for ads, logos, print and video; not for hosting on websites or giving to others.`,
+    libFreeStatus: (n, have) => `${n} fonts with every Mongolian letter. Free for ads, logos, print and web.` + (have === null ? "" : ` · ${have} already installed`),
+    libWinStatus: n => `${n} fonts that come with Windows and have every Mongolian letter. Fine for ads, logos, print and video. Not for putting on a website or passing to others.`,
     notWindows: " You're not on Windows, so some may not display.",
-    libPaidStatus: "Places to buy fonts with Mongolian support. Not verified by us: this is the seller's own description.",
+    libPaidStatus: "Where to buy fonts with Mongolian support. We haven't checked these; the details come from the sellers.",
     shortStatus: n => `${n} font${n === 1 ? "" : "s"} in your shortlist`,
     sharedTitle: n => `Someone shared a list of ${n} font${n === 1 ? "" : "s"}`,
     sharedScan: "Scan your fonts to see which ones you already have.",
@@ -1175,10 +1181,10 @@ const I18N = {
     paidRentafont: "Font rental and purchase service. Its Mongolian Cyrillic filter lists 94 font families (948 styles), priced per style, to rent or buy.",
     paidTypeType: "International type foundry. Its Mongolian category lists 25+ font families and says each includes the Mongolian alphabet. Free trial versions available.",
     submitTitle: "Made a Mongolian font?",
-    submitText: "Suggest it for the library. Include the license and where to buy or download it. We check the files before adding.",
+    submitText: "Send the license and where to buy or download it. We'll check the files before adding it.",
     notHere: "Not on this computer.",
     notInFree: "Not in the font library. Ask the sender where to get it.",
-    noteUnsupported: "This browser can't list installed fonts. Open this page in Chrome or Edge on a computer (Firefox, Safari, Brave and phones can't). You can still drop font files here to check them.",
+    noteUnsupported: "This browser can't read installed fonts. Open the page in Chrome or Edge on a computer (not Firefox, Safari, Brave or a phone). You can still drop font files here to check them.",
     noteDenied: "Font access is blocked for this page. Click the icon at the left of the address bar, allow Fonts, then scan again.",
     noteError: m => "Couldn't read the font list" + (m ? ": " + m : "."),
     axes: { wght: "Weight", wdth: "Width", slnt: "Slant", ital: "Italic", opsz: "Optical size", YEAR: "Year" },
@@ -1192,7 +1198,7 @@ const I18N = {
 <article class="rule bad"><h3><span>✗</span> "Personal use", "Demo", "Trial" fonts</h3><p>Personal use only. Not for ads, logos or client work. Most of the eye-catching fonts on free-font sites are like this.</p></article>
 <article class="rule bad"><h3><span>✗</span> Packs of hundreds of fonts</h3><p>Archives with 500 or 1,000+ fonts, Google Drive bundles and fonts resold on file-sharing sites usually come with no license. Paying for the archive doesn't give you a font license.</p></article>
 <article class="rule bad"><h3><span>✗</span> Renamed copies</h3><p>Copies of fonts like Arial or Times New Roman with Mongolian letters added and a new name aren't licensed. Microsoft doesn't allow modifying Windows fonts.</p></article>
-<article class="rule bad"><h3><span>✗</span> Old pre-Unicode fonts</h3><p>Some older fonts put Ө and Ү in place of other characters. Text typed in them breaks as soon as you switch fonts. Mongolian Font Finder shows these as "Partial" or "No Cyrillic".</p></article>
+<article class="rule bad"><h3><span>✗</span> Old pre-Unicode fonts</h3><p>Some older fonts put Ө and Ү in place of other characters. Text typed in them breaks as soon as you switch fonts. This tool shows these as "Partial" or "No Cyrillic".</p></article>
 </div>
 <h3 class="sub-h">Checking your own fonts</h3>
 <p><button type="button" class="link" data-go="mine">My fonts</button> reads the license information stored in each font file and sorts fonts into "OK for ads", "License required", "Personal/Demo" and "Unknown". That's only what the file says, so if in doubt, check the license where you got the font.</p>
