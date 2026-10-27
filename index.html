@@ -2479,9 +2479,11 @@ var A4 = {pw:210, ph:297};
    not a hardcoded entry here. */
 var BUILTIN = [
   {id:"s-32x15",  w:32,  h:15, cols:6,rows:17,mt:5,mr:4,mb:5,ml:4,gx:2,gy:2,rad:1.5},
-  /* 144 sheet, owner 2026-10-26: 5.5 mm top/bottom (sums to 297), 10.5 mm left/right (equal so the sheet prints the same
-     whichever way round it is loaded), 1.8 mm horizontal gaps (6x30 + 5x1.8 = 189, so the row sums to 210), 2 mm vertical */
-  {id:"s-30x10",  w:30,  h:10, cols:6,rows:24,mt:5.5,mr:10.5,mb:5.5,ml:10.5,gx:1.8,gy:2,rad:1.5},
+  /* 144 sheet, owner 2026-10-26: 5.5 mm top/bottom (sums to 297), 10 mm left/right, 2 mm gaps (6x30 + 5x2 = 190, so the row sums to 210) */
+  {id:"s-30x10",  w:30,  h:10, cols:6,rows:24,mt:5.5,mr:10,mb:5.5,ml:10,gx:2,gy:2,rad:1.5},
+  /* 28 sheet, owner 2026-10-27: 4 x 7 boxes of 50 x 40 mm. Outer edges: 3.5 mm left/right (4 x 50 + 3 x 1 = 203, 210 - 203 = 7),
+     2.5 mm top/bottom (7 x 40 + 6 x 2 = 292, 297 - 292 = 5) */
+  {id:"s-50x40",  w:50,  h:40, cols:4,rows:7, mt:2.5,mr:3.5,mb:2.5,ml:3.5,gx:1,gy:2,rad:1.5},
   {id:"s-100x55", w:100, h:55, cols:2,rows:5, mt:7,mr:4,mb:7,ml:4,gx:2,gy:2,rad:1.5}
 ];
 BUILTIN.forEach(function(b){ b.pw=A4.pw; b.ph=A4.ph; });
