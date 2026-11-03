@@ -1427,6 +1427,11 @@ var BRAND = {
      also works on the github.io address) */
   store: "home/"
 };
+/* naald-desktop (the Windows/Mac app) loads this same file from disk and sets
+   window.naaldDesktop in its preload. Links that leave the app must then point
+   at the website, not at the app's own files. */
+var DESKTOP = !!(window.naaldDesktop && window.naaldDesktop.print);
+var SITE = DESKTOP ? "https://naald.mn/" : "";
 
 /* ===== Mongolian UI strings =====
    Translated by a professional Mongolian localiser. Latin script is kept on
@@ -2780,7 +2785,7 @@ async function decodeShareCode(code){
   return expandSharedPayload(obj);
 }
 function shareLink(code){
-  return location.origin + location.pathname + "?d=" + encodeURIComponent(code);
+  return (DESKTOP ? SITE : location.origin + location.pathname) + "?d=" + encodeURIComponent(code);
 }
 function applySharedState(obj){
   mark();
@@ -4213,7 +4218,7 @@ function applyLang(){
   Array.prototype.forEach.call(q("[data-i18n-aria]"), function(el){ el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
 
   $("brandName").setAttribute("aria-label", BRAND.name);
-  $("buyLink").href = BRAND.store;
+  $("buyLink").href = SITE + BRAND.store;
   $("paintBtn").textContent = paint ? t("paintOnLbl") : t("paint");
   buildSwatches(); drawSwatchCounts();
   applyMode();
@@ -4618,13 +4623,18 @@ function doPrint(calibrate){
     wrap=buildPrintSheets();
     toast(t("tAllPages",{p:S.pages.length, n:totalLabels()}));
   }
-  window.print();
-  setTimeout(function(){
+  function restore(){
     if(wrap) wrap.remove();
     document.body.classList.remove("multi");
     sel=keep; cur=keepCur; syncSelUI();
     if(calibrate){ S.opts.guides=wasGuides; render(); }
-  }, 400);
+  }
+  /* The desktop app prints with A4, margins None and background graphics
+     already set, and its print() resolves once the job is spooled - so the
+     print-only layout stays in place until then instead of a guessed 400 ms. */
+  if(DESKTOP){ window.naaldDesktop.print().then(restore, restore); return; }
+  window.print();
+  setTimeout(restore, 400);
 }
 var pendingCalibrate=false;
 function askThenPrint(calibrate){
@@ -4636,7 +4646,9 @@ function askThenPrint(calibrate){
      checklist, but not when the sheet itself is the problem - that's a
      fresh, higher-priority thing to catch each time it's true, not the
      thing she opted out of. */
-  if(S.opts.noPrintDlg && !incomplete){ doPrint(pendingCalibrate); return; }
+  /* the checklist is about the browser's print window (margins, scale); the
+     desktop app sets those itself, so there it only shows for a half-filled sheet */
+  if((S.opts.noPrintDlg || DESKTOP) && !incomplete){ doPrint(pendingCalibrate); return; }
   $("dlgNever").checked=false;
   $("printDlg").hidden=false;
   $("dlgGo").focus();
