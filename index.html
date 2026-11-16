@@ -791,6 +791,14 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   border:1px solid currentColor;border-radius:var(--r-pill);
 }
 #toast .toastUndo:hover{opacity:.8}
+/* stays up for as long as the sheet is not being saved */
+#saveBadge{
+  position:fixed;left:12px;bottom:12px;z-index:var(--z-toast);
+  padding:6px 12px;border-radius:var(--r-pill);font-size:var(--fs-micro);font-weight:600;
+  background:var(--danger);color:#fff;
+}
+#saveBadge[hidden]{display:none}
+@media print{ #saveBadge{display:none !important} }
 
 /* ================= responsive ================= */
 @media (max-width:1180px){ .sidebar{width:312px} }
@@ -1432,6 +1440,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     </div>
   </div>
 </div>
+<div id="saveBadge" role="status" hidden></div>
 <div id="toast"><span class="pip"></span><span id="toastMsg"></span><button id="toastUndo" class="toastUndo" hidden data-i18n="toastUndoBtn">Undo</button></div>
 <script>
 (function(){
@@ -1757,6 +1766,10 @@ var STR = {
   tFilledOne: "Эхний шошгоор {n} {lbl} бөглөлөө",
   tFillNeedsMore: "Хамгийн багадаа 2 шошго сонгоорой.",
   tFull: "Хадгалах зай дүүрсэн тул энэ хуудас автоматаар хадгалагдахаа больлоо. Экспорт хийж хуулбараа аваарай.",
+  tImgTooBig: "Энэ зураг хэт том тул нэмсэнгүй. Жижиг зураг сонгоорой, эсвэл хэрэглэхгүй зургаа устгаарай.",
+  tImportFull: "Хадгалах зай хүрэлцэхгүй тул файлыг нээсэнгүй. Хэрэглэхгүй зургаа устгаад дахин оролдоорой.",
+  saveBadgeFull: "Хадгалагдахгүй байна: зай дүүрсэн",
+  saveBadgeOff: "Хадгалагдахгүй байна",
   tImgAdded: "Зураг нэмэгдлээ. Шошгоо сонгоод «Сонгосонд тавих» дараарай",
   tImgDel: "Зургийг устгалаа",
   tImgGone: "Зургийг хаслаа",
@@ -2165,6 +2178,10 @@ var STR_EN = {
   tFilledOne: "Filled {n} {lbl} from the first label",
   tFillNeedsMore: "Select at least 2 labels.",
   tFull: "Storage is full, so this sheet is no longer saved automatically. Export it to keep a copy.",
+  tImgTooBig: "That picture is too large, so it was not added. Choose a smaller one, or delete pictures you no longer use.",
+  tImportFull: "There is not enough storage to open that file. Delete pictures you no longer use and try again.",
+  saveBadgeFull: "Not saving: storage is full",
+  saveBadgeOff: "Not saving",
   tImgAdded: "Image added — select labels and press “Place on selected”",
   tImgDel: "Image deleted",
   tImgGone: "Image removed",
@@ -2606,7 +2623,10 @@ function count(){ return S.g.cols * S.g.rows; }
 function isEmpty(c){ return !c || ((!c.t || !c.t.length) && !c.img && !(c.p && String(c.p).length) && !(c.s && String(c.s).length) && !(c.qr && c.qr.length) && !hasX(c)); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function r2(n){ return Math.round(n*100)/100; }
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* Quotes too: esc() output also lands inside attributes (aria-label, value),
+   where an unescaped " ends the attribute and whatever follows becomes a
+   new one - an event handler, for text that arrived in a share link. */
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function colName(i){
   var s=""; i++;
   while(i>0){ var m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); }
@@ -2679,21 +2699,134 @@ function totalLabels(){
   return t;
 }
 var migrated = false;
-function normalise(s){
-  if(!s.pages) s.pages = [s.cells || []];     /* sheets saved before paging */
-  if(typeof s.page !== "number") s.page = 0;
-  s.page = Math.max(0, Math.min(s.pages.length-1, s.page));
-  s.cells = s.pages[s.page];
-  s.images = s.images || {};
-  if(s.opts && !s.opts.guidesFixed){ s.opts.guides = false; s.opts.guidesFixed = 1; migrated = true; }
-  s.custom = s.custom || [];
-  s.style  = Object.assign({}, DEF_STYLE, s.style || {});
-  s.opts   = Object.assign({guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"}, s.opts || {});
-  s.cells.forEach(function(c){
-    if(c && c.m && !HEX[mBase(c.m)]) c.m = LEGACY[c.m] || "";
+/* ---- everything that comes from outside is rebuilt, never trusted ----
+   A saved sheet, an imported file and a share code are all JSON somebody
+   else could have written. Their values go into HTML (style="", src="",
+   aria-label) and into arithmetic, so each one is rebuilt here from known
+   keys with known types: a string where a string belongs, a number inside
+   its range, one of a fixed list. Anything else is dropped. Without this a
+   share link could carry script (an attribute that closes early), or a
+   number where text belongs - which threw in render() AFTER the sheet had
+   already been saved, so the page broke on every later visit too. */
+var own = function(o, k){ return Object.prototype.hasOwnProperty.call(o, k); };
+function isObj(v){ return !!v && typeof v === "object" && !Array.isArray(v); }
+function cleanStr(v, max){
+  if(typeof v === "number" && isFinite(v)) v = String(v);
+  if(typeof v !== "string") return "";
+  return v.length > max ? v.slice(0, max) : v;
+}
+function cleanNum(v, lo, hi, dflt){
+  var n = (typeof v === "number") ? v : (typeof v === "string" && v.trim() !== "" ? Number(v) : NaN);
+  if(!isFinite(n)) return dflt;
+  return Math.max(lo, Math.min(hi, n));
+}
+var LAYOUTS = ["img-top","img-bottom","img-left","img-right","img-fill","text","image"];
+var RX_ID = /^[A-Za-z0-9_-]{1,40}$/;
+var MAX_TXT = 4000, MAX_PAGES = 200;
+function cleanStyleInto(out, c){
+  if(c.fs !== undefined)  out.fs  = cleanNum(c.fs, 1, 400, DEF_STYLE.fs);
+  if(c.ff !== undefined)  out.ff  = Math.round(cleanNum(c.ff, 0, FONTS.length-1, 0));
+  if(c.b !== undefined)   out.b   = !!c.b;
+  if(c.up !== undefined)  out.up  = !!c.up;
+  if(c.fit !== undefined) out.fit = !!c.fit;
+  if(c.is !== undefined)  out.is  = cleanNum(c.is, 1, 100, DEF_STYLE.is);
+  if(c.lay !== undefined) out.lay = LAYOUTS.indexOf(c.lay) >= 0 ? c.lay : DEF_STYLE.lay;
+  return out;
+}
+function cleanCell(c){
+  var out = {};
+  if(!isObj(c)) return out;
+  ["t","p","s","qr"].concat(XF).forEach(function(k){
+    var v = cleanStr(c[k], MAX_TXT);
+    if(v) out[k] = v;
   });
-  resize(s);
-  return s;
+  if(c.bc) out.bc = 1;
+  if(typeof c.rt === "string" && c.rt && out.t && !out.bc){
+    var rt = sanitizeRT(c.rt.slice(0, MAX_TXT*8));
+    if(rt) out.rt = rt;
+  }
+  if(typeof c.img === "string" && RX_ID.test(c.img)) out.img = c.img;
+  if(c.m){
+    var m = typeof c.m === "string" ? c.m : "";
+    if(!own(HEX, mBase(m))) m = own(LEGACY, m) ? LEGACY[m] : "";
+    if(m) out.m = mBase(m) + (mGrad(m) ? ".g" : "");
+  }
+  return cleanStyleInto(out, c);
+}
+function cleanGeo(g){
+  var d = BUILTIN[0], out = {};
+  if(!isObj(g)) g = {};
+  out.pw   = cleanNum(g.pw, 20, 2000, d.pw);
+  out.ph   = cleanNum(g.ph, 20, 2000, d.ph);
+  out.cols = Math.round(cleanNum(g.cols, 1, 40, d.cols));
+  out.rows = Math.round(cleanNum(g.rows, 1, 60, d.rows));
+  ["mt","mr","mb","ml","gx","gy"].forEach(function(k){ out[k] = cleanNum(g[k], 0, 1000, d[k]); });
+  out.rad  = cleanNum(g.rad, 0, 200, d.rad);
+  if(g.w !== undefined) out.w = cleanNum(g.w, 0, 2000, 0);
+  if(g.h !== undefined) out.h = cleanNum(g.h, 0, 2000, 0);
+  if(typeof g.id === "string" && RX_ID.test(g.id)) out.id = g.id;
+  if(g.full) out.full = true;
+  if(g.rot) out.rot = 1;
+  return out;
+}
+function cleanPages(pages){
+  if(!Array.isArray(pages)) pages = [];
+  pages = pages.slice(0, MAX_PAGES).map(function(pg){
+    return (Array.isArray(pg) ? pg : []).slice(0, 2400).map(cleanCell);
+  });
+  return pages.length ? pages : [[]];
+}
+/* A picture is only ever a data: URL made by this page's own upload. */
+function cleanImages(images){
+  var out = {}, k;
+  if(!isObj(images)) return out;
+  for(k in images) if(own(images, k)){
+    if(RX_ID.test(k) && typeof images[k] === "string" && /^data:image\/[a-z0-9.+-]+[;,][^"'<>\s]*$/i.test(images[k])) out[k] = images[k];
+  }
+  return out;
+}
+function cleanCustom(list){
+  if(!Array.isArray(list)) return [];
+  return list.slice(0, 200).filter(isObj).map(function(p){
+    var g = cleanGeo(p), o = {id:(typeof p.id === "string" && RX_ID.test(p.id)) ? p.id : "c_"+uid(),
+                             name:cleanStr(p.name, 80) || "?", custom:true};
+    GEO.forEach(function(k){ o[k] = g[k]; });
+    return o;
+  });
+}
+var DEF_OPTS = {guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"};
+function cleanOpts(o){
+  var out = Object.assign({}, DEF_OPTS), k;
+  if(!isObj(o)) return out;
+  for(k in o) if(own(o, k) && RX_ID.test(k)){
+    /* flags the app adds over time (…Seen, …Fixed) pass through as flags */
+    if(typeof o[k] === "boolean") out[k] = o[k];
+    else if(typeof o[k] === "number" && isFinite(o[k])) out[k] = o[k];
+  }
+  out.theme = o.theme === "dark" ? "dark" : "light";
+  out.lang  = o.lang === "en" ? "en" : "mn";
+  out.mode  = own(MODE_FIELDS, o.mode) ? o.mode : "plain";
+  out.ox    = cleanNum(o.ox, -15, 15, 0);
+  out.oy    = cleanNum(o.oy, -15, 15, 0);
+  return out;
+}
+function normalise(s){
+  if(!isObj(s)) s = {};
+  var guidesFixed = isObj(s.opts) && s.opts.guidesFixed;
+  var out = {
+    g: cleanGeo(s.g),
+    pages: cleanPages(s.pages || [s.cells || []]),     /* [s.cells]: sheets saved before paging */
+    images: cleanImages(s.images),
+    custom: cleanCustom(s.custom),
+    style: cleanStyleInto(Object.assign({}, DEF_STYLE), isObj(s.style) ? s.style : {}),
+    opts: cleanOpts(s.opts)
+  };
+  out.presetId = (typeof s.presetId === "string" && RX_ID.test(s.presetId)) ? s.presetId : "custom";
+  out.page = Math.max(0, Math.min(out.pages.length-1, Math.round(cleanNum(s.page, 0, MAX_PAGES, 0))));
+  out.cells = out.pages[out.page];
+  if(isObj(s.opts) && !guidesFixed){ out.opts.guides = false; out.opts.guidesFixed = 1; migrated = true; }
+  resize(out);
+  return out;
 }
 /* ================= share codes =================
    A share code is the same payload Export writes, gzipped with the browser's
@@ -2737,7 +2870,11 @@ function sameStyle(a, b){
 }
 function slimCell(c){
   if(!c) return 0;
-  var out={}, has=false, base=Object.assign({}, DEF_STYLE, S.style||{});
+  /* Styles are written relative to DEF_STYLE, the one baseline both ends
+     share. Comparing against the sender's own current style dropped every
+     style the sender happened to have selected, and the recipient then drew
+     those labels in the default instead. */
+  var out={}, has=false, base=DEF_STYLE;
   if(c.t){ out.t=c.t; has=true; }
   if(c.rt) out.rt=c.rt;
   if(c.p){ out.p=c.p; has=true; }
@@ -2766,19 +2903,37 @@ function sharePayload(){
   });
   return out;
 }
+/* Sizes the size list no longer offers. A code or link made while one of
+   them was built in names it by id only, so the geometry is kept here:
+   without it such a sheet opened on the default 32x15 grid, its labels
+   scattered. It opens as an unsaved custom size. */
+var RETIRED = [
+  {id:"s-38x21",  cols:5,rows:13,mt:10.7,mr:4.75,mb:10.7,ml:4.75,gx:2.5,gy:0,rad:1.5},
+  {id:"s-48x25",  cols:4,rows:10,mt:21.5,mr:8,mb:21.5,ml:8,gx:0,gy:0,rad:1.5},
+  {id:"s-63x38",  cols:3,rows:7, mt:15.15,mr:7.25,mb:15.15,ml:7.25,gx:2.5,gy:0,rad:2},
+  {id:"s-70x37",  cols:3,rows:8, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-99x67",  cols:2,rows:4, mt:13.1,mr:4.65,mb:13.1,ml:4.65,gx:2.5,gy:0,rad:2},
+  {id:"s-105x42", cols:2,rows:7, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-105x148",cols:2,rows:2, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:2},
+  {id:"s-full",   cols:1,rows:1, mt:0,mr:0,mb:0,ml:0,gx:0,gy:0,rad:0}
+];
+RETIRED.forEach(function(b){ b.pw=A4.pw; b.ph=A4.ph; });
+function byId(list, id){ return list.filter(function(b){ return b.id===id; })[0] || null; }
 function expandSharedPayload(obj){
-  var preset = obj.presetId ? BUILTIN.filter(function(b){ return b.id===obj.presetId; })[0] : null;
-  var g = preset ? JSON.parse(JSON.stringify(preset)) : (obj.g || JSON.parse(JSON.stringify(BUILTIN[0])));
+  var id = typeof obj.presetId === "string" ? obj.presetId : "";
+  var preset = byId(BUILTIN, id), old = preset ? null : byId(RETIRED, id);
+  var g = cleanGeo(preset || old || obj.g);
+  if(old) delete g.id;
   if(obj.rot) g.rot = 1;
   var n = g.cols*g.rows;
-  var pages = (obj.pages||[]).map(function(sparse){
+  var pages = (Array.isArray(obj.pages) ? obj.pages : []).slice(0, MAX_PAGES).map(function(sparse){
     var arr=blankCells(n), k;
-    for(k in sparse) if(sparse.hasOwnProperty(k)){ arr[+k]=sparse[k]; if(arr[+k] && arr[+k].rt) arr[+k].rt=sanitizeRT(arr[+k].rt); }
+    if(isObj(sparse)) for(k in sparse) if(own(sparse, k) && /^\d+$/.test(k) && +k < n) arr[+k]=cleanCell(sparse[k]);
     return arr;
   });
   if(!pages.length) pages=[blankCells(n)];
-  return {presetId: obj.presetId || "custom", g:g, pages:pages,
-          page: Math.max(0, Math.min(pages.length-1, obj.page||0))};
+  return {presetId: preset ? id : "custom", g:g, pages:pages,
+          page: Math.max(0, Math.min(pages.length-1, Math.round(cleanNum(obj.page, 0, MAX_PAGES, 0))))};
 }
 async function buildShareCode(){
   var json=JSON.stringify(sharePayload());
@@ -2799,43 +2954,90 @@ async function decodeShareCode(code){
     bytes=await gunzip(bytes);
   }
   var obj=JSON.parse(new TextDecoder().decode(bytes));
-  if(!obj || obj.v!==1 || !obj.pages) throw new Error("bad code");
+  if(!isObj(obj) || obj.v!==1 || !Array.isArray(obj.pages)) throw new Error("bad code");
   return expandSharedPayload(obj);
 }
+/* The code rides after "#", not "?d=": a fragment is never sent to the
+   server, so a long sheet no longer comes back "414 URI Too Long" (GitHub
+   Pages refuses a request line past about 8 KB) and the sheet's contents
+   stay out of the server's logs. Links made the old way still open. */
 function shareLink(code){
-  return (DESKTOP ? SITE : location.origin + location.pathname) + "?d=" + encodeURIComponent(code);
+  return (DESKTOP ? SITE : location.origin + location.pathname) + "#d=" + encodeURIComponent(code);
 }
+function linkCode(){
+  var m = /(?:^#|&)d=([^&]+)/.exec(location.hash || "");
+  if(m){ try { return decodeURIComponent(m[1]); } catch(e){ return m[1]; } }
+  return new URLSearchParams(location.search).get("d");
+}
+/* Someone else's sheet replaces the SHEET: its labels and its size. What
+   belongs to this computer stays - the printer offset found by calibrating,
+   saved sizes, uploaded pictures, theme and language. (It used to replace
+   everything, and Undo could not bring any of that back.) One Undo returns
+   the sheet that was open before. */
 function applySharedState(obj){
   mark();
-  S = normalise(obj);
-  sel=new Set(); cur=0; anchor=0; curImg=null;
-  fillGeo(); renderLib(); syncOpts(); fitZoom(); save(); applyLang();
+  S.pages = obj.pages; S.g = obj.g; S.presetId = obj.presetId;
+  usePage(obj.page);
+  resize(S);
+  sel=new Set(); cur=0; anchor=0;
+  fitCache={};
+  fillGeo(); syncPresetSel(); fitZoom(); save(); render();
 }
 function payload(){
   S.pages[S.page] = S.cells;                  /* the alias is the live page */
-  return {presetId:S.presetId, g:S.g, pages:S.pages, page:S.page, images:S.images,
+  return {v:SCHEMA, presetId:S.presetId, g:S.g, pages:S.pages, page:S.page, images:S.images,
           style:S.style, custom:S.custom, opts:S.opts};
 }
-var saveWarned = false;
+/* v is the saved shape's version. Nothing reads it yet; it is there so the
+   next change of shape can tell an old save from a new one instead of
+   guessing from which keys happen to exist. */
+var SCHEMA = 2;
+/* Returns whether the sheet is really on disk. A failed save used to warn
+   once and then stay silent for the rest of the visit, so an hour of work
+   could go unsaved behind one toast that had long since faded. Now the
+   warning comes back (at most every 20 s) for as long as saving keeps
+   failing, a badge stays on screen, and it clears itself the moment a save
+   goes through again. */
+var saveOk = true, saveWarnAt = 0;
 function save(){
-  try { localStorage.setItem(KEY, JSON.stringify(payload())); }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(payload()));
+    if(!saveOk){ saveOk = true; syncSaveBadge(); }
+    return true;
+  }
   catch(e){
-    if(saveWarned) return;
-    saveWarned = true;
-    toast(/quota|exceed/i.test(String(e.name)+String(e.message))
-      ? t("tFull") : t("tNoStore"));
+    var full = /quota|exceed/i.test(String(e && e.name)+String(e && e.message));
+    saveOk = false; syncSaveBadge(full);
+    if(Date.now() - saveWarnAt > 20000){
+      saveWarnAt = Date.now();
+      toast(full ? t("tFull") : t("tNoStore"));
+    }
+    return false;
   }
 }
+function syncSaveBadge(full){
+  var b = $("saveBadge"); if(!b) return;
+  b.hidden = saveOk;
+  if(!saveOk) b.textContent = t(full ? "saveBadgeFull" : "saveBadgeOff");
+}
+/* A save that cannot be read is set aside, never silently replaced. The
+   page still opens on a fresh sheet, but the next save() would have
+   written over the only copy of the old one; this keeps it under a second
+   key where it can be recovered from. */
+function rescue(raw){
+  try { localStorage.setItem(KEY+".rescue", raw); } catch(e){}
+}
 function load(){
+  var raw = null;
+  try { raw = localStorage.getItem(KEY); } catch(e){ return freshState(); }
+  if(!raw) return freshState();
   try {
-    var raw = localStorage.getItem(KEY);
-    if(!raw) return freshState();
     var s = JSON.parse(raw);
     /* save() writes pages, not cells. Requiring cells here threw away every
        saved sheet on reload once paging landed. */
-    if(!s || !s.g || (!s.cells && !s.pages)) return freshState();
+    if(!isObj(s) || !isObj(s.g) || (!Array.isArray(s.cells) && !Array.isArray(s.pages))){ rescue(raw); return freshState(); }
     return normalise(s);
-  } catch(e){ return freshState(); }
+  } catch(e){ rescue(raw); return freshState(); }
 }
 function resize(s, oldCols, oldRows){
   var pg;
@@ -3266,7 +3468,7 @@ function cellHTML(i, c){
   if(i===cur) cls += " cur";
   if(S.opts.guides) cls += " guide";
 
-  var hasImg = !!(c.img && S.images[c.img]);
+  var hasImg = !!(c.img && own(S.images, c.img));
   var hasTxt = !!(c.t && c.t.length);
   var hasPrice = !!(c.p && String(c.p).length);
   var hasSub = !!(c.s && String(c.s).length);
@@ -3278,7 +3480,7 @@ function cellHTML(i, c){
             : !hasTxt ? "max-width:"+st.is+"%;max-height:"+st.is+"%;"
             : (lay==="img-left"||lay==="img-right") ? "max-width:"+st.is+"%;max-height:100%;"
             : "max-height:"+st.is+"%;max-width:100%;";
-    img = '<img src="'+S.images[c.img]+'" style="'+ist+'" alt="">';
+    img = '<img src="'+esc(S.images[c.img])+'" style="'+ist+'" alt="">';
     if(fill) dir="fillimg";
     else if(hasTxt && (lay==="img-left"||lay==="img-right")) dir="rowlay";
     if(hasTxt && (lay==="img-right"||lay==="img-bottom")) textFirst=true;
@@ -3308,13 +3510,14 @@ function cellHTML(i, c){
                  part("stg", c.lot, "pfxLot") + part("ing", c.nut, "pfxNut") +
                  (hasSub ? '<span class="sb">'+words(c.s)+'</span>' : "");
     txt = '<div class="txt'+(pack ? " pack" : "")+'" style="font-size:'+st.fs+'pt;font-weight:'+(st.b?700:400)+
-          ';font-family:'+FONTS[st.ff||0]+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
+          ';font-family:'+(FONTS[st.ff] || FONTS[0])+';text-transform:'+(st.up?"uppercase":"none")+'">'+inner1+'</div>';
   }
   var bcs = "";
   if(c.bc && c.t) bcs = barcodeSVG(c.t, boxH()*0.90, boxW()*0.96);
   else if(c.qr)   bcs = qrSVG(c.qr, Math.max(4, Math.min(labelW(), labelH())*0.90));
   var base = mBase(c.m);
-  var dot = HEX[base]
+  if(!own(HEX, base)) base = "";
+  var dot = base
     ? '<span class="dot bead'+(mGrad(c.m)?" grad":"")+(S.opts.printMarkers?"":" noprint")+
       '" style="--c:'+HEX[base]+'"></span>' : "";
   var label = ref(i) + (c.t ? ", "+c.t.replace(/\n/g," ") : "") + (hasImg ? ", "+t("wImage") : "") +
@@ -3534,11 +3737,18 @@ function mark(){
   if(undoStack.length>UNDO_MAX) undoStack.shift();
   redoStack.length=0;
 }
+var imgTrash = {};
 function restore(json){
   var o=JSON.parse(json), flip=!!(o.g && o.g.rot)!==rotOn();
   S.pages=o.pages; S.g=o.g;
   if(o.presetId) S.presetId=o.presetId;
   usePage(o.page);
+  /* a picture deleted since this snapshot comes back with the labels using it */
+  var back=false;
+  S.pages.forEach(function(pg){ pg.forEach(function(c){
+    if(c && c.img && !own(S.images, c.img) && own(imgTrash, c.img)){ S.images[c.img]=imgTrash[c.img]; delete imgTrash[c.img]; back=true; }
+  }); });
+  if(back) renderLib();
   sel=new Set(); if(cur>=count()) cur=0;
   fitCache={}; fillGeo();
   if(flip) turnSheet(); else { save(); render(); }   /* undoing Tall turns the paper back too */
@@ -4290,15 +4500,25 @@ $("imgFile").addEventListener("change", function(e){ readImage(e.target.files &&
 $("drop").addEventListener("drop", function(e){
   readImage(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
 });
+/* A picture that does not fit in the browser's storage is refused outright.
+   Kept anyway, it made every later save fail too: the labels typed after
+   it were lost on the next visit, with nothing on screen to say so. */
 function addImage(dataUrl){
-  var id=uid(); S.images[id]=dataUrl; curImg=id; save(); renderLib();
+  if(!cleanImages({x:dataUrl}).x){ toast(t("tImgRead")); return; }
+  var id=uid(), was=saveOk; S.images[id]=dataUrl;
+  if(!save() && was){
+    delete S.images[id]; save();
+    toast(t("tImgTooBig"));
+    return;
+  }
+  curImg=id; renderLib();
   toast(t("tImgAdded"));
 }
 function renderLib(){
   var box=$("imgLib"), h="", k;
   for(k in S.images) if(S.images.hasOwnProperty(k)){
-    h += '<div class="thumb'+(k===curImg?" act":"")+'" data-img="'+k+'" role="button" tabindex="0" title="Use this image">'+
-         '<img src="'+S.images[k]+'" alt="" loading="lazy" decoding="async"><button class="x" data-del="'+k+'" title="Delete image" aria-label="Delete image">&times;</button></div>';
+    h += '<div class="thumb'+(k===curImg?" act":"")+'" data-img="'+esc(k)+'" role="button" tabindex="0" title="Use this image">'+
+         '<img src="'+esc(S.images[k])+'" alt="" loading="lazy" decoding="async"><button class="x" data-del="'+esc(k)+'" title="Delete image" aria-label="Delete image">&times;</button></div>';
   }
   box.innerHTML = h;
   box.style.display = h ? "grid" : "none";
@@ -4307,10 +4527,19 @@ $("imgLib").addEventListener("click", function(e){
   var del=e.target.dataset ? e.target.dataset.del : null;
   if(del){
     e.stopPropagation();
+    /* Every page, not just the open one: labels on the other pages kept
+       pointing at a picture that was gone and printed blank. The picture
+       waits in imgTrash for this visit, so Undo can put it back. */
+    var used=0;
+    S.pages[S.page]=S.cells;
+    S.pages.forEach(function(pg){ pg.forEach(function(c){ if(c && c.img===del) used++; }); });
+    if(used) mark();
+    imgTrash[del]=S.images[del];
     delete S.images[del];
-    S.cells.forEach(function(c){ if(c && c.img===del) c.img=null; });
+    S.pages.forEach(function(pg){ pg.forEach(function(c){ if(c && c.img===del) delete c.img; }); });
     if(curImg===del) curImg=null;
-    save(); renderLib(); render(); toast(t("tImgDel"));
+    save(); renderLib(); render();
+    if(used) toastUndo(t("tImgDel")); else toast(t("tImgDel"));
     return;
   }
   var it=e.target.closest(".thumb"); if(!it) return;
@@ -4469,7 +4698,7 @@ function allPresets(){ return BUILTIN.concat(S.custom||[]); }
 function syncPresetSel(){
   var h="";
   allPresets().forEach(function(p){
-    h += '<option value="'+p.id+'">'+esc(presetName(p))+(p.custom?" \u2605":"")+'</option>';
+    h += '<option value="'+esc(p.id)+'">'+esc(presetName(p))+(p.custom?" \u2605":"")+'</option>';
   });
   if(S.presetId==="custom") h += '<option value="custom">'+esc(t("customUnsaved"))+'</option>';
   $("presetSel").innerHTML=h; $("presetSel").value=S.presetId;
@@ -4993,10 +5222,11 @@ $("loadDlg").addEventListener("click", function(e){ if(e.target===this) this.hid
 $("loadGo").addEventListener("click", function(){
   var raw=$("loadCode").value;
   decodeShareCode(raw).then(function(obj){
-    if(!confirm(t("cLoadReplace"))) return;
+    var blank = sheetWhollyBlank();
+    if(!blank && !confirm(t("cLoadReplace"))) return;
     applySharedState(obj);
     $("loadDlg").hidden = true;
-    toast(t("tCodeLoaded"));
+    if(blank) toast(t("tCodeLoaded")); else toastUndo(t("tCodeLoaded"));
   }).catch(function(){ toast(t("tCodeBad")); });
 });
 $("undoBtn").addEventListener("click", undo);
@@ -5013,10 +5243,35 @@ $("importFile").addEventListener("change", function(e){
   rd.onload=function(){
     try{
       var s=JSON.parse(rd.result);
-      if(!s || !s.g || (!s.cells && !s.pages)) throw new Error("bad file");
-      S=normalise(s); sel=new Set(); cur=0; anchor=0; curImg=null;
-      fillGeo(); renderLib(); syncOpts(); fitZoom(); save(); applyLang();
-      toast(t("tImported"));
+      if(!isObj(s) || !isObj(s.g) || (!Array.isArray(s.cells) && !Array.isArray(s.pages))) throw new Error("bad file");
+      /* A file is how a sheet with pictures gets shared, so it is treated
+         as one: its labels and size replace the sheet (one Undo returns the
+         old one), its pictures and saved sizes are ADDED to this computer's,
+         and this computer's settings stay. The file's printer offset is
+         taken only when none has been set here - a backup restored on a
+         fresh browser - never over a calibration that already exists. */
+      var inc=normalise(s), k, before=snap(), had={};
+      for(k in inc.images) if(own(inc.images, k)){ had[k]=own(S.images, k) ? S.images[k] : null; S.images[k]=inc.images[k]; }
+      var addedCustom=[];
+      inc.custom.forEach(function(p){ if(!byId(S.custom, p.id)){ S.custom.push(p); addedCustom.push(p); } });
+      var hadOff=(S.opts.ox||S.opts.oy), ox=S.opts.ox, oy=S.opts.oy;
+      if(!hadOff){ S.opts.ox=inc.opts.ox; S.opts.oy=inc.opts.oy; }
+      S.pages=inc.pages; S.g=inc.g; S.presetId=inc.presetId; usePage(inc.page);
+      if(S.presetId!=="custom" && !byId(allPresets(), S.presetId)) S.presetId="custom";
+      resize(S);
+      if(!save()){
+        /* no room for it: put everything back exactly as it was */
+        for(k in had) if(own(had, k)){ if(had[k]===null) delete S.images[k]; else S.images[k]=had[k]; }
+        addedCustom.forEach(function(p){ S.custom.splice(S.custom.indexOf(p), 1); });
+        S.opts.ox=ox; S.opts.oy=oy;
+        var o=JSON.parse(before); S.pages=o.pages; S.g=o.g; S.presetId=o.presetId; usePage(o.page);
+        save(); render(); toast(t("tImportFull"));
+        return;
+      }
+      undoStack.push(before); if(undoStack.length>UNDO_MAX) undoStack.shift(); redoStack.length=0;
+      sel=new Set(); cur=0; anchor=0; curImg=null; fitCache={};
+      fillGeo(); renderLib(); syncPresetSel(); fitZoom(); render();
+      toastUndo(t("tImported"));
     }catch(err){ toast(t("tImportBad")); }
   };
   rd.readAsText(f); e.target.value="";
@@ -5052,7 +5307,7 @@ if(!window.Quill){
 fillGeo(); syncOpts(); buildSwatches(); renderLib();
 fitZoom(); applyLang();
 document.documentElement.classList.remove("booting");
-if(!new URLSearchParams(location.search).has("d")) maybeShowOnboarding();
+if(!linkCode()) maybeShowOnboarding();
 
 /* Opening a shared link (?d=code) loads it. The param stays in the address
    bar on purpose - stripping it immediately (the old behaviour) meant a
@@ -5061,16 +5316,22 @@ if(!new URLSearchParams(location.search).has("d")) maybeShowOnboarding();
    a link to reprint later. Reopening the same bookmark keeps reapplying that
    exact sheet, which is what "reopen my saved job" should mean. It only
    confirms first when there is something on screen that would be lost. */
-(function(){
-  var params = new URLSearchParams(location.search);
-  var code = params.get("d");
+function openLinkCode(){
+  var code = linkCode();
   if(!code) return;
   decodeShareCode(code).then(function(obj){
-    if(!sheetWhollyBlank() && !confirm(t("cLoadReplace"))) return;
+    /* the very sheet already open (a reload, a bookmark): nothing to do */
+    if(JSON.stringify({p:obj.pages, g:obj.g}) === JSON.stringify({p:S.pages, g:S.g})) return;
+    var blank = sheetWhollyBlank();
+    if(!blank && !confirm(t("cLoadReplace"))) return;
     applySharedState(obj);
-    toast(t("tCodeLoaded"));
+    closeOnboarding();
+    if(blank) toast(t("tCodeLoaded")); else toastUndo(t("tCodeLoaded"));
   }).catch(function(){ toast(t("tCodeBad")); });
-})();
+}
+openLinkCode();
+/* a link pasted into a tab that already has the tool open */
+window.addEventListener("hashchange", openLinkCode);
 })();
 </script>
 </body>
