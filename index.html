@@ -131,7 +131,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none;color:inherit}
 ::placeholder{color:var(--ink-3);opacity:1}
 :focus{outline:none}
-:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:var(--r-1)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* fields draw their own focus ring (border + glow); an outline on top doubled it */
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 
 /* ================= shell ================= */
 .app{display:flex;flex-direction:column;height:100%}
@@ -147,7 +149,7 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .topbar .btn.ghost{color:var(--on-brand)}
 .topbar .btn.ghost:hover{background:rgba(255,255,255,.14);color:var(--on-brand)}
 .topbar .btn.ghost:active{background:rgba(255,255,255,.22)}
-.topbar .btn.ghost.on{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:var(--on-brand)}
+.topbar .btn.ghost.on{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:var(--on-brand);box-shadow:none;font-weight:inherit}
 #rotBtn{gap:6px}
 #rotBtn svg{flex:none}
 .topbar .hint{color:var(--brand-tint)}
@@ -191,7 +193,8 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .btn.primary:active,.btn.accent:active{background:var(--brand)}
 .btn.is-empty{opacity:.45}
 .btn.is-empty:hover,.btn.is-empty:active{opacity:.45}
-.btn.on{background:var(--selected);border-color:var(--ink-3);color:var(--ink)}
+/* a pressed toggle (Bold, UPPER, Paint mode) reads as on at a glance, like the chosen job */
+.btn.on{background:var(--brand-soft);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--ink);font-weight:600}
 .btn.warn:hover{color:var(--danger);border-color:var(--danger)}
 /* Apply and Clear sat 6px apart, same visual weight, in a sticky footer
    near the bottom edge - easy to hit the wrong one, especially for less
@@ -203,7 +206,7 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 #clearCells{color:var(--danger);border-color:var(--danger)}
 #clearCells:hover{background:var(--danger);color:#fff}
 
-input[type=text],input[type=number],input[type=search],select,textarea{
+input[type=text],input[type=number],input[type=search],input[type=date],select,textarea{
   width:100%;height:44px;padding:0 8px;border-radius:var(--r-1);
   background:var(--sunken);border:1px solid var(--field-line);
   transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease);
@@ -240,7 +243,7 @@ input[type=checkbox]{accent-color:var(--brand);width:22px;height:22px;flex:none}
 .count em{color:var(--ink-2);font-style:normal}
 .chips{display:flex;flex-wrap:wrap;gap:var(--s-1)}
 .chip{
-  height:36px;padding:0 8px;border-radius:var(--r-1);font-size:var(--fs-micro);
+  height:36px;padding:0 12px;border-radius:var(--r-pill);font-size:var(--fs-micro);
   background:transparent;border:1px solid var(--line);color:var(--ink-2);
   display:inline-flex;align-items:center;
   transition:background var(--t) var(--ease),color var(--t) var(--ease),border-color var(--t) var(--ease);
@@ -288,8 +291,8 @@ details.sec .body{display:flex;flex-direction:column;gap:var(--s-3);padding-bott
 .lbl{display:block;font-size:var(--fs-micro);font-weight:500;color:var(--ink-2);margin-bottom:4px}
 details.sub{border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel-2)}
 details.sub>summary{
-  padding:8px 10px;cursor:pointer;list-style:none;font-size:var(--fs-micro);color:var(--ink-2);
-  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;min-height:44px;cursor:pointer;list-style:none;font-size:15px;font-weight:600;color:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
 details.sub>summary::-webkit-details-marker{display:none}
 details.sub>summary::after{
@@ -389,7 +392,8 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   transition:color var(--t) var(--ease),background var(--t) var(--ease);
 }
 .colhdr div{top:0;height:16px}
-.rowhdr div{left:0;width:18px}
+.rowhdr{font-size:var(--fs-micro)}
+.rowhdr div{left:0;width:18px;font-size:inherit}
 .colhdr div:hover,.rowhdr div:hover{color:var(--ink);background:rgba(0,0,0,.06)}
 .colhdr div.act,.rowhdr div.act{color:var(--accent);font-weight:600}
 
@@ -800,33 +804,121 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 #saveBadge[hidden]{display:none}
 @media print{ #saveBadge{display:none !important} }
 
+
+/* ================= simple first =================
+   The panel opens with the job, the text, that job's own fields and Write.
+   Everything else sits in named rows under "Бусад боломжууд". */
+#presetSel{width:auto;min-width:200px;max-width:290px;height:36px}
+.mainpanel{display:flex;flex-direction:column;gap:var(--s-5);padding:var(--s-5) 0 var(--s-6)}
+.fmtBtn{position:relative;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:var(--r-pill);
+  border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);font-size:var(--fs-micro);font-weight:500;
+  transition:background var(--t) var(--ease),border-color var(--t) var(--ease),color var(--t) var(--ease)}
+.fmtBtn:hover{border-color:var(--accent);color:var(--ink)}
+.fmtBtn .fmtAa{font:700 15px/1 Georgia,"Times New Roman",serif;letter-spacing:-.02em}
+.fmtBtn[aria-expanded="true"]{background:var(--brand-soft);border-color:var(--accent);color:var(--ink)}
+/* a dot when the selected label already carries formatting the closed panel hides */
+.fmtBtn.has::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
+  background:var(--brand);box-shadow:0 0 0 2px var(--panel)}
+body:not(.fmtOpen) #rtWrap .ql-toolbar{display:none}
+body:not(.fmtOpen) #rtWrap .ql-container.ql-snow{border-top:1px solid var(--line-2);border-radius:var(--r-1)}
+body:not(.fmtOpen) #txtInput.rtPending{min-height:86px}
+body:not(.fmtOpen) .fmtPanel{display:none}
+.fmtPanel{display:flex;flex-direction:column;gap:var(--s-3);margin-top:var(--s-3);padding:var(--s-4);
+  border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel-2)}
+.fmtHead{margin:0;font-weight:600;color:var(--ink)}
+.addRow{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:calc(var(--s-3) - var(--s-5))}
+.linkBtn{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 12px;border-radius:var(--r-pill);
+  border:1px dashed var(--line-2);background:transparent;color:var(--brand);font-size:var(--fs-micro);font-weight:500;
+  transition:background var(--t) var(--ease),border-color var(--t) var(--ease)}
+.linkBtn:hover{border-color:var(--accent);background:var(--brand-soft)}
+[data-theme="dark"] .linkBtn{color:var(--accent)}
+.linkBtn.plain,.linkBtn.danger{align-self:flex-start;min-height:32px;padding:0 2px;border-color:transparent;
+  text-decoration:underline;text-underline-offset:2px}
+.linkBtn.plain:hover,.linkBtn.danger:hover{background:transparent;border-color:transparent}
+.linkBtn.danger{color:var(--danger)}
+[data-theme="dark"] .linkBtn.danger{color:var(--danger)}
+
+.toolsHead{margin:0 calc(var(--s-4) * -1);padding:var(--s-5) var(--s-4) var(--s-3);border-top:1px solid var(--line);
+  font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.tools{display:flex;flex-direction:column;gap:var(--s-2);padding-bottom:var(--s-6)}
+details.tool{border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel);transition:border-color var(--t) var(--ease)}
+details.tool:hover{border-color:var(--line-2)}
+details.tool[open]{border-color:var(--line-2);background:var(--panel-2)}
+details.tool>summary{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 var(--s-4);cursor:pointer;list-style:none;
+  font-size:15px;font-weight:600;color:var(--ink);border-radius:var(--r-2)}
+details.tool>summary::-webkit-details-marker{display:none}
+details.tool>summary::after{content:"";flex:none;width:6px;height:6px;margin-right:2px;border-right:1.5px solid var(--ink-3);
+  border-bottom:1.5px solid var(--ink-3);transform:rotate(45deg) translate(-2px,-2px);transition:transform var(--t) var(--ease)}
+details.tool[open]>summary::after{transform:rotate(225deg) translate(-1px,-1px)}
+.ticon{flex:none;color:var(--accent)}
+.tname{flex:1;min-width:0}
+.tbadge{flex:none;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:2px 9px;border-radius:var(--r-pill);background:var(--brand-soft);color:var(--brand);font-size:12px;font-weight:600}
+[data-theme="dark"] .tbadge{color:var(--accent)}
+details.tool .tbody{display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-1) var(--s-4) var(--s-4)}
+details.tool details.sub{background:var(--panel)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);font-size:var(--fs-micro);color:var(--ink-2)}
+#kbGrid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.quoteBox{font-size:13px;line-height:1.5;background:var(--panel-2);color:var(--ink-2);border-style:dashed;resize:none}
+.g3 label{display:block;min-width:0}
+/* two-column button rows: a long Mongolian label wraps inside its button instead of pushing past the panel */
+.g2>.btn,.g3>.btn{min-width:0;white-space:normal;line-height:1.2;text-align:center}
+.tpl button,.quick button{min-height:36px}
+[data-theme="dark"] .segb.on{box-shadow:inset 0 0 0 2px var(--accent)}
+@media (hover:none){ .thumb .x{opacity:.85} }
+#chkCount{margin-left:auto;font-weight:500;color:var(--ink-3)}
+
+.selbar details.filterSub>summary{height:36px;min-height:0;padding:0 12px;border-radius:var(--r-pill);
+  font-size:var(--fs-micro);font-weight:400;color:var(--ink-2)}
+.selbar details.filterSub .subbody{flex-direction:row;flex-wrap:wrap;align-items:center;gap:var(--s-1) var(--s-2);padding:var(--s-3)}
+.chipsLbl{font-size:var(--fs-micro);color:var(--ink-3);margin-right:2px}
+.chipsBreak{flex-basis:100%;height:0}
+
+/* the bar's own two buttons never wrap; the banner above them is one compact strip */
+.applybar .g2>.btn{white-space:nowrap}
+.applybar .fillBanner{padding:8px 10px;gap:6px 10px;font-size:var(--fs-micro);line-height:1.4}
+.applybar .fillBanner .btn{min-height:36px;height:36px;font-size:var(--fs-micro);padding:0 12px}
+.nextBtn{margin-bottom:var(--s-3);gap:8px;border:1px dashed var(--accent);color:var(--brand);background:var(--panel);font-weight:600}
+[data-theme="dark"] .nextBtn{color:var(--accent)}
+.nextBtn:hover{background:var(--brand-soft)}
+
+.dlgNote{margin:0;padding:8px 10px;border-radius:var(--r-1);background:var(--panel-2);border:1px solid var(--line);
+  font-size:var(--fs-micro);line-height:1.5;color:var(--ink-2)}
+.fillBanner.quiet{background:var(--panel-2);border-color:var(--line)}
+.dlgChecks{display:flex;flex-direction:column}
+.dlgChecks .check{min-height:40px;padding:4px 0}
+
+.pagebar{white-space:nowrap}
+.pagebar .pgnav{display:inline-flex;align-items:center;gap:2px}
+.pagebar .pgAdd{gap:4px;font-size:var(--fs-micro)}
+.pagebar .zoomv{min-width:54px;font-variant-numeric:tabular-nums}
+
+.obPaper{position:relative}
+.obSheet{display:grid;gap:1px;width:58px;height:82px;padding:4px;background:#fff;border:1px solid rgba(0,0,0,.16);
+  border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.obSheet i{min-width:0;min-height:0;background:#d9cdf6;border-radius:.5px}
+.obPaper.rec{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.obRec{font-style:normal;font-size:12px;font-weight:600;color:var(--brand);background:var(--brand-soft);border-radius:var(--r-pill);padding:2px 9px}
+[data-theme="dark"] .obRec{color:var(--accent)}
+.obModal:focus{outline:none}
+
 /* ================= responsive ================= */
 @media (max-width:1180px){ .sidebar{width:312px} }
-@media (max-width:1100px){ #dimChip{display:none} }
-/* Below 760px the paper-size select and the "which paper is this" readout
-   were the two things fighting hardest for space in a cramped flex row
-   against buttons that refuse to shrink (Undo/Redo, buy-paper link, theme
-   toggle, Print) - the select was losing that fight down to an unlabelled
-   ~35px caret, and dimChip was hidden outright. That's the one indicator
-   telling someone which physical paper they're about to print on, so on
-   a phone it gets its own full-width row instead of competing for space. */
+@media (max-width:1060px){ .brand .wm{display:none} }
+#dimChip{display:none !important}
+/* Below 760px the paper-size select gets its own full-width second row:
+   it is the one control telling someone which physical paper they are about
+   to print on, and squeezed into the first row it shrank to a bare caret. */
 @media (max-width:760px){
-  .sep.zoomgrp{display:none}
   .topbar{flex-wrap:wrap; height:auto; min-height:48px; padding-top:6px; padding-bottom:6px}
   /* A zero-height full-width break starts the paper row, so the select and
      the Tall toggle share it whatever wraps before them. */
   .tbBreak{display:block;order:5;flex:1 1 100%;height:0}
-  #presetSel{width:100% !important;min-width:0;order:5;flex:1 1 0;height:34px}
-  #rotBtn{order:5;height:34px}
-  #dimChip{display:block !important;order:6;flex:1 1 100%;white-space:normal;font-size:12px}
-  /* The zoom controls were hidden outright below this width, which meant
-     a phone had no way to see a label bigger than the ~32px it renders
-     at by default - including the exact caption-too-small case the fit
-     floor above now warns about. They already exist and already work;
-     letting them wrap onto their own row costs nothing a hidden group
-     didn't already cost, and gives back the only way to actually check
-     a sheet before printing it. */
-  .row.zoomgrp{display:flex !important; order:7; flex:1 1 100%; justify-content:center; margin-top:4px}
+  #presetSel{width:100% !important;min-width:0;max-width:none;order:5;flex:1 1 0;height:36px}
+  #rotBtn{order:5;height:36px}
+}
+@media (max-width:480px){
+  #rotBtn span{display:none}
 }
 /* The keyboard-shortcut table (Ctrl+C, Shift, arrow keys...) is dead
    weight on a touch device with no keyboard - hidden below the same
@@ -841,25 +933,18 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
 @media (max-width:900px){
   .main{flex-direction:column}
   /* The stage (sheet preview) and sidebar (actual controls) are stacked,
-     each independently scrollable. At the old 52/48 split the preview -
-     which you only look at, never type into - claimed over half the
-     screen, pushing the one field every visit needs (the label text
-     input) below the fold from first paint. Rebalanced toward the panel
-     you actually act in; the preview still shows a real chunk of the
-     sheet and the zoom/"fit to window" controls cover the rest. */
-  .sidebar{width:auto;border-left:none;border-top:1px solid var(--line);max-height:64vh}
-  .stage{max-height:36vh;padding:16px}
-  .topbar{padding:0 var(--s-3);gap:var(--s-2)}
+     each independently scrollable: 40% of what is left under the top bar
+     for the sheet, the rest for the panel. A fixed max-height left the
+     preview 99px tall on a phone - labels too small to tap. */
+  .sidebar{width:auto;flex:1 1 0;min-height:0;max-height:none;border-left:none;border-top:1px solid var(--line)}
+  .stage{flex:0 0 40%;max-height:none;min-height:0;padding:12px 12px 44px}
+  /* the selection line scrolls away with the panel: pinned, it and the
+     Write bar left a phone about 150px for the fields being typed into */
+  .selbar{position:static}
+  .topbar{padding-left:var(--s-3);padding-right:var(--s-3);gap:var(--s-2)}
   /* No room for the wordmark on a phone, but the mark stays: it's the one
      thing tying this page to the logo printed on the paper pack. */
   .brand .wm{display:none}
-  /* At this width the sidebar stacks below the stage and its sticky
-     Apply/Clear footer lands at the true bottom of the viewport - the
-     same place a fixed, bottom:22px toast was landing. Measured them
-     directly overlapping (toast bottom edge past the footer's top edge)
-     on a 375x812 viewport. Clearing both the footer and the fill-banner
-     that can appear above it needs real room, not a small nudge. */
-  #toast{bottom:180px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
@@ -899,27 +984,19 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
     <a class="brand" id="brandName" href="./" aria-label="Naald.mn"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M18 88Q12 88 12 82L12 18Q12 12 18 12L32 12Q36 12 38.22 15.33L62.89 52.34Q64 54 64 52L64 16Q64 12 68 12L82 12Q88 12 88 18L88 61Q88 64 85.88 66.12L66.12 85.88Q64 88 62.34 85.5L37.11 47.66Q36 46 36 48L36 84Q36 88 32 88Z" fill="#FFFFFF"></path><path d="M86.02 63.75Q88 64 86.59 65.41L65.41 86.59Q64 88 63.75 86.02L60.88 63.48Q60.5 60.5 63.48 60.88Z" fill="#A98AEE"></path><path d="M86 64Q88 64 86.59 65.41L65.41 86.59Q64 88 64 86L64 67Q64 64 67 64Z" fill="#CDBAF7"></path></svg><span class="wm">Naald<span class="dot">.mn</span></span></a>
     <div class="sep"></div>
     <span class="tbBreak" aria-hidden="true"></span>
-    <select id="presetSel" style="width:252px;height:36px"></select>
+    <select id="presetSel" data-i18n-aria="paperAria" data-i18n-title="paperAria"></select>
     <button class="btn sm ghost" id="rotBtn" aria-pressed="false" data-i18n-title="rotTitle"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="2.5" width="9" height="15" rx="2"/><path d="M8.5 7h3M8.5 10h3M8.5 13h2" stroke-linecap="round"/></svg><span data-i18n="rotLbl">Tall</span></button>
-    <div class="sep"></div>
-    <button class="btn sm ghost" id="undoBtn" data-i18n-title="kbUndo" aria-label="Undo">&#8630;</button>
-    <button class="btn sm ghost" id="redoBtn" data-i18n-title="kbRedo" aria-label="Redo">&#8631;</button>
-    <div class="sep zoomgrp"></div>
-    <div class="row zoomgrp" style="gap:2px">
-      <button class="btn sm ghost" id="zoomOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut">&minus;</button>
-      <button class="btn sm ghost" id="zoomVal" data-i18n-title="zoomReset" style="width:52px;font-variant-numeric:tabular-nums">100%</button>
-      <button class="btn sm ghost" id="zoomIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn">+</button>
-      <button class="btn sm ghost" id="zoomFit" data-i18n="fit" data-i18n-title="fitTitle">Fit</button>
-    </div>
+    <div class="sep tbUndoSep"></div>
+    <button class="btn sm ghost" id="undoBtn" data-i18n-title="kbUndo" data-i18n-aria="undoAria" aria-label="Undo">&#8630;</button>
+    <button class="btn sm ghost" id="redoBtn" data-i18n-title="kbRedo" data-i18n-aria="redoAria" aria-label="Redo">&#8631;</button>
     <div class="spacer"></div>
-    <span class="hint" id="dimChip" style="white-space:nowrap"></span>
+    <span class="hint" id="dimChip" hidden></span>
     <a class="btn sm ghost" id="buyLink" target="_blank" rel="noopener"
        data-i18n="buyPaper" data-i18n-title="buyPaperTitle" style="text-decoration:none"></a>
     <button class="btn sm ghost" id="langBtn" data-i18n="langBtn" data-i18n-title="langTitle" data-i18n-aria="langTitle">EN</button>
-    <button class="btn sm ghost" id="themeBtn" data-i18n-aria="themeAria">Dark</button>
     <button class="btn primary" id="printBtn" data-i18n="print" data-i18n-title="printTitle">Print</button>
     <div class="printNudge" id="printNudge" hidden>
-      <span data-i18n="printNudge">Once it's ready, press Print in the top right.</span>
+      <span data-i18n="printNudge">Once it's ready, press Print.</span>
     </div>
   </header>
 
@@ -933,12 +1010,19 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                data-i18n-aria="secSheet" tabindex="0"></div>
           <div id="band" class="band" hidden></div>
           <div class="pagebar" id="pagebar">
-            <button class="btn sm ghost" id="pgPrev" data-i18n-title="pagePrev" aria-label="prev">&lsaquo;</button>
-            <span class="pgnum mono" id="pgNum">1 / 1</span>
-            <button class="btn sm ghost" id="pgNext" data-i18n-title="pageNext" aria-label="next">&rsaquo;</button>
+            <span class="pgnav" id="pgNav">
+              <button class="btn sm ghost" id="pgPrev" data-i18n-title="pagePrev" data-i18n-aria="pagePrev" aria-label="prev">&lsaquo;</button>
+              <span class="pgnum mono" id="pgNum">1 / 1</span>
+              <button class="btn sm ghost" id="pgNext" data-i18n-title="pageNext" data-i18n-aria="pageNext" aria-label="next">&rsaquo;</button>
+              <button class="btn sm ghost" id="pgDel" data-i18n-title="pageDel" data-i18n-aria="pageDel" aria-label="delete"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6"/></svg></button>
+              <span class="pgsep"></span>
+            </span>
+            <button class="btn sm ghost pgAdd" id="pgAdd" data-i18n-title="pageAdd" data-i18n-aria="pageAdd" aria-label="add"><span aria-hidden="true">+</span><span data-i18n="pageAddShort">Page</span></button>
             <span class="pgsep"></span>
-            <button class="btn sm ghost" id="pgAdd" data-i18n-title="pageAdd" aria-label="add">+</button>
-            <button class="btn sm ghost" id="pgDel" data-i18n-title="pageDel" aria-label="delete">&minus;</button>
+            <button class="btn sm ghost" id="zoomOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut">&minus;</button>
+            <button class="btn sm ghost zoomv" id="zoomVal" data-i18n-title="zoomReset">100%</button>
+            <button class="btn sm ghost" id="zoomIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn">+</button>
+            <button class="btn sm ghost" id="zoomFit" data-i18n="fit" data-i18n-title="fitTitle">Fit</button>
           </div>
           <div id="blank" class="blankhint">
             <b data-i18n="emptyTitle"></b>
@@ -953,124 +1037,61 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <div class="count" id="selCount"></div>
         <div class="chips">
           <button class="chip" data-sel="all" data-i18n="chipAll">All</button>
-          <button class="chip" data-sel="none" data-i18n="chipNone">None</button>
+          <button class="chip" data-sel="none" data-i18n="chipNone">Deselect</button>
           <details class="sub filterSub" id="filterSub">
-            <summary data-i18n="chipFilter">Filter</summary>
+            <summary data-i18n="chipMore">More</summary>
             <div class="subbody">
+              <span class="chipsLbl" data-i18n="chipSelectLbl">Select:</span>
               <button class="chip" data-sel="invert" data-i18n="chipInvert">Invert</button>
               <button class="chip" data-sel="empty" data-i18n="chipBlank">Blank</button>
               <button class="chip" data-sel="filled" data-i18n="chipFilled">Filled</button>
               <button class="chip" data-sel="marked" data-i18n="chipTagged">Tagged</button>
+              <span class="chipsBreak"></span>
+              <button class="chip" id="copyBtn" data-i18n="copyBtn">Copy</button>
+              <button class="chip" id="pasteBtn" data-i18n="pasteBtn">Paste</button>
+              <button class="chip" id="fillBtn" data-i18n="fillBtn" data-i18n-title="fillBtnTitle">Fill</button>
             </div>
           </details>
         </div>
       </div>
 
-      <details class="sec" open>
-        <summary data-i18n="secContent">Content</summary>
-        <div class="body">
-          <div>
-            <div class="lblrow">
-              <label class="lbl" data-i18n="modeAsk">What are you making?</label>
-              <button type="button" class="obReopenLink" id="reopenOnboardBtn"
-                      data-i18n="obReopen" data-i18n-title="obReopenTitle">Choose again</button>
-            </div>
-            <div class="seg seg6" id="modeSeg" role="group">
-              <button class="segb on" data-mode="plain" data-i18n="modePlain">Plain</button>
-              <button class="segb" data-mode="price" data-i18n="modePrice">Price</button>
-              <button class="segb" data-mode="sku" data-i18n="modeSku">Barcode</button>
-              <button class="segb" data-mode="qr" data-i18n="modeQr">QR</button>
-              <button class="segb" data-mode="addr" data-i18n="modeAddr">Address</button>
-              <button class="segb" data-mode="pack" data-i18n="modePack">Packaging</button>
-            </div>
-            <div class="tpl" id="tplRow"></div>
+      <div class="mainpanel" id="mainPanel">
+        <div>
+          <div class="lblrow">
+            <label class="lbl" data-i18n="modeAsk">What are you making?</label>
+            <button type="button" class="obReopenLink" id="reopenOnboardBtn"
+                    data-i18n="obReopen" data-i18n-title="obReopenTitle">Choose again</button>
           </div>
-          <div class="introNudge" id="introNudge" hidden>
-            <span data-i18n="introNudge">Replace the example with your own, then press Apply.</span>
+          <div class="seg seg6" id="modeSeg" role="group">
+          <button class="segb on" data-mode="plain" data-i18n="modePlain">Plain</button>
+          <button class="segb" data-mode="price" data-i18n="modePrice">Price</button>
+          <button class="segb" data-mode="sku" data-i18n="modeSku">Barcode</button>
+          <button class="segb" data-mode="qr" data-i18n="modeQr">QR</button>
+          <button class="segb" data-mode="addr" data-i18n="modeAddr">Address</button>
+          <button class="segb" data-mode="pack" data-i18n="modePack">Packaging</button>
           </div>
-          <div>
+          <div class="tpl" id="tplRow"></div>
+        </div>
+        <div class="introNudge" id="introNudge" hidden>
+          <span data-i18n="introNudge">Replace the example with your own, then press Apply.</span>
+        </div>
+        <div>
+          <div class="lblrow">
             <label class="lbl" for="txtInput" id="txtLbl" data-i18n="lblText">Label text</label>
-            <div id="rtWrap" hidden><div id="rtToolbar"></div><div id="rtEditor"></div></div>
-            <textarea id="txtInput" class="rtPending" rows="3" placeholder="ABC-1234"></textarea>
+            <button type="button" class="fmtBtn" id="fmtBtn" aria-expanded="false" aria-controls="fmtPanel" data-i18n-title="fmtTitle"><span class="fmtAa" aria-hidden="true">Aa</span><span data-i18n="fmtBtn">Format</span></button>
           </div>
-          <div id="priceRow">
-            <label class="lbl" for="priceInput" data-i18n="lblPrice">Price</label>
-            <input type="text" id="priceInput" data-i18n-ph="phPrice" inputmode="numeric">
-            <div class="hint" style="margin-top:5px" data-i18n="priceHint"></div>
-          </div>
-          <div id="bcRow">
-            <div class="hint" data-i18n="barcodeHint"></div>
-          </div>
-          <div id="qrRow">
-            <label class="lbl" for="qrInput" data-i18n="lblQr">QR content</label>
-            <input type="text" id="qrInput" data-i18n-ph="phQr">
-            <div class="hint" style="margin-top:5px" data-i18n="qrHint"></div>
-          </div>
-          <div id="addrRow">
-            <label class="lbl" for="phoneInput" data-i18n="lblPhone">Phone</label>
-            <input type="text" id="phoneInput" inputmode="tel" data-i18n-ph="phPhone">
-            <label class="lbl" for="addrInput" style="margin-top:10px" data-i18n="lblAddr">Address</label>
-            <textarea id="addrInput" rows="2" data-i18n-ph="phAddr"></textarea>
-            <div class="hint" style="margin-top:5px" data-i18n="addrHint"></div>
-          </div>
-          <div id="packRow">
-            <label class="lbl" for="wtInput" data-i18n="lblWeight">Net weight</label>
-            <input type="text" id="wtInput" data-i18n-ph="phWeight">
-            <label class="lbl" for="ingInput" style="margin-top:10px" data-i18n="lblIng">Ingredients</label>
-            <textarea id="ingInput" rows="3" data-i18n-ph="phIng"></textarea>
-            <div class="g2" style="margin-top:10px">
+          <div id="rtWrap" hidden><div id="rtToolbar"></div><div id="rtEditor"></div></div>
+          <textarea id="txtInput" class="rtPending" rows="3" placeholder="ABC-1234"></textarea>
+          <div class="fmtPanel" id="fmtPanel">
+            <div class="lbl fmtHead" data-i18n="fmtWhole">Whole label</div>
+            <div class="g2">
               <div>
-                <label class="lbl" for="mdInput" data-i18n="lblMade">Made</label>
-                <input type="date" id="mdInput">
+                <label class="lbl" for="fontSize" data-i18n="lblSize">Size (pt)</label>
+                <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5">
               </div>
               <div>
-                <label class="lbl" for="exInput" data-i18n="lblExp">Use by</label>
-                <input type="date" id="exInput">
-              </div>
-            </div>
-            <div class="quick" id="exQuick" role="group" data-i18n-aria="lblExp">
-              <button type="button" data-add="7d" data-i18n="q7d">+7 хоног</button>
-              <button type="button" data-add="1m" data-i18n="q1m">+1 сар</button>
-              <button type="button" data-add="3m" data-i18n="q3m">+3 сар</button>
-              <button type="button" data-add="6m" data-i18n="q6m">+6 сар</button>
-              <button type="button" data-add="1y" data-i18n="q1y">+1 жил</button>
-            </div>
-            <label class="lbl" for="stgInput" style="margin-top:10px" data-i18n="lblStore">Storage</label>
-            <input type="text" id="stgInput" data-i18n-ph="phStore">
-            <label class="lbl" for="lotInput" style="margin-top:10px" data-i18n="lblLot">Serial / batch number</label>
-            <input type="text" id="lotInput" data-i18n-ph="phLot">
-            <label class="lbl" for="nutInput" style="margin-top:10px" data-i18n="lblNut">Nutrition per 100 g</label>
-            <textarea id="nutInput" rows="2" data-i18n-ph="phNut"></textarea>
-            <div class="hint" style="margin-top:5px" data-i18n="packHint"></div>
-            <details class="sub" id="foodChk" style="margin-top:10px">
-              <summary><span data-i18n="chkTitle">Food label checklist</span><span id="chkCount"></span></summary>
-              <div class="subbody">
-                <div class="hint" data-i18n="chkIntro"></div>
-                <ul class="chk" id="chkList"></ul>
-                <div class="hint" data-i18n="chkNote"></div>
-              </div>
-            </details>
-          </div>
-          <div>
-            <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
-            <input type="text" id="subInput" data-i18n-ph="phSub">
-          </div>
-          <div class="g3">
-            <button class="btn sm" id="copyBtn" data-i18n="copyBtn">Copy</button>
-            <button class="btn sm" id="pasteBtn" data-i18n="pasteBtn">Paste</button>
-            <button class="btn sm" id="fillBtn" data-i18n="fillBtn">Fill</button>
-          </div>
-          <details class="sub">
-            <summary data-i18n="moreType">Type settings</summary>
-            <div class="subbody">
-          <div class="g2">
-            <div>
-              <label class="lbl" for="fontSize" data-i18n="lblSize">Size (pt)</label>
-              <input type="number" id="fontSize" value="8" min="3" max="40" step="0.5">
-            </div>
-            <div>
-              <label class="lbl" for="fontFam" data-i18n="lblFace">Typeface</label>
-              <select id="fontFam">
+                <label class="lbl" for="fontFam" data-i18n="lblFace">Typeface</label>
+                <select id="fontFam">
                 <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans</option>
                 <option value="Georgia, 'Times New Roman', serif">Serif</option>
                 <option value="ui-monospace, Consolas, 'Courier New', monospace">Mono</option>
@@ -1086,211 +1107,277 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
                 <option value="'Lobster', cursive">Lobster</option>
                 <option value="'Pacifico', cursive">Pacifico</option>
                 <option value="'Roboto Mono', monospace">Roboto Mono</option>
-              </select>
-            </div>
-          </div>
-          <div class="g3">
-            <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700" data-i18n="bold">Bold</button>
-            <button class="btn sm" id="upperBtn" aria-pressed="false" data-i18n="upper">UPPER</button>
-            <button class="btn sm" id="fitBtn" aria-pressed="true" data-i18n="shrink">Shrink</button>
-          </div>
-          <div class="hint" data-i18n-html="typeHint"></div>
-            </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="secAutoNum">Auto-number</summary>
-            <div class="subbody">
-          <div>
-            <label class="lbl" data-i18n="lblAutoNum">Auto-number</label>
-            <div class="g3">
-              <input type="text" id="seqPrefix" placeholder="SKU-" data-i18n-title="tPrefix" data-i18n-aria="tPrefix">
-              <input type="number" id="seqStart" value="1" data-i18n-title="tStart" data-i18n-aria="tStart">
-              <input type="number" id="seqPad" value="3" min="0" max="8" data-i18n-title="tDigits" data-i18n-aria="tDigits">
-            </div>
-          </div>
-          <div class="g2">
-            <input type="text" id="seqSuffix" data-i18n-ph="phSuffix" data-i18n-aria="phSuffix">
-            <button class="btn" id="applySeq" data-i18n="fillNum">Fill numbered</button>
-          </div>
-            </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="secListFill">Fill from a list</summary>
-            <div class="subbody">
-          <div>
-            <label class="lbl" for="listInput" data-i18n="lblList">Or paste a list, one label per line</label>
-            <div class="hint" style="margin:-2px 0 5px" data-i18n="colsHint"></div>
-            <textarea id="listInput" rows="4" data-i18n-ph="phList" placeholder="Цамц ; 15000&#10;Өмд ; 45000&#10;Малгай ; 12000 ; x3"></textarea>
-          </div>
-          <div class="g2">
-            <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
-            <label class="check"><input type="checkbox" id="listRepeat"> <span data-i18n="repeatFill">Repeat to fill</span></label>
-          </div>
-          <button class="btn wide" id="mapColsBtn" data-i18n="mapColsBtn">Map columns</button>
-            </div>
-          </details>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary data-i18n="secSheet">Sheet</summary>
-        <div class="body">
-          <div class="lbl" data-i18n="groupSize">Sheet size</div>
-          <div class="well" id="calcInfo"></div>
-          <div>
-            <label class="lbl" data-i18n="lblOffset"></label>
-            <div class="g2">
-              <div>
-                <label class="lbl" style="margin-bottom:2px" data-i18n="lblOffX">Shift right (mm)</label>
-                <input type="number" id="ox" step="0.1" min="-15" max="15" data-i18n-aria="offXAria">
-              </div>
-              <div>
-                <label class="lbl" style="margin-bottom:2px" data-i18n="lblOffY">Shift down (mm)</label>
-                <input type="number" id="oy" step="0.1" min="-15" max="15" data-i18n-aria="offYAria">
-              </div>
-            </div>
-            <button class="btn wide" id="offsetReset" data-i18n="resetBtn">Reset</button>
-            <div class="hint" style="margin-top:5px" data-i18n="offsetHint"></div>
-          </div>
-          <button class="btn wide" id="calBtn" data-i18n="calBtn">Print a calibration page</button>
-          <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary data-i18n="secMore">More tools</summary>
-        <div class="body">
-          <details class="sub">
-            <summary data-i18n="secImage">Image</summary>
-            <div class="subbody">
-              <div class="hint" data-i18n="aiPromptHint"></div>
-              <textarea id="aiPromptText" rows="5" readonly></textarea>
-              <button class="btn wide" id="copyPromptBtn" data-i18n="copyPromptBtn">Copy the prompt</button>
-              <button class="btn wide" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
-              <label class="drop" id="drop">
-                <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
-                <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
-                <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
-              </label>
-              <div class="imglib" id="imgLib"></div>
-              <button class="btn accent wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
-            </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="secLogo">Logo</summary>
-            <div class="subbody">
-              <div class="hint" data-i18n="logoHint"></div>
-              <div class="g2">
-                <button class="btn" id="applyImg" data-i18n="placeImg">Place on selection</button>
-                <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
-              </div>
-              <div>
-                <label class="lbl" for="layoutSel" data-i18n="lblArrange">When a label has both</label>
-                <select id="layoutSel">
-                  <option value="img-top" data-i18n="layTop">Image above the text</option>
-                  <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
-                  <option value="img-left" data-i18n="layLeft">Image left of the text</option>
-                  <option value="img-right" data-i18n="layRight">Image right of the text</option>
                 </select>
               </div>
-              <div>
-                <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
-                <input type="range" id="imgSize" min="10" max="100" value="55">
-              </div>
             </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="secColour">Colour tags</summary>
-            <div class="subbody">
-              <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
-                <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
-                <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
-              </div>
-              <div class="swatches" id="swatches"></div>
-              <div class="g2">
-                <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
-                <button class="btn" id="markClear" data-i18n="untag">Untag</button>
-              </div>
-              <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
-              <div class="hint" data-i18n-html="colourHint"></div>
+            <div class="g3">
+              <button class="btn sm" id="boldBtn" aria-pressed="false" style="font-weight:700" data-i18n="bold">Bold</button>
+              <button class="btn sm" id="upperBtn" aria-pressed="false" data-i18n="upper">UPPER</button>
+              <button class="btn sm" id="fitBtn" aria-pressed="true" data-i18n="shrink">Shrink</button>
             </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="fineTune">Fine-tune this size</summary>
-            <div class="subbody">
-              <div class="g2">
-                <div><label class="lbl" for="cols" data-i18n="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
-                <div><label class="lbl" for="rows" data-i18n="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
-              </div>
-              <div>
-                <label class="lbl" data-i18n="lblMargins"></label>
-                <div class="g4">
-                  <input type="number" id="mt" step="0.1" aria-label="Top margin">
-                  <input type="number" id="mr" step="0.1" aria-label="Right margin">
-                  <input type="number" id="mb" step="0.1" aria-label="Bottom margin">
-                  <input type="number" id="ml" step="0.1" aria-label="Left margin">
-                </div>
-              </div>
-              <div>
-                <label class="lbl" data-i18n="lblGaps"></label>
-                <div class="g3">
-                  <input type="number" id="gx" step="0.1" aria-label="Horizontal gap">
-                  <input type="number" id="gy" step="0.1" aria-label="Vertical gap">
-                  <input type="number" id="rad" step="0.1" aria-label="Corner radius">
-                </div>
-              </div>
-              <div class="g2">
-                <button class="btn" id="savePreset" data-i18n="savePreset">Save as preset</button>
-                <button class="btn warn" id="delPreset" data-i18n="delPreset">Delete preset</button>
-              </div>
-            </div>
-          </details>
-          <details class="sub">
-            <summary data-i18n="groupFile">File &amp; sharing</summary>
-            <div class="subbody">
-              <div class="g2">
-                <button class="btn" id="shareBtn" data-i18n="shareBtn">Share</button>
-                <button class="btn" id="loadCodeBtn" data-i18n="loadCodeBtn">Open by code</button>
-              </div>
-              <div class="g3">
-                <button class="btn sm" id="exportBtn" data-i18n="exportBtn">Export</button>
-                <button class="btn sm" id="importBtn" data-i18n="importBtn">Import</button>
-                <button class="btn sm warn" id="clearAll" data-i18n="emptySheet">Empty sheet</button>
-              </div>
-            </div>
-          </details>
-          <input type="file" id="importFile" accept="application/json" hidden>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary><span class="kbTitleFull" data-i18n="secPrintHelp">Printing &amp; shortcuts</span><span class="kbTitleShort" data-i18n="secPrintHelpMobile">Print help</span></summary>
-        <div class="body">
-          <div class="hint" data-i18n-html="printHint"></div>
-          <button type="button" class="btn wide" id="restorePrintDlgBtn" hidden data-i18n="restorePrintDlg">Show the pre-print reminder again</button>
-          <div class="hint" id="kbGrid" style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center">
-            <span class="kbd">Click</span><span data-i18n="kbClick">Select one label</span>
-            <span class="kbd">Drag</span><span data-i18n="kbDrag">Select a block</span>
-            <span class="kbd">Ctrl</span><span data-i18n="kbCtrl">Add or remove from the selection</span>
-            <span class="kbd">Shift</span><span data-i18n="kbShift">Extend the selection</span>
-            <span class="kbd">Arrows</span><span data-i18n="kbArrows">Move the cursor, with Shift to extend</span>
-            <span class="kbd">Space</span><span data-i18n="kbSpace">Toggle the label under the cursor</span>
-            <span class="kbd">2&times;</span><span data-i18n="dblEdit">Double-click a label to edit it</span>
-            <span class="kbd">Ctrl C</span><span data-i18n="kbCopy">Copy the selected labels</span>
-            <span class="kbd">Ctrl V</span><span data-i18n="kbPaste">Paste, repeating to fill the selection</span>
-            <span class="kbd">Ctrl D</span><span data-i18n="kbFill">Fill the selection from the first label</span>
-            <span class="kbd">Ctrl Z</span><span data-i18n="kbUndo">Undo, Ctrl+Shift+Z to redo</span>
-            <span class="kbd">Del</span><span data-i18n="kbDel">Clear the selected labels</span>
-            <span class="kbd">Ctrl P</span><span data-i18n="kbPrint">Print</span>
+            <div class="hint" data-i18n-html="typeHint"></div>
           </div>
         </div>
-      </details>
+        <div id="priceRow">
+            <label class="lbl" for="priceInput" data-i18n="lblPrice">Price</label>
+            <input type="text" id="priceInput" data-i18n-ph="phPrice" inputmode="numeric">
+          <div class="hint" style="margin-top:5px" data-i18n="priceHint"></div>
+        </div>
+        <div id="bcRow">
+          <div class="hint" data-i18n="barcodeHint"></div>
+        </div>
+        <div id="qrRow">
+            <label class="lbl" for="qrInput" data-i18n="lblQr">QR content</label>
+            <input type="text" id="qrInput" data-i18n-ph="phQr">
+          <div class="hint" style="margin-top:5px" data-i18n="qrHint"></div>
+        </div>
+        <div id="addrRow">
+            <label class="lbl" for="phoneInput" data-i18n="lblPhone">Phone</label>
+            <input type="text" id="phoneInput" inputmode="tel" data-i18n-ph="phPhone">
+            <label class="lbl" for="addrInput" style="margin-top:10px" data-i18n="lblAddr">Address</label>
+            <textarea id="addrInput" rows="2" data-i18n-ph="phAddr"></textarea>
+          <div class="hint" style="margin-top:5px" data-i18n="addrHint"></div>
+        </div>
+        <div id="packRow">
+          <label class="lbl" for="wtInput" data-i18n="lblWeight">Net weight</label>
+          <input type="text" id="wtInput" data-i18n-ph="phWeight">
+          <label class="lbl" for="ingInput" style="margin-top:10px" data-i18n="lblIng">Ingredients</label>
+          <textarea id="ingInput" rows="3" data-i18n-ph="phIng"></textarea>
+          <div class="g2" style="margin-top:10px">
+            <div>
+              <label class="lbl" for="mdInput" data-i18n="lblMade">Made</label>
+              <input type="date" id="mdInput">
+            </div>
+            <div>
+              <label class="lbl" for="exInput" data-i18n="lblExp">Use by</label>
+              <input type="date" id="exInput">
+            </div>
+          </div>
+          <div class="quick" id="exQuick" role="group" data-i18n-aria="lblExp">
+            <button type="button" data-add="7d" data-i18n="q7d">+7 хоног</button>
+            <button type="button" data-add="1m" data-i18n="q1m">+1 сар</button>
+            <button type="button" data-add="3m" data-i18n="q3m">+3 сар</button>
+            <button type="button" data-add="6m" data-i18n="q6m">+6 сар</button>
+            <button type="button" data-add="1y" data-i18n="q1y">+1 жил</button>
+          </div>
+          <label class="lbl" for="stgInput" style="margin-top:10px" data-i18n="lblStore">Storage</label>
+          <input type="text" id="stgInput" data-i18n-ph="phStore">
+          <label class="lbl" for="lotInput" style="margin-top:10px" data-i18n="lblLot">Serial / batch number</label>
+          <input type="text" id="lotInput" data-i18n-ph="phLot">
+          <label class="lbl" for="nutInput" style="margin-top:10px" data-i18n="lblNut">Nutrition per 100 g</label>
+          <textarea id="nutInput" rows="2" data-i18n-ph="phNut"></textarea>
+          <div class="hint" style="margin-top:5px" data-i18n="packHint"></div>
+          <details class="sub" id="foodChk" style="margin-top:10px">
+            <summary><span data-i18n="chkTitle">Food label checklist</span><span id="chkCount"></span></summary>
+            <div class="subbody">
+              <div class="hint" data-i18n="chkIntro"></div>
+              <ul class="chk" id="chkList"></ul>
+              <div class="hint" data-i18n="chkNote"></div>
+            </div>
+          </details>
+        </div>
+        <div id="subRow">
+          <label class="lbl" for="subInput" data-i18n="lblSub">Small line</label>
+          <input type="text" id="subInput" data-i18n-ph="phSub">
+        </div>
+        <div class="addRow">
+          <button type="button" class="linkBtn" id="subAddBtn" data-i18n="subAdd">+ Add a small line</button>
+          <button type="button" class="linkBtn" id="listOpenBtn"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10"/><circle cx="3.5" cy="5" r=".9"/><circle cx="3.5" cy="10" r=".9"/><circle cx="3.5" cy="15" r=".9"/></svg><span data-i18n="listOpen">Paste a list from Excel</span></button>
+        </div>
+      </div>
+
+      <div class="toolsHead" data-i18n="toolsHead">More options</div>
+      <div class="tools" id="tools">
+        <details class="tool" data-tool="list" id="tool-list">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10"/><circle cx="3.5" cy="5" r=".9"/><circle cx="3.5" cy="10" r=".9"/><circle cx="3.5" cy="15" r=".9"/></svg><span class="tname" data-i18n="secListFill">Fill from a list</span></summary>
+          <div class="tbody">
+            <div>
+              <label class="lbl" for="listInput" data-i18n="lblList">Paste your list here, one label per line</label>
+              <textarea id="listInput" rows="6" data-i18n-ph="phList" placeholder="Цамц&#9;15000&#10;Өмд&#9;45000&#10;Малгай&#9;12000"></textarea>
+              <div class="hint" style="margin-top:6px" data-i18n="colsHint"></div>
+            </div>
+            <label class="check"><input type="checkbox" id="listRepeat"> <span data-i18n="repeatFill">Repeat to fill</span></label>
+            <div class="g2">
+              <button class="btn" id="applyList" data-i18n="fillList">Fill from list</button>
+              <button class="btn" id="mapColsBtn" data-i18n="mapColsBtn">Map columns</button>
+            </div>
+          </div>
+        </details>
+        <details class="tool" data-tool="img" id="tool-img">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><circle cx="7" cy="8" r="1.6"/><path d="M3 15l4.5-4.5 3 3 2.5-2.5 4.5 4.5"/></svg><span class="tname" data-i18n="toolImg">Logo and pictures</span><span class="tbadge" id="bdg-img" hidden></span></summary>
+          <div class="tbody">
+            <label class="drop" id="drop">
+              <input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden>
+              <span><span data-i18n="dropMain">Drop an image here, or</span> <u data-i18n="dropBrowse">browse</u></span>
+              <span data-i18n="dropSub">PNG, JPG, SVG &middot; stays in your browser</span>
+            </label>
+            <div class="imglib" id="imgLib"></div>
+            <div class="hint" data-i18n="logoHint"></div>
+            <div class="g2">
+              <button class="btn" id="applyImg" data-i18n="placeImg">Place on selection</button>
+              <button class="btn" id="removeImg" data-i18n="removeImg">Remove</button>
+            </div>
+            <button class="btn wide" id="applyImgFull" data-i18n="placeImgFull">Fill the whole label</button>
+            <div>
+              <label class="lbl" for="layoutSel" data-i18n="lblArrange">When a label has both</label>
+              <select id="layoutSel">
+                <option value="img-top" data-i18n="layTop">Image above the text</option>
+                <option value="img-bottom" data-i18n="layBottom">Image below the text</option>
+                <option value="img-left" data-i18n="layLeft">Image left of the text</option>
+                <option value="img-right" data-i18n="layRight">Image right of the text</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl" for="imgSize"><span data-i18n="lblImgSize">Image size</span> &mdash; <span data-i18n="ofLabel">of the label</span> <span id="imgSizeVal">55%</span></label>
+              <input type="range" id="imgSize" min="10" max="100" value="55">
+            </div>
+            <details class="sub">
+              <summary data-i18n="aiTitle">Make a picture with AI</summary>
+              <div class="subbody">
+                <div class="hint" data-i18n="aiPromptHint"></div>
+                <textarea id="aiPromptText" class="quoteBox" rows="5" readonly></textarea>
+                <div class="g2">
+                  <button class="btn" id="copyPromptBtn" data-i18n="copyPromptBtn">Copy the prompt</button>
+                  <button class="btn" id="dlTemplateBtn" data-i18n="dlTemplateBtn">Download size template</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+        <details class="tool" data-tool="num" id="tool-num">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3L6 17M14 3l-2 14M3.5 7.5h13M3 12.5h13"/></svg><span class="tname" data-i18n="secAutoNum">Auto numbering</span></summary>
+          <div class="tbody">
+            <div class="g3">
+              <label><span class="lbl" data-i18n="tPrefix">Prefix</span><input type="text" id="seqPrefix" placeholder="SKU-"></label>
+              <label><span class="lbl" data-i18n="tStart">Start at</span><input type="number" id="seqStart" value="1"></label>
+              <label><span class="lbl" data-i18n="tDigitsShort">Digits</span><input type="number" id="seqPad" value="3" min="0" max="8" data-i18n-title="tDigits"></label>
+            </div>
+            <div class="g2">
+              <input type="text" id="seqSuffix" data-i18n-ph="phSuffix" data-i18n-aria="phSuffix">
+              <button class="btn" id="applySeq" data-i18n="fillNum">Number them</button>
+            </div>
+            <div class="hint" data-i18n="numHint"></div>
+          </div>
+        </details>
+        <details class="tool" data-tool="tag" id="tool-tag">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7l7 7-7 7-7-7z"/><circle cx="7" cy="7" r="1.3"/></svg><span class="tname" data-i18n="secColour">Colour tags</span><span class="tbadge" id="bdg-tag" hidden></span></summary>
+          <div class="tbody">
+            <div class="seg" id="dotStyle" role="group" data-i18n-aria="dotStyleAria">
+            <button class="segb on" data-g="0"><i style="background:#3b82f6"></i><span data-i18n="dotSolid">Solid</span></button>
+            <button class="segb" data-g="1"><i style="background:linear-gradient(135deg,#3b82f6,#fff)"></i><span data-i18n="dotGrad">Gradient</span></button>
+            </div>
+            <div class="swatches" id="swatches"></div>
+            <div class="g2">
+            <button class="btn" id="markSelect" data-i18n="selectTagged">Select tagged</button>
+            <button class="btn" id="markClear" data-i18n="untag">Untag</button>
+            </div>
+            <button class="btn wide" id="paintBtn" aria-pressed="false" data-i18n="paint">Paint mode</button>
+            <div class="hint" data-i18n-html="colourHint"></div>
+          </div>
+        </details>
+        <details class="tool" data-tool="sheet" id="tool-sheet">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8V3h10v5M5 14H3V8h14v6h-2"/><rect x="5" y="12" width="10" height="5"/></svg><span class="tname" data-i18n="toolSheet">Paper and printer</span><span class="tbadge" id="bdg-sheet" hidden></span></summary>
+          <div class="tbody">
+            <div class="well" id="calcInfo"></div>
+            <div>
+              <label class="lbl" data-i18n="lblOffset"></label>
+              <div class="g2">
+                <div>
+                  <label class="lbl" style="margin-bottom:2px" data-i18n="lblOffX">Shift right (mm)</label>
+                  <input type="number" id="ox" step="0.1" min="-15" max="15" data-i18n-aria="offXAria">
+                </div>
+                <div>
+                  <label class="lbl" style="margin-bottom:2px" data-i18n="lblOffY">Shift down (mm)</label>
+                  <input type="number" id="oy" step="0.1" min="-15" max="15" data-i18n-aria="offYAria">
+                </div>
+              </div>
+              <div class="hint" style="margin-top:6px" data-i18n="offsetHint"></div>
+              <button type="button" class="linkBtn plain" id="offsetReset" data-i18n="resetBtn">Reset</button>
+            </div>
+            <button class="btn wide" id="calBtn" data-i18n="calBtn">Print a calibration page</button>
+            <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
+            <details class="sub">
+              <summary data-i18n="fineTune">Fine-tune this size</summary>
+              <div class="subbody">
+                <div class="g2">
+                <div><label class="lbl" for="cols" data-i18n="cols">Columns</label><input type="number" id="cols" min="1" max="40"></div>
+                <div><label class="lbl" for="rows" data-i18n="rows">Rows</label><input type="number" id="rows" min="1" max="60"></div>
+                </div>
+                <div>
+                <label class="lbl" data-i18n="lblMargins"></label>
+                <div class="g4">
+                <input type="number" id="mt" step="0.1" aria-label="Top margin">
+                <input type="number" id="mr" step="0.1" aria-label="Right margin">
+                <input type="number" id="mb" step="0.1" aria-label="Bottom margin">
+                <input type="number" id="ml" step="0.1" aria-label="Left margin">
+                </div>
+                </div>
+                <div>
+                <label class="lbl" data-i18n="lblGaps"></label>
+                <div class="g3">
+                <input type="number" id="gx" step="0.1" aria-label="Horizontal gap">
+                <input type="number" id="gy" step="0.1" aria-label="Vertical gap">
+                <input type="number" id="rad" step="0.1" aria-label="Corner radius">
+                </div>
+                </div>
+                <div class="g2">
+                <button class="btn" id="savePreset" data-i18n="savePreset">Save as preset</button>
+                <button class="btn warn" id="delPreset" data-i18n="delPreset">Delete preset</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+        <details class="tool" data-tool="file" id="tool-file">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="4.5" r="2"/><circle cx="5" cy="10" r="2"/><circle cx="15" cy="15.5" r="2"/><path d="M6.8 9l6.4-3.5M6.8 11l6.4 3.5"/></svg><span class="tname" data-i18n="groupFile">Files and sharing</span></summary>
+          <div class="tbody">
+            <div class="g2">
+              <button class="btn" id="shareBtn" data-i18n="shareBtn">Share</button>
+              <button class="btn" id="loadCodeBtn" data-i18n="loadCodeBtn">Open by code</button>
+            </div>
+            <div class="g2">
+              <button class="btn" id="exportBtn" data-i18n="exportBtn">Export</button>
+              <button class="btn" id="importBtn" data-i18n="importBtn">Import</button>
+            </div>
+            <div class="hint" data-i18n="fileHint"></div>
+            <button type="button" class="linkBtn danger" id="clearAll" data-i18n="emptySheet">Empty sheet</button>
+          </div>
+        </details>
+        <details class="tool" data-tool="help" id="tool-help">
+          <summary><svg class="ticon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3 2.2c-.5.2-.8.6-.8 1.2v.6M10 14.3v.2"/></svg><span class="tname" data-i18n="toolHelp">Help and settings</span><span class="tbadge" id="bdg-help" hidden></span></summary>
+          <div class="tbody">
+            <div class="hint" data-i18n-html="printHint"></div>
+            <button type="button" class="btn wide" id="restorePrintDlgBtn" hidden data-i18n="restorePrintDlg">Show the pre-print reminder again</button>
+            <div class="setrow">
+              <span data-i18n="lblTheme">Screen colours</span>
+              <button class="btn sm" id="themeBtn" data-i18n-aria="themeAria">Dark</button>
+            </div>
+            <div class="hint" id="kbGrid">
+              <span class="kbd" data-i18n="kbdClick">Click</span><span data-i18n="kbClick">Select one label</span>
+              <span class="kbd" data-i18n="kbdDrag">Drag</span><span data-i18n="kbDrag">Select a block</span>
+              <span class="kbd">Ctrl</span><span data-i18n="kbCtrl">Add or remove from the selection</span>
+              <span class="kbd">Shift</span><span data-i18n="kbShift">Extend the selection</span>
+              <span class="kbd" data-i18n="kbdArrows">Arrows</span><span data-i18n="kbArrows">Move the cursor, with Shift to extend</span>
+              <span class="kbd">Space</span><span data-i18n="kbSpace">Toggle the label under the cursor</span>
+              <span class="kbd">2&times;</span><span data-i18n="dblEdit">Double-click a label to edit it</span>
+              <span class="kbd">Ctrl C</span><span data-i18n="kbCopy">Copy the selected labels</span>
+              <span class="kbd">Ctrl V</span><span data-i18n="kbPaste">Paste, repeating to fill the selection</span>
+              <span class="kbd">Ctrl D</span><span data-i18n="kbFill">Fill the selection from the first label</span>
+              <span class="kbd">Ctrl Z</span><span data-i18n="kbUndo">Undo, Ctrl+Shift+Z to redo</span>
+              <span class="kbd">Del</span><span data-i18n="kbDel">Clear the selected labels</span>
+              <span class="kbd">Ctrl P</span><span data-i18n="kbPrint">Print</span>
+            </div>
+          </div>
+        </details>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
       <div class="applybar">
         <div class="fillBanner" id="fillAllBanner" hidden>
           <span id="fillAllBannerText"></span>
           <button class="btn accent" id="fillAllBannerBtn" data-i18n="fillAllBannerBtn">Make them all the same</button>
           <button type="button" class="fillAllClose" id="fillAllBannerClose" data-i18n-aria="dlgClose" aria-label="Close">&times;</button>
         </div>
+        <button type="button" class="btn wide nextBtn" id="nextLabelBtn" hidden><span data-i18n="nextLabel">Next label</span><span aria-hidden="true">&rarr;</span></button>
         <div class="g2">
           <button class="btn accent" id="applyText" data-i18n="applyText">Apply to selection</button>
           <button class="btn" id="clearCells" data-i18n="clearBtn">Clear</button>
@@ -1306,20 +1393,28 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
       <span id="dlgFillWarnText"></span>
       <button type="button" class="btn accent" id="dlgFillWarnBtn" data-i18n="fillAllBannerBtn">Make them all the same</button>
     </div>
+    <p class="dlgNote" id="dlgOffset" hidden></p>
     <ul class="checklist">
       <li data-i18n-html="dlgA4"></li>
       <li data-i18n-html="dlgMargin"></li>
       <li data-i18n-html="dlgScale"></li>
     </ul>
-    <p class="hint" data-i18n="dlgWhy"></p>
-    <p class="hint" data-i18n="dlgWhere"></p>
-    <p class="hint" data-i18n="dlgTip"></p>
-    <label class="check"><input type="checkbox" id="guideChk">
-      <span data-i18n="optCut">Print cut lines</span></label>
-    <label class="check"><input type="checkbox" id="printMarkers">
-      <span data-i18n="printDots">Print the dots too</span></label>
-    <label class="check"><input type="checkbox" id="dlgNever">
-      <span data-i18n="dlgNever">Do not show again</span></label>
+    <details class="sub dlgMore">
+      <summary data-i18n="dlgMoreTitle">Where are these settings?</summary>
+      <div class="subbody">
+        <p class="hint" data-i18n="dlgWhere"></p>
+        <p class="hint" data-i18n="dlgWhy"></p>
+        <p class="hint" data-i18n="dlgTip"></p>
+      </div>
+    </details>
+    <div class="dlgChecks">
+      <label class="check"><input type="checkbox" id="guideChk">
+        <span data-i18n="optCut">Print cut lines</span></label>
+      <label class="check" id="printMarkersRow"><input type="checkbox" id="printMarkers">
+        <span data-i18n="printDots">Print the dots too</span></label>
+      <label class="check"><input type="checkbox" id="dlgNever">
+        <span data-i18n="dlgNever">Do not show again</span></label>
+    </div>
     <div class="g2">
       <button class="btn primary" id="dlgGo" data-i18n="dlgGo">Print</button>
       <button class="btn" id="dlgCancel" data-i18n="dlgCancel">Cancel</button>
@@ -1327,7 +1422,7 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
   </div>
 </div>
 <div class="obWrap" id="onboardWrap" hidden>
-  <div class="obModal" role="dialog" aria-modal="true" aria-labelledby="obH">
+  <div class="obModal" role="dialog" aria-modal="true" aria-labelledby="obH" tabindex="-1">
     <button type="button" class="obClose" id="onboardClose"
             data-i18n-title="obClose" data-i18n-aria="obClose" aria-label="Хаах">&times;</button>
     <div class="obHero">
@@ -1395,7 +1490,9 @@ details.sub .subbody{display:flex;flex-direction:column;gap:var(--s-3);padding:0
         <span data-i18n="obPackDesc">Ingredients, weight, dates</span>
       </button>
     </div>
+    <div class="obGrid obPapers" id="obPapers" hidden></div>
     <div class="obSkipRow">
+      <button type="button" class="obSkipBtn" id="obBackBtn" hidden data-i18n="obBack">Back</button>
       <button type="button" class="obSkipBtn" id="onboardSkipBtn"
               data-i18n="obSkip">Skip for now</button>
     </div>
@@ -1465,6 +1562,47 @@ var SITE = DESKTOP ? "https://naald.mn/" : "";
    purpose for anything read off a box, a keyboard or a print dialog:
    A4, mm, pt, PNG, JPG, SVG, SKU, Ctrl, Shift, Del, Sans, Serif, Mono. */
 var STR = {
+  chipMore: "Бусад",
+  chipSelectLbl: "Сонгох:",
+  fillBtnTitle: "Эхний сонгосон шошгыг бусад сонгосон руу хуулна",
+  fmtBtn: "Формат",
+  fmtTitle: "Фонт, үсгийн хэмжээ, тод, өнгө",
+  fmtWhole: "Шошго бүхэлдээ",
+  subAdd: "+ Нэмэлт мөр нэмэх",
+  listOpen: "Excel-ээс жагсаалт буулгах",
+  toolsHead: "Бусад боломжууд",
+  toolImg: "Лого, зураг",
+  toolSheet: "Цаас, принтер",
+  toolHelp: "Тусламж, тохиргоо",
+  aiTitle: "AI-аар зураг гаргуулах",
+  numHint: "Сонгосон шошгуудыг дарааллаар нь дугаарлана, жишээ нь SKU-001, SKU-002.",
+  tDigitsShort: "Оронгийн тоо",
+  fileHint: "Экспортолсон файлаа дараа нь «Импорт»-оор буцааж нээнэ. Зурагтай хуудсыг ийм файлаар хадгалаарай.",
+  lblTheme: "Дэлгэцийн өнгө",
+  kbdClick: "Дарах",
+  kbdDrag: "Чирэх",
+  kbdArrows: "Сумнууд",
+  nextLabel: "Дараагийн шошго",
+  pageAddShort: "Хуудас",
+  paperAria: "Шошгоны хэмжээ",
+  undoAria: "Буцаах",
+  redoAria: "Дахин хийх",
+  bdgOn: "{n} шошгонд",
+  bdgOffset: "зөрүү {x} / {y} mm",
+  bdgCustom: "өөрийн хэмжээ",
+  bdgNoDlg: "сануулга унтарсан",
+  dlgPartialText: "Энэ хуудсан дээрх {total} шошгоноос {filled}-д нь бичсэн байна. Бусад нь хоосон хэвлэгдэнэ.",
+  dlgMoreTitle: "Эдгээр тохиргоо хаана байдаг вэ?",
+  dlgOffsetNote: "Принтерийн зөрүү тохируулсан байна: баруун тийш {x} mm, доош {y} mm.",
+  obPaperTitle: "Ямар цаас авсан бэ?",
+  obPaperSub: "Цаасны хайрцаг дээр бичсэн шошгоны хэмжээг сонгоорой.",
+  obPaperRec: "Тохиромжтой",
+  obPaperPer: "хуудсанд {n} шошго",
+  obBack: "← Буцах",
+  obPaperSkip: "Мэдэхгүй байна",
+  exPfx: "Жишээ: ",
+  tPagesAdded: " — {p} хуудас нэмлээ",
+  tHeaderSkipped: " (эхний мөрийг гарчиг гэж үзээд алгаслаа)",
   applyText: "Сонгосонд бичих",
   badGeom: "Захын зай, завсар хэт том тул хуудсанд багтахгүй байна.",
   bold: "Тод",
@@ -1480,7 +1618,7 @@ var STR = {
   chipBlank: "Хоосон",
   chipFilled: "Бөглөсөн",
   chipInvert: "Эсрэгээр",
-  chipNone: "Цуцлах",
+  chipNone: "Сонголтыг болих",
   chipTagged: "Тэмдэгтэй",
   chipFilter: "Шүүх",
   clearBtn: "Арилгах",
@@ -1618,14 +1756,14 @@ var STR = {
   tMapSkipBc: " — {n} мөрөнд баркод тохироогүй тул текст хэвээрээ үлдлээ",
   tQrLong: "Холбоос хэт урт байна, богиносгоорой",
   lblSub: "Нэмэлт мөр",
-  phSub: "Хугацаа: 2026.12.31",
+  phSub: "Жишээ: Хугацаа 2026.12.31",
   subHint: "Үндсэн текстийн доор жижиг үсгээр гарна. Хугацаа, орц, хаяг бичихэд тохиромжтой.",
   lblCopies: "Ширхэг",
-  colsHint: "Нэр, үнийг цэг таслалаар (;) тусгаарлана, жишээ нь: нэр ; үнэ ; нэмэлт мөр. Мөрийн төгсгөлд «x3» гэж бичвэл 3 ширхэг хэвлэнэ.",
+  colsHint: "Excel-ээс шууд хуулж буулгаж болно: эхний багана нэр, хоёр дахь нь үнэ болно. Гараар бичвэл цэг таслалаар (;) тусгаарлаарай. Мөрийн төгсгөлд «x3» гэж бичвэл 3 ширхэг хэвлэнэ.",
   tOverflow: "{n} шошго багтсангүй. Үлдсэнийг нь дараагийн хуудсанд хэвлээрэй",
   dblEdit: "Шошгон дээр давхар дарж шууд засаарай",
   lblPrice: "Үнэ",
-  phPrice: "89000",
+  phPrice: "Жишээ: 89000",
   barcodeHint: "Шошгоны текстийг Code 128 баркод болгож хэвлэнэ. Зөвхөн латин үсэг, тоо, тэмдэгт орно.",
   priceHint: "Үнэ бичвэл шошгон дээр том, тод гарна. Мянгатын таслал, ₮ тэмдэг өөрөө нэмэгдэнэ.",
   tThinBarcode: "Баркод хэт нарийн байна, сканнер уншихгүй байж магадгүй. Том шошго сонговол илүү найдвартай.",
@@ -1633,7 +1771,7 @@ var STR = {
   tBadBarcode: "Баркодод кирилл үсэг орохгүй, латинаар бичээрэй",
   listCols: "Хоёр багана буулгавал эхнийх нь нэр, хоёр дахь нь үнэ болно",
   emptyTitle: "Хуудас хоосон байна",
-  emptyBody: "Шошгоо сонгоод «Агуулга» хэсэгт текстээ бичээрэй",
+  emptyBody: "Шошгоо сонгоод текстээ бичээрэй",
   emptySheet: "Хоослох",
   exportBtn: "Экспорт",
   fillBtn: "Бөглөх",
@@ -1670,7 +1808,7 @@ var STR = {
   lblFace: "Фонт",
   lblGaps: "Хөндлөн, босоо завсар, булангийн дугуйрал",
   lblImgSize: "Зургийн хэмжээ",
-  lblList: "Эсвэл жагсаалтаа буулгаарай, мөр бүр нэг шошго болно",
+  lblList: "Жагсаалтаа энд буулгаарай, мөр бүр нэг шошго болно",
   lblMargins: "Захын зай (дээд, баруун, доод, зүүн)",
   calBtn: "Тохируулгын хуудас хэвлэх",
   tCalHint: "Үүнийг энгийн цаасан дээр хэвлээд, наалддаг цаастайгаа давхарлан гэрэлд харьцуулаарай. Зөрүү гарвал дээрх «Принтерийн зөрүү» хэсэгт оруулаарай.",
@@ -1697,7 +1835,7 @@ var STR = {
   tPresetAuto:  "{name} цаасыг сонголоо. Өөр цаастай бол дээрх жагсаалтаас сольж болно.",
   tPresetLost:  "{n} шошго энэ хэмжээнд багтаагүй тул устлаа.",
   introNudge:   "Жишээг өөрийнхөө бараагаар солиод «Сонгосонд бичих» дараарай.",
-  printNudge:   "Бэлэн болсон бол баруун дээд буланд байгаа «Хэвлэх» товчийг дараарай.",
+  printNudge:   "Бэлэн болсон бол «Хэвлэх» товчийг дараарай.",
   lblSize: "Үсгийн хэмжээ (pt)",
   lblSizeSel: "Шошгоны хэмжээ (цаас нь үргэлж A4, 210 × 297 mm)",
   lblText: "Шошгоны текст",
@@ -1731,9 +1869,9 @@ var STR = {
   secMore: "Нэмэлт хэрэгсэл",
   secAutoNum: "Автомат дугаарлах",
   secListFill: "Жагсаалтаас бөглөх",
-  logoHint: "Зургийг текстийн хажууд жижгээр харуулна. Шошгыг бүхэлд нь зургаар дүүргэх бол дээрх «Зураг» хэсгийг ашиглаарай.",
+  logoHint: "Зургаа сонгоод «Сонгосонд тавих» дарвал текстийн хажууд жижгээр гарна. Шошгыг бүхэлд нь зургаар дүүргэх бол «Шошгыг бүхэлд нь дүүргэх» дараарай.",
   placeImgFull: "Шошгыг бүхэлд нь дүүргэх",
-  aiPromptHint: "Доорх бичвэрийг ChatGPT гэх мэт зураг гаргадаг AI-д өгөөд, төгсгөлд нь юу зуруулахаа нэмж бичээрэй. Гарсан зургаа утсандаа хадгалаад доорх нүдэнд оруулж, «Шошгыг бүхэлд нь дүүргэх» дараарай.",
+  aiPromptHint: "Доорх бичвэрийг ChatGPT гэх мэт зураг гаргадаг AI-д өгөөд, төгсгөлд нь юу зуруулахаа нэмж бичээрэй. Гарсан зургаа утсандаа хадгалаад дээрх нүдэнд оруулж, «Шошгыг бүхэлд нь дүүргэх» дараарай.",
   aiPromptTmpl: "{orient} хэлбэртэй, ирмэг хүртэл дүүрэн, цагаан зайгүй зураг хийж өгнө үү. Тод өнгөтэй, энгийн дэвсгэртэй байг.\n\nЮу зурах вэ: ",
   aiOrientLandscape: "хэвтээ",
   aiOrientPortrait: "босоо",
@@ -1749,8 +1887,8 @@ var STR = {
   selected: "сонгосон",
   shiftedFmt: "Хөндлөн {x} mm, босоо {y} mm шилжсэн",
   shrink: "Автомат",
-  sizeFmt: "{w} × {h} mm  ·  {c}×{r}  ·  хуудсанд {n}",
-  sizeFull: "Бүтэн хуудас  ·  1×1  ·  210 × 297 mm",
+  sizeFmt: "{w} × {h} mm · {n} шошго",
+  sizeFull: "Бүтэн хуудас · 210 × 297 mm",
   tAddImg: "Эхлээд зураг нэмээрэй",
   tBuiltin: "Бэлэн хэмжээг устгаж болохгүй",
   tCleared: "{n} {lbl} арилгалаа, өнгөт тэмдэг үлдлээ",
@@ -1877,6 +2015,47 @@ var STR = {
    Same keys as STR. A key missing here falls back to the Mongolian one, so a
    string added to STR without a translation still shows something. */
 var STR_EN = {
+  chipMore: "More",
+  chipSelectLbl: "Select:",
+  fillBtnTitle: "Copy the first selected label to the rest of the selection",
+  fmtBtn: "Format",
+  fmtTitle: "Font, size, bold, colour",
+  fmtWhole: "Whole label",
+  subAdd: "+ Add a small line",
+  listOpen: "Paste a list from Excel",
+  toolsHead: "More options",
+  toolImg: "Logo and pictures",
+  toolSheet: "Paper and printer",
+  toolHelp: "Help and settings",
+  aiTitle: "Make a picture with AI",
+  numHint: "Numbers the selected labels in order, e.g. SKU-001, SKU-002.",
+  tDigitsShort: "Digits",
+  fileHint: "Open an exported file again with “Import”. Use a file to keep a sheet that has pictures.",
+  lblTheme: "Screen colours",
+  kbdClick: "Click",
+  kbdDrag: "Drag",
+  kbdArrows: "Arrows",
+  nextLabel: "Next label",
+  pageAddShort: "Page",
+  paperAria: "Label size",
+  undoAria: "Undo",
+  redoAria: "Redo",
+  bdgOn: "on {n}",
+  bdgOffset: "offset {x} / {y} mm",
+  bdgCustom: "custom size",
+  bdgNoDlg: "reminder off",
+  dlgPartialText: "{filled} of the {total} labels on this sheet have something on them. The rest print blank.",
+  dlgMoreTitle: "Where are these settings?",
+  dlgOffsetNote: "A printer offset is set: {x} mm right, {y} mm down.",
+  obPaperTitle: "Which sheets do you have?",
+  obPaperSub: "Pick the label size printed on the pack.",
+  obPaperRec: "Suggested",
+  obPaperPer: "{n} per sheet",
+  obBack: "← Back",
+  obPaperSkip: "Not sure",
+  exPfx: "e.g. ",
+  tPagesAdded: " — added {p} page(s)",
+  tHeaderSkipped: " (skipped the first row as headings)",
   applyText: "Write to selected",
   badGeom: "Margins and gaps are larger than the page.",
   bold: "Bold",
@@ -1892,7 +2071,7 @@ var STR_EN = {
   chipBlank: "Blank",
   chipFilled: "Filled",
   chipInvert: "Invert",
-  chipNone: "None",
+  chipNone: "Deselect",
   chipTagged: "Tagged",
   chipFilter: "Filter",
   clearBtn: "Clear",
@@ -2030,14 +2209,14 @@ var STR_EN = {
   tMapSkipBc: " — {n} rows weren't valid barcodes, so they stayed as text",
   tQrLong: "The link is too long — shorten it",
   lblSub: "Small line",
-  phSub: "Use by: 2026.12.31",
+  phSub: "e.g. Use by 2026.12.31",
   subHint: "Prints underneath in small type — good for dates, ingredients or an address.",
   lblCopies: "Copies",
-  colsHint: "Separate the name and price with a semicolon (;): name ; price ; small line. End a line with “x3” to print 3 copies.",
+  colsHint: "Paste straight from Excel: the first column becomes the name, the second the price. When typing, separate them with a semicolon (;). End a line with “x3” to print 3 copies.",
   tOverflow: "{n} labels didn't fit — print them on the next sheet",
   dblEdit: "Double-tap a label to edit it in place",
   lblPrice: "Price",
-  phPrice: "89000",
+  phPrice: "e.g. 89000",
   barcodeHint: "Prints the label text as a Code 128 barcode. Only Latin letters, digits and symbols work.",
   priceHint: "The price prints big and bold, with thousands separators and ₮ added for you.",
   tThinBarcode: "The barcode is very thin — a scanner may not read it. A bigger label is more reliable.",
@@ -2045,7 +2224,7 @@ var STR_EN = {
   tBadBarcode: "Barcodes can't contain Cyrillic — use Latin letters",
   listCols: "With two columns pasted, column 1 is the name and column 2 the price",
   emptyTitle: "The sheet is empty",
-  emptyBody: "Select labels and type your text under “Content”",
+  emptyBody: "Select labels and type your text",
   emptySheet: "Empty sheet",
   exportBtn: "Export",
   fillBtn: "Fill",
@@ -2082,7 +2261,7 @@ var STR_EN = {
   lblFace: "Font",
   lblGaps: "Horizontal gap, vertical gap, corner rounding",
   lblImgSize: "Image size",
-  lblList: "Or paste a list — one label per line",
+  lblList: "Paste your list here, one label per line",
   lblMargins: "Margins — top, right, bottom, left",
   calBtn: "Print a calibration page",
   tCalHint: "It prints on plain paper. Hold it against a sticker sheet up to the light and enter any difference under “Printer offset” above.",
@@ -2109,7 +2288,7 @@ var STR_EN = {
   tPresetAuto: "Switched to {name} paper. Using different paper? Change it in the picker at the top.",
   tPresetLost: "{n} labels didn't fit this size and were removed.",
   introNudge: "Replace the example with your own, then press “Write to selected”.",
-  printNudge: "When it's ready, press “Print” in the top right.",
+  printNudge: "When it's ready, press “Print”.",
   lblSize: "Text size (pt)",
   lblSizeSel: "Label size — the paper is always A4, 210 × 297 mm",
   lblText: "Label text",
@@ -2143,9 +2322,9 @@ var STR_EN = {
   secMore: "More tools",
   secAutoNum: "Auto numbering",
   secListFill: "Fill from a list",
-  logoHint: "Shows the image small beside the text. For a full-image label, use the “Image” section above.",
+  logoHint: "Pick a picture and press “Place on selected” to show it small beside the text. To cover the whole label with it, press “Fill the whole label”.",
   placeImgFull: "Fill the whole label",
-  aiPromptHint: "Give the text below to an AI image tool such as ChatGPT and add what you want after it. Save the picture it makes, add it below and press “Fill the whole label”.",
+  aiPromptHint: "Give the text below to an AI image tool such as ChatGPT and add what you want after it. Save the picture it makes, add it above and press “Fill the whole label”.",
   aiPromptTmpl: "Please make a {orient} picture that fills right to the edges, with no white border. Bright colours, a simple background.\n\nWhat to draw: ",
   aiOrientLandscape: "landscape",
   aiOrientPortrait: "portrait",
@@ -2161,8 +2340,8 @@ var STR_EN = {
   selected: "selected",
   shiftedFmt: "Shifted {x} mm across, {y} mm down",
   shrink: "Auto",
-  sizeFmt: "{w} × {h} mm  ·  {c}×{r}  ·  {n} per sheet",
-  sizeFull: "Full sheet  ·  1×1  ·  210 × 297 mm",
+  sizeFmt: "{w} × {h} mm · {n} labels",
+  sizeFull: "Full sheet · 210 × 297 mm",
   tAddImg: "Add an image first",
   tBuiltin: "Built-in sizes can't be deleted",
   tCleared: "Cleared {n} {lbl}; colour tags kept",
@@ -2381,7 +2560,9 @@ function initEditor(){
   var plain = rtPlain(), rt = quill ? rtValue() : rtCurrent;
   var wrap = $("rtWrap");
   wrap.innerHTML = '<div id="rtToolbar">'+toolbarHTML()+'</div><div id="rtEditor"></div>';
-  quill = new Quill("#rtEditor", {theme: "snow", modules: {toolbar: "#rtToolbar"}, placeholder: $("txtInput").placeholder});
+  /* Tab leaves the box: Quill's own Tab typed a tab character into the label and kept the focus */
+  quill = new Quill("#rtEditor", {theme: "snow", modules: {toolbar: "#rtToolbar",
+    keyboard: {bindings: {tab: {key: "Tab", handler: function(){ return true; }}}}}, placeholder: $("txtInput").placeholder});
   var tips = {bold:"rtBold", italic:"rtItalic", underline:"rtUnderline", strike:"rtStrike", color:"rtColor", background:"rtBg",
               align:"rtAlign", lineheight:"rtLh", list:"rtList", clean:"rtClean", font:"rtFont", size:"rtSize"};
   Object.keys(tips).forEach(function(k){
@@ -2611,9 +2792,10 @@ function applyMode(){
      cards already seed with, so it's a real product name where that
      makes sense and a real SKU shape only where SKUs are the point. */
   if(typeof EXAMPLES !== "undefined" && EXAMPLES[lang()] && exampleFor(mode)){
-    $("txtInput").placeholder = exampleFor(mode).t;
-    if(quill) quill.root.dataset.placeholder = exampleFor(mode).t;
+    $("txtInput").placeholder = t("exPfx") + exampleFor(mode).t;
+    if(quill) quill.root.dataset.placeholder = t("exPfx") + exampleFor(mode).t;
   }
+  syncSubRow();
 }
 var curImg = null;
 var paint = false;
@@ -2651,6 +2833,7 @@ function toast(msg){
   $("toastMsg").textContent = msg;
   $("toastUndo").hidden = true;
   $("toast").classList.add("show");
+  placeToast();
   clearTimeout(toastT);
   toastT = setTimeout(function(){ $("toast").classList.remove("show"); }, 2100);
 }
@@ -2664,6 +2847,7 @@ function toastUndo(msg){
   $("toastMsg").textContent = msg;
   $("toastUndo").hidden = false;
   $("toast").classList.add("show");
+  placeToast();
   clearTimeout(toastT);
   /* 5s wasn't long enough to notice a small toast, read it, and find the
      Undo link inside it - especially at normal reading speed, not a
@@ -2684,7 +2868,7 @@ function freshState(){
   var st = {
     presetId:g.id, g:g, pages:[blankCells(g.cols*g.rows)], page:0, images:{},
     style:JSON.parse(JSON.stringify(DEF_STYLE)), custom:[],
-    opts:{guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"}
+    opts:Object.assign({}, DEF_OPTS)
   };
   st.cells = st.pages[0];
   return st;
@@ -2794,7 +2978,8 @@ function cleanCustom(list){
     return o;
   });
 }
-var DEF_OPTS = {guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn"};
+var DEF_OPTS = {guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn",
+                toolsOpen:0, fmtOpen:0, paperChosen:0};
 function cleanOpts(o){
   var out = Object.assign({}, DEF_OPTS), k;
   if(!isObj(o)) return out;
@@ -3433,6 +3618,9 @@ function render(){
   syncFillBanner();
   syncSelUI();
   drawSwatchCounts();
+  syncToolBadges();
+  /* sample chips belong to a fresh sheet; once real labels exist they only take room */
+  $("tplRow").hidden = !((sheetWhollyBlank() || sheetIsOnboardSeedOnly()) && S.pages.length===1);
 }
 /* The exact failure the whole product exists to prevent: choosing a job
    card seeds ONE example label, and if she prints right there she burns
@@ -3543,6 +3731,7 @@ function headers(lw, lh, off){
     for(i=0;i<g.cols;i++)
       h += '<div data-col="'+i+'" style="top:'+((g.pw-x0-i*(lw+g.gx)-lw)*K)+'px;height:'+(lw*K)+'px">'+colName(i)+'</div>';
     $("rowhdr").innerHTML=h;
+    fitHeaderText(lh*K, lw*K);
     return;
   }
   for(i=0;i<g.cols;i++)
@@ -3551,6 +3740,12 @@ function headers(lw, lh, off){
   for(i=0;i<g.rows;i++)
     h += '<div data-row="'+i+'" style="top:'+((y0+i*(lh+g.gy))*K)+'px;height:'+(lh*K)+'px">'+(i+1)+'</div>';
   $("rowhdr").innerHTML=h;
+  fitHeaderText(lh*K, lw*K);
+}
+/* Row numbers are 14px text: on a phone a 15 mm row is ~11px tall and the
+   numbers ran into each other. They shrink with the row they label. */
+function fitHeaderText(rowPx, colPx){
+  $("rowhdr").style.fontSize = Math.max(7, Math.min(14, (rotOn() ? colPx : rowPx)*0.8))+"px";
 }
 
 /* Auto size: find the largest point size whose text still fits the label, so a
@@ -3680,7 +3875,8 @@ function syncSelUI(){
   selCount();
 }
 
-function selCount(){
+function selCount(){ selCountFields(); syncAfterSel(); }
+function selCountFields(){
   var el=$("selCount"), arr=selArr();
   ["applyText","clearCells"].forEach(function(id){
     $(id).classList.toggle("is-empty", !arr.length);
@@ -3835,19 +4031,15 @@ function pasteClip(){
 function pasteText(txt){
   var lines=txt.replace(/\r/g,"").split("\n").filter(function(l){ return l.trim().length; });
   if(!lines.length) return false;
-  var rows=parseRows(lines), ex=modeExtras();
-  var start = sel.size ? selArr()[0] : cur, n=count();
+  var rows=parseRows(lines), skipped=dropHeaderRow(rows), ex=modeExtras();
+  var start = sel.size ? selArr()[0] : cur;
   mark();
-  var out=new Set(), k=0, i;
-  for(i=0;i<rows.length && start+i<n;i++){
-    var idx=start+i, cell=S.cells[idx]||(S.cells[idx]={});
-    rowInto(cell, rows[i], ex);   /* row-owned price; see rowInto() */
-    applyStyleTo(cell);
-    out.add(idx); k++;
-  }
-  sel=out; save(); render();
-  toast(t("tPastedTxt",{n:k,lbl:plural(k)}) +
-        (rows.length>k ? t("tLeftover",{n:rows.length-k}) : ""));
+  /* row-owned prices (see rowInto()); a list longer than the sheet continues on new pages */
+  var r=fillRowsFrom(start, rows, ex);
+  sel=r.out; save(); render();
+  var msg=t("tPastedTxt",{n:rows.length,lbl:plural(rows.length)}) +
+          (r.added ? t("tPagesAdded",{p:r.added}) : "") + (skipped ? t("tHeaderSkipped") : "");
+  if(r.added) toastUndo(msg); else toast(msg);
   return true;
 }
 function fillFromFirst(){
@@ -4130,6 +4322,7 @@ $("applyText").addEventListener("click", function(){
     c.t=v; c.s=sv; writeExtras(c, ex, true); writeX(c, ex.x); applyStyleTo(c);
     var rv = ex.bc ? "" : rtCurrent; if(rv) c.rt = rv; else delete c.rt;
   });
+  nextFrom = n===1 ? selArr()[0] : -1;
   save(); render();
   var wrote = v.trim() || Object.keys(ex.x).some(function(f){ return ex.x[f]; });
   var msg = thin ? t("tThinBarcode") : (wrote ? t("tSet",{n:n,lbl:plural(n)}) : t("tEmptied",{n:n,lbl:plural(n)}));
@@ -4168,28 +4361,56 @@ $("applySeq").addEventListener("click", function(){
   if(mixed) toastUndo(msg); else toast(msg);
 });
 
+/* A first row whose second column is a word ("Үнэ", "Price") above rows whose
+   second column is a number is a copied header row, not a product. */
+function dropHeaderRow(rows){
+  var num = function(v){ return /\d/.test(v||"") && !/[A-Za-zА-Яа-яЁёӨөҮү]/.test(v||""); };
+  if(rows.length>1 && rows[0].p && !num(rows[0].p) && num(rows[1].p)){ rows.shift(); return true; }
+  return false;
+}
+/* Writes rows into consecutive labels from `start`, carrying on into new
+   pages added right after this one, so a list longer than the sheet is
+   never cut short. Returns the labels written on the current page. */
+function fillRowsFrom(start, rows, ex){
+  var n=count(), pg=S.page, i=start, k, added=0, out=new Set();
+  for(k=0;k<rows.length;k++){
+    if(i>=n){ S.pages.splice(pg+1, 0, blankCells(n)); pg++; added++; i=0; }
+    var cell=S.pages[pg][i]||(S.pages[pg][i]={});
+    rowInto(cell, rows[k], ex); applyStyleTo(cell);
+    if(pg===S.page) out.add(i);
+    i++;
+  }
+  return {out:out, added:added};
+}
 $("applyList").addEventListener("click", function(){
-  if(!needSel()) return;
-  var mixed=isMixedOverwrite(selArr());
   var lines=$("listInput").value.split(/\r?\n/).filter(function(s){ return s.trim().length; });
   if(!lines.length){ toast(t("tListEmpty")); return; }
   /* name, price, small line, copies - a trailing bare number means repeat */
-  var rows=parseRows(lines);
-  var rep=$("listRepeat").checked, used=0;
-  var ex=modeExtras();
+  var rows=parseRows(lines), skipped=dropHeaderRow(rows);
+  var rep=$("listRepeat").checked, ex=modeExtras(), arr=selArr(), used=0, added=0, mixed=false;
   mark();
-  selArr().forEach(function(i,k){
-    if(k>=rows.length && !rep) return;
-    var c=S.cells[i]||(S.cells[i]={});
-    var row=rows[rep ? (k%rows.length) : k];
-    /* Same as pasteText(): each row's own price wins over #priceInput. */
-    rowInto(c, row, ex);
-    applyStyleTo(c); used++;
-  });
+  if(arr.length>1){
+    /* several labels selected: fill exactly those */
+    mixed=isMixedOverwrite(arr);
+    arr.forEach(function(i,k){
+      if(k>=rows.length && !rep) return;
+      var c=S.cells[i]||(S.cells[i]={});
+      rowInto(c, rows[rep ? (k%rows.length) : k], ex);
+      applyStyleTo(c); used++;
+    });
+  } else {
+    /* none or one selected - the usual case right after the job picker: one
+       label per row from there on, adding pages when the list is longer */
+    var start = arr.length ? arr[0] : 0, list = rows, k;
+    if(rep){ list=[]; for(k=0; k<Math.max(rows.length, count()-start); k++) list.push(rows[k%rows.length]); }
+    mixed = S.cells.slice(start, start+list.length).some(function(c){ return !isEmpty(c||{}); });
+    var r=fillRowsFrom(start, list, ex); used=list.length; added=r.added; sel=r.out;
+  }
   save(); render();
-  var msg=t("tFilled",{n:used,lbl:plural(used),k:lines.length}) +
-        (!rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : "");
-  if(mixed) toastUndo(msg); else toast(msg);
+  var msg=t("tFilled",{n:used,lbl:plural(used),k:rows.length}) +
+        (arr.length>1 && !rep && rows.length>used ? t("tLeftover",{n:rows.length-used}) : "") +
+        (added ? t("tPagesAdded",{p:added}) : "") + (skipped ? t("tHeaderSkipped") : "");
+  if(mixed || added) toastUndo(msg); else toast(msg);
 });
 
 /* ================= column mapping =================
@@ -4723,7 +4944,7 @@ function pickPreset(id){
   fillGeo(); fitZoom(); save(); render(); syncPresetSel();
   if(lost) toastUndo(t("tPresetLost",{n:lost}));
 }
-$("presetSel").addEventListener("change", function(){ pickPreset(this.value); });
+$("presetSel").addEventListener("change", function(){ S.opts.paperChosen = 1; pickPreset(this.value); });
 /* Sheet-wide, kept in S.g so Undo, saving and share codes carry it; not one
    of GEO, so switching paper size keeps the choice. */
 $("rotBtn").addEventListener("click", function(){
@@ -4788,6 +5009,8 @@ function pageUI(){
   $("pgNext").disabled = S.page===S.pages.length-1;
   $("pgDel").disabled  = S.pages.length<2;
   $("pagebar").style.display = "flex";
+  /* page arrows and delete only mean something once there is a second page */
+  $("pgNav").hidden = S.pages.length<2;
 }
 $("pgPrev").addEventListener("click", function(){ usePage(S.page-1); sel=new Set(); cur=0; save(); render(); });
 $("pgNext").addEventListener("click", function(){ usePage(S.page+1); sel=new Set(); cur=0; save(); render(); });
@@ -4886,19 +5109,31 @@ function doPrint(calibrate){
 var pendingCalibrate=false;
 function askThenPrint(calibrate){
   pendingCalibrate=!!calibrate;
-  var total=count(), filled=filledCount(), incomplete = filled>0 && filled<total;
+  var total=count(), written=S.cells.filter(function(c){ return !isEmpty(c); }), filled=written.length;
+  var incomplete = filled>0 && filled<total;
+  /* "Make them all the same" only where it loses nothing: every written label
+     is the same one. On a sheet of different products it used to be the
+     biggest button in this dialog, and one press replaced them all. */
+  var first = JSON.stringify(written[0]||{});
+  var fixable = incomplete && written.every(function(c){ return JSON.stringify(c)===first; });
   $("dlgFillWarn").hidden = !incomplete;
-  if(incomplete) $("dlgFillWarnText").textContent = t("dlgFillWarnText",{filled:filled,total:total});
+  $("dlgFillWarn").classList.toggle("quiet", !fixable);
+  $("dlgFillWarnBtn").hidden = !fixable;
+  if(incomplete) $("dlgFillWarnText").textContent = t(fixable ? "dlgFillWarnText" : "dlgPartialText", {filled:filled, total:total});
+  /* a printer offset moves every print, so it is said where printing starts */
+  var off = S.opts.ox || S.opts.oy;
+  $("dlgOffset").hidden = !off;
+  if(off) $("dlgOffset").textContent = t("dlgOffsetNote", {x:signed(S.opts.ox), y:signed(S.opts.oy)});
+  $("printMarkersRow").hidden = !S.opts.printMarkers && !S.pages.some(function(pg){ return pg.some(function(c){ return c && c.m; }); });
   /* "Don't show this again" is honoured for the routine printer-settings
-     checklist, but not when the sheet itself is the problem - that's a
-     fresh, higher-priority thing to catch each time it's true, not the
-     thing she opted out of. */
-  /* the checklist is about the browser's print window (margins, scale); the
-     desktop app sets those itself, so there it only shows for a half-filled sheet */
-  if((S.opts.noPrintDlg || DESKTOP) && !incomplete){ doPrint(pendingCalibrate); return; }
+     checklist, but not when one tap would finish a half-made sheet - the
+     desktop app sets the printer settings itself, so it only ever stops there */
+  if((S.opts.noPrintDlg || DESKTOP) && !fixable){ doPrint(pendingCalibrate); return; }
   $("dlgNever").checked=false;
   $("printDlg").hidden=false;
-  $("dlgGo").focus();
+  /* focusing Print scrolled a short window down past its own title */
+  $("printDlg").querySelector(".modal").scrollTop=0;
+  $("dlgGo").focus({preventScroll:true});
 }
 $("dlgFillWarnBtn").addEventListener("click", function(){
   $("printDlg").hidden=true;
@@ -4917,7 +5152,7 @@ $("dlgGo").addEventListener("click", function(){
    read closely) permanently removes the only printer-settings guidance
    in the app. This button only appears once that's actually the current
    state, so it's invisible/irrelevant the rest of the time. */
-function syncRestorePrintDlgBtn(){ $("restorePrintDlgBtn").hidden = !S.opts.noPrintDlg; }
+function syncRestorePrintDlgBtn(){ $("restorePrintDlgBtn").hidden = !S.opts.noPrintDlg; syncToolBadges(); }
 $("restorePrintDlgBtn").addEventListener("click", function(){
   S.opts.noPrintDlg = 0; save();
   syncRestorePrintDlgBtn();
@@ -4966,7 +5201,11 @@ function looksFirstRun(){
   return sheetWhollyBlank() && S.pages.length===1 && !sheetHasImages() &&
          S.custom.length===0 && !S.opts.onboardSkipped;
 }
-function openOnboarding(){ $("onboardWrap").hidden = false; }
+function openOnboarding(){
+  showJobStep();
+  $("onboardWrap").hidden = false;
+  $("onboardWrap").querySelector(".obModal").focus({preventScroll:true});
+}
 function closeOnboarding(){ $("onboardWrap").hidden = true; }
 function maybeShowOnboarding(){
   if(looksFirstRun()) openOnboarding();
@@ -4976,7 +5215,10 @@ function skipOnboarding(){
   closeOnboarding();
 }
 $("onboardClose").addEventListener("click", skipOnboarding);
-$("onboardSkipBtn").addEventListener("click", skipOnboarding);
+/* on the paper step, "not sure" takes the job's usual paper */
+$("onboardSkipBtn").addEventListener("click", function(){
+  if(obJob) seedJob(obJob, PRESET_FOR_MODE[obJob], false); else skipOnboarding();
+});
 $("onboardWrap").addEventListener("click", function(e){ if(e.target===this) skipOnboarding(); });
 document.addEventListener("keydown", function(e){
   if(e.key==="Escape" && !$("onboardWrap").hidden) skipOnboarding();
@@ -5127,7 +5369,8 @@ $("tplRow").addEventListener("click", function(e){
     toast(t("tTplLoaded",{name: t(tp.name)}));
     return;
   }
-  if(tp.preset !== S.presetId) pickPreset(tp.preset);
+  /* the sample's usual paper, unless she has said which paper she has */
+  if(tp.preset !== S.presetId && !S.opts.paperChosen) pickPreset(tp.preset);
   var wantTall = !!tp.rot;
   mark();
   S.cells[0] = c; seededJSON = JSON.stringify(c);
@@ -5154,29 +5397,61 @@ function sheetIsOnboardSeedOnly(){
   for(i=1;i<cells.length;i++){ if(!isEmpty(cells[i]) || (cells[i] && cells[i].m)) return false; }
   return true;
 }
+/* Picking a job used to switch the paper to that job's usual size, with a
+   3-second toast as the only sign - printed on the sheets she actually has,
+   that ruins a sheet. On a fresh sheet the picker now asks which paper she
+   has (the job's usual one marked) before writing the example label. */
+var obJob = null;
 function chooseJob(mode){
   var freshSheet = (sheetWhollyBlank() || sheetIsOnboardSeedOnly()) && S.pages.length===1 && !sheetHasImages();
   S.opts.mode = mode; applyMode();
-
   if(freshSheet){
-    var presetId = PRESET_FOR_MODE[mode];
-    if(presetId !== S.presetId){
-      pickPreset(presetId);
-      var pp=allPresets().filter(function(x){ return x.id===presetId; })[0];
-      if(pp) toast(t("tPresetAuto",{name: pp.full ? t("sizeFull") : (r2(pp.w)+"×"+r2(pp.h)+" mm")}));
-    }
-    mark();
-    S.cells[0] = Object.assign({}, exampleFor(mode)); seededJSON = JSON.stringify(S.cells[0]);
-    sel = new Set([0]); cur = 0; anchor = 0;
-    save(); render();
-    closeOnboarding();
-    showIntroNudge();
+    if(S.opts.paperChosen) seedJob(mode, null, false);
+    else showPaperStep(mode);
   } else {
     save();
     toast(t("tModeSet",{lbl: $("modeSeg").querySelector(".on").textContent}));
     closeOnboarding();
   }
 }
+function seedJob(mode, presetId, chosen){
+  if(presetId && presetId !== S.presetId) pickPreset(presetId);
+  if(chosen) S.opts.paperChosen = 1;
+  mark();
+  S.cells[0] = Object.assign({}, exampleFor(mode)); seededJSON = JSON.stringify(S.cells[0]);
+  sel = new Set([0]); cur = 0; anchor = 0;
+  save(); render();
+  closeOnboarding();
+  showIntroNudge();
+}
+function showPaperStep(mode){
+  obJob = mode;
+  var rec = PRESET_FOR_MODE[mode] || BUILTIN[0].id;
+  $("obH").textContent = t("obPaperTitle");
+  document.querySelector("#onboardWrap .obSub").textContent = t("obPaperSub");
+  $("obPapers").innerHTML = BUILTIN.map(function(p){
+    var cells = new Array(p.cols*p.rows+1).join("<i></i>");
+    return '<button type="button" class="obCard obPaper'+(p.id===rec ? ' rec' : '')+'" data-preset="'+esc(p.id)+'">'+
+      '<span class="obSheet" style="grid-template-columns:repeat('+p.cols+',1fr);grid-template-rows:repeat('+p.rows+',1fr)">'+cells+'</span>'+
+      '<b>'+p.w+' &times; '+p.h+' mm</b><span>'+esc(t("obPaperPer",{n:p.cols*p.rows}))+'</span>'+
+      (p.id===rec ? '<em class="obRec">'+esc(t("obPaperRec"))+'</em>' : '')+'</button>';
+  }).join("");
+  $("obGrid").hidden = true; $("obPapers").hidden = false; $("obBackBtn").hidden = false;
+  $("onboardSkipBtn").textContent = t("obPaperSkip");
+  $("onboardWrap").querySelector(".obModal").scrollTop = 0;
+}
+function showJobStep(){
+  obJob = null;
+  $("obH").textContent = t("obTitle");
+  document.querySelector("#onboardWrap .obSub").textContent = t("obSub");
+  $("obGrid").hidden = false; $("obPapers").hidden = true; $("obBackBtn").hidden = true;
+  $("onboardSkipBtn").textContent = t("obSkip");
+}
+$("obPapers").addEventListener("click", function(e){
+  var b = e.target.closest(".obPaper"); if(!b || !obJob) return;
+  seedJob(obJob, b.dataset.preset, true);
+});
+$("obBackBtn").addEventListener("click", showJobStep);
 Array.prototype.forEach.call($("obGrid").children, function(card){
   card.addEventListener("click", function(){ chooseJob(card.dataset.mode); });
 });
@@ -5283,12 +5558,113 @@ $("clearAll").addEventListener("click", function(){
   S.cells=blankCells(count()); sel=new Set(); save(); render(); toast(t("tSheetEmpty"));
 });
 
+/* ================= simple first, details on demand =================
+   The panel opens with only what every job needs: the job, the text, that
+   job's own fields and Write. Everything else lives in named rows under
+   "Бусад боломжууд", closed until wanted. Each row remembers being open, and
+   a row whose feature this sheet already uses says so on its badge, so
+   nothing made with it is ever out of sight without a sign. */
+var TOOLS = ["list","img","num","tag","sheet","file","help"];
+function toolEl(k){ return $("tool-"+k); }
+function syncToolsOpen(){
+  TOOLS.forEach(function(k, i){ toolEl(k).open = !!((S.opts.toolsOpen||0) & (1<<i)); });
+}
+function openTool(k){
+  var el = toolEl(k); el.open = true;
+  el.scrollIntoView({block:"nearest"});
+}
+TOOLS.forEach(function(k, i){
+  toolEl(k).addEventListener("toggle", function(){
+    var m = S.opts.toolsOpen||0, open = this.open;
+    var next = open ? (m | (1<<i)) : (m & ~(1<<i));
+    if(next !== m){ S.opts.toolsOpen = next; save(); }
+    /* paint mode turns clicks on the sheet into tagging; it must not outlive its panel */
+    if(k==="tag" && !open && paint) $("paintBtn").click();
+  });
+});
+function setBadge(k, txt){ var b=$("bdg-"+k); if(!b) return; b.textContent=txt; b.hidden=!txt; }
+function signed(v){ v=r2(v||0); return (v>0 ? "+" : "")+v; }
+function syncToolBadges(){
+  if(!S) return;
+  var img=0, tag=0;
+  S.pages.forEach(function(pg){ pg.forEach(function(c){ if(c && c.img) img++; if(c && c.m) tag++; }); });
+  setBadge("img", img ? t("bdgOn",{n:img}) : "");
+  setBadge("tag", tag ? t("bdgOn",{n:tag}) : "");
+  setBadge("sheet", (S.opts.ox||S.opts.oy) ? t("bdgOffset",{x:signed(S.opts.ox), y:signed(S.opts.oy)})
+                    : (S.presetId==="custom" ? t("bdgCustom") : ""));
+  setBadge("help", S.opts.noPrintDlg ? t("bdgNoDlg") : "");
+}
+
+/* the text-formatting toolbar and the whole-label type settings, behind one "Aa" switch */
+function syncFmt(){
+  var on = !!S.opts.fmtOpen;
+  document.body.classList.toggle("fmtOpen", on);
+  $("fmtBtn").setAttribute("aria-expanded", on ? "true" : "false");
+}
+$("fmtBtn").addEventListener("click", function(){
+  S.opts.fmtOpen = S.opts.fmtOpen ? 0 : 1; save(); syncFmt();
+});
+
+/* The small line is offered rather than shown: it opens on request, for the
+   jobs that use it (address note, packaging maker) and whenever it has text. */
+var subForced = false;
+function syncSubRow(){
+  var m = (S && S.opts && S.opts.mode) || "plain";
+  var show = subForced || m==="addr" || m==="pack" || !!$("subInput").value.trim();
+  $("subRow").hidden = !show; $("subAddBtn").hidden = show;
+}
+$("subAddBtn").addEventListener("click", function(){ subForced = true; syncSubRow(); $("subInput").focus(); });
+$("listOpenBtn").addEventListener("click", function(){
+  openTool("list");
+  setTimeout(function(){ $("listInput").focus(); }, 30);
+});
+
+/* After writing one label, the obvious next step for labels that differ
+   (addresses, a list typed by hand) is the next one - without this, the next
+   Write overwrote the label just made. Offered only while that label is still
+   the one selected. */
+var nextFrom = -1;
+function syncAfterSel(){
+  var arr = selArr(), one = arr.length===1;
+  $("nextLabelBtn").hidden = !(one && arr[0]===nextFrom && nextFrom < count()-1);
+  var styled = false;
+  if(one){
+    var c = S.cells[arr[0]]||{}, st = Object.assign({}, DEF_STYLE, c);
+    styled = !!c.rt || (st.ff||0)!==0 || !!st.up || !st.b || !st.fit;
+  }
+  $("fmtBtn").classList.toggle("has", styled);
+  syncSubRow();
+}
+$("nextLabelBtn").addEventListener("click", function(){
+  var i = nextFrom + 1; nextFrom = -1;
+  if(i >= count()) return;
+  sel = new Set([i]); cur = i; anchor = i; syncSelUI();
+  editorFocus();
+});
+
+/* Escape closes whichever dialog is open */
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape") return;
+  ["printDlg","shareDlg","loadDlg","mapDlg"].forEach(function(id){ if(!$(id).hidden) $(id).hidden = true; });
+});
+
+/* On a phone the toast landed on the form being typed into; there it sits at
+   the foot of the sheet preview instead. */
+function placeToast(){
+  var el = $("toast");
+  if(window.matchMedia && matchMedia("(max-width:900px)").matches){
+    var r = $("stage").getBoundingClientRect();
+    el.style.top = Math.max(8, r.bottom - el.offsetHeight - 10)+"px"; el.style.bottom = "auto";
+  } else { el.style.top = ""; el.style.bottom = ""; }
+}
+
 /* ================= init ================= */
 function syncOpts(){
   $("printMarkers").checked=!!S.opts.printMarkers;
   $("guideChk").checked=!!S.opts.guides;
   $("idxChk").checked=!!S.opts.idx;
   syncRestorePrintDlgBtn();
+  syncToolsOpen(); syncFmt();
   var st=Object.assign({}, DEF_STYLE, S.style||{});
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
   $("layoutSel").value=arrangeForLogoUI(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
