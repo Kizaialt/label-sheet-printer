@@ -969,6 +969,12 @@ details.tool details.sub{background:var(--panel)}
     position:absolute;left:0;top:0;margin:0;transform:none !important;
     box-shadow:none;break-inside:avoid;page-break-after:avoid;
   }
+  /* "180° эргүүлж хэвлэх": for a printer that prints the page upside down on
+     the sheet. Each page turns about its own middle, so it stays on the page
+     and the labels land on the same cut shapes, right way up. The printer
+     offset is applied before the turn, so it still means right/down as the
+     sheet is held. The screen preview is never turned. */
+  html.flip180 .sheet,html.flip180 #printsheets .printsheet{transform:rotate(180deg) !important;transform-origin:50% 50% !important}
   .sheet.spot .cell{opacity:1 !important}
   .cell{outline:none !important;background:none !important;opacity:1 !important}
   .cell.cur::after,.cell.lit::before{display:none}
@@ -1294,6 +1300,10 @@ details.tool details.sub{background:var(--panel)}
               <div class="hint" style="margin-top:6px" data-i18n="offsetHint"></div>
               <button type="button" class="linkBtn plain" id="offsetReset" data-i18n="resetBtn">Reset</button>
             </div>
+            <div>
+              <label class="check"><input type="checkbox" id="flipChk"> <span data-i18n="optFlip">Print turned 180°</span></label>
+              <div class="hint" data-i18n="flipHint"></div>
+            </div>
             <button class="btn wide" id="calBtn" data-i18n="calBtn">Print a calibration page</button>
             <label class="check"><input type="checkbox" id="idxChk" checked> <span data-i18n="optIdx">Number the blank labels on screen</span></label>
             <details class="sub">
@@ -1410,6 +1420,8 @@ details.tool details.sub{background:var(--panel)}
     <div class="dlgChecks">
       <label class="check"><input type="checkbox" id="guideChk">
         <span data-i18n="optCut">Print cut lines</span></label>
+      <label class="check"><input type="checkbox" id="flipChkDlg">
+        <span data-i18n="optFlip">Print turned 180°</span></label>
       <label class="check" id="printMarkersRow"><input type="checkbox" id="printMarkers">
         <span data-i18n="printDots">Print the dots too</span></label>
       <label class="check"><input type="checkbox" id="dlgNever">
@@ -1562,6 +1574,10 @@ var SITE = DESKTOP ? "https://naald.mn/" : "";
    purpose for anything read off a box, a keyboard or a print dialog:
    A4, mm, pt, PNG, JPG, SVG, SKU, Ctrl, Shift, Del, Sans, Serif, Mono. */
 var STR = {
+  optFlip: "180° эргүүлж хэвлэх",
+  flipHint: "Принтер тань хуудсыг урвуу хэвлэдэг бол асаагаарай. Дэлгэц дээрх харагдац өөрчлөгдөхгүй, зөвхөн хэвлэхэд эргэнэ.",
+  tFlipOn: "Хэвлэхдээ 180° эргүүлнэ",
+  tFlipOff: "Ердийнхөөрөө хэвлэнэ",
   chipMore: "Бусад",
   chipSelectLbl: "Сонгох:",
   fillBtnTitle: "Эхний сонгосон шошгыг бусад сонгосон руу хуулна",
@@ -2015,6 +2031,10 @@ var STR = {
    Same keys as STR. A key missing here falls back to the Mongolian one, so a
    string added to STR without a translation still shows something. */
 var STR_EN = {
+  optFlip: "Print turned 180°",
+  flipHint: "Turn this on if your printer prints the sheet upside down. The screen stays as it is; only the print is turned.",
+  tFlipOn: "Prints will be turned 180°",
+  tFlipOff: "Prints the normal way up",
   chipMore: "More",
   chipSelectLbl: "Select:",
   fillBtnTitle: "Copy the first selected label to the rest of the selection",
@@ -2979,7 +2999,7 @@ function cleanCustom(list){
   });
 }
 var DEF_OPTS = {guides:false, idx:true, printMarkers:false, theme:"light", ox:0, oy:0, mode:"plain", noPrintDlg:0, onboardSkipped:0, introNudgeSeen:0, printNudgeSeen:0, lang:"mn",
-                toolsOpen:0, fmtOpen:0, paperChosen:0};
+                toolsOpen:0, fmtOpen:0, paperChosen:0, flip:0};
 function cleanOpts(o){
   var out = Object.assign({}, DEF_OPTS), k;
   if(!isObj(o)) return out;
@@ -5590,8 +5610,11 @@ function syncToolBadges(){
   S.pages.forEach(function(pg){ pg.forEach(function(c){ if(c && c.img) img++; if(c && c.m) tag++; }); });
   setBadge("img", img ? t("bdgOn",{n:img}) : "");
   setBadge("tag", tag ? t("bdgOn",{n:tag}) : "");
-  setBadge("sheet", (S.opts.ox||S.opts.oy) ? t("bdgOffset",{x:signed(S.opts.ox), y:signed(S.opts.oy)})
-                    : (S.presetId==="custom" ? t("bdgCustom") : ""));
+  var sh = [];
+  if(S.opts.flip) sh.push("180°");
+  if(S.opts.ox||S.opts.oy) sh.push(t("bdgOffset",{x:signed(S.opts.ox), y:signed(S.opts.oy)}));
+  else if(S.presetId==="custom") sh.push(t("bdgCustom"));
+  setBadge("sheet", sh.join(" · "));
   setBadge("help", S.opts.noPrintDlg ? t("bdgNoDlg") : "");
 }
 
@@ -5642,6 +5665,19 @@ $("nextLabelBtn").addEventListener("click", function(){
   editorFocus();
 });
 
+/* print turned 180° - one setting, two switches (paper row and print dialog) */
+function syncFlip(){
+  var on = !!S.opts.flip;
+  document.documentElement.classList.toggle("flip180", on);
+  $("flipChk").checked = on; $("flipChkDlg").checked = on;
+}
+["flipChk","flipChkDlg"].forEach(function(id){
+  $(id).addEventListener("change", function(){
+    S.opts.flip = this.checked ? 1 : 0; save(); syncFlip(); syncToolBadges();
+    toast(t(S.opts.flip ? "tFlipOn" : "tFlipOff"));
+  });
+});
+
 /* Escape closes whichever dialog is open */
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
@@ -5664,7 +5700,7 @@ function syncOpts(){
   $("guideChk").checked=!!S.opts.guides;
   $("idxChk").checked=!!S.opts.idx;
   syncRestorePrintDlgBtn();
-  syncToolsOpen(); syncFmt();
+  syncToolsOpen(); syncFmt(); syncFlip();
   var st=Object.assign({}, DEF_STYLE, S.style||{});
   $("fontSize").value=st.fs; $("fontFam").value=FONTS[st.ff||0];
   $("layoutSel").value=arrangeForLogoUI(st.lay); $("imgSize").value=st.is; $("imgSizeVal").textContent=st.is+"%";
